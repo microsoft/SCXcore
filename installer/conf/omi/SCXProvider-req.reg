@@ -1,0 +1,5 @@
+# omireg <PATH>/libSCXCoreProviderModule.so
+LIBRARY=SCXCoreProviderModule
+HOSTING=@requestor@
+CLASS=SCX_LogFile:CIM_LogicalFile:CIM_LogicalElement:CIM_ManagedSystemElement:CIM_ManagedElement
+CLASS=SCX_OperatingSystem:CIM_OperatingSystem:CIM_EnabledLogicalElement:CIM_LogicalElement:CIM_ManagedSystemElement:CIM_ManagedElement

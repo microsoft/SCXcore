@@ -1,0 +1,62 @@
+ -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+#--------------------------------------------------------------------------------
+
+ifeq ($(PF_DISTRO_ULINUX_D),1)
+  PF_AGENTTYPE=D
+else
+
+  ifeq ($(PF_DISTRO_ULINUX_R),1)
+    PF_AGENTTYPE=R
+  else
+    PF_AGENTTYPE=
+  endif
+
+endif
+
+# Easy way to just run installer (if you know all targets are built properly)
+installerOnly: GetLinuxOS
+	$(ECHO) "========================= Performing make installer"
+	python $(SCX_BRD)/installer/InstallerBuilder/installerbuild.py \
+		--basedir=$(SCX_BRD) \
+		--pf=$(PF) \
+		--pfmajor=$(PF_MAJOR) \
+		--pfminor=$(PF_MINOR) \
+		--pfdistro=$(PF_DISTRO) \
+		--pfagenttype=$(PF_AGENTTYPE) \
+		--pfarch=$(PF_ARCH) \
+		--pfwidth=$(PF_WIDTH) \
+		--bt=$(BUILD_TYPE) \
+		--major=$(SCX_BUILDVERSION_MAJOR) \
+		--minor=$(SCX_BUILDVERSION_MINOR) \
+		--patch=$(SCX_BUILDVERSION_PATCH) \
+		--buildnr=$(SCX_BUILDVERSION_BUILDNR) \
+		--omidir=$(SCXOMI_DIR)
+
+installerPackage: \
+	scxcore-status $(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) \
+	scx-tools-status scx-tools installerOnly
+
+ssl-tool-status:
+	$(ECHO) "========================= Performing make ssl-tool"
+
+scx-tools-status:
+	$(ECHO) "========================= Performing make scx-tools"
+
+scxcore-status:
+	$(ECHO) "========================= Performing make OpsMgr"
+
+ifeq ($(PF_DISTRO),ULINUX)
+GetLinuxOS: $(TARGET_DIR)/GetLinuxOS.sh
+
+$(TARGET_DIR)/GetLinuxOS.sh: $(SCXPAL_TARGET_DIR)/GetLinuxOS.sh
+	sed "s@<RelDir>@/etc/opt/microsoft/scx/conf@" $(SCXPAL_TARGET_DIR)/GetLinuxOS.sh > $(TARGET_DIR)/GetLinuxOS.sh
+	chmod +x $(TARGET_DIR)/GetLinuxOS.sh
+else
+GetLinuxOS:
+endif
+
+#-------------------------------- End of File -----------------------------------

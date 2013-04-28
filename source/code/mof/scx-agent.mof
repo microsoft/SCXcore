@@ -1,0 +1,117 @@
+// -*- idl -*-
+#pragma locale ("en_US")
+
+// SCX_Agent
+// -------------------------------------------------------------------
+[   Version ( "1.4.7" ), 
+    Description (
+        "SCX Agent meta-information")
+    ]
+class SCX_Agent : CIM_LogicalElement {
+    
+    [ Key,
+      Override( "Name" ),
+      Description ( "SCX_Agent identifier" ) 
+    ]
+    string Name;
+    
+    
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "SCX Agent meta-information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Information about the currenly installed version of SCX and the system it runs on";
+
+    [   Description ( 
+        "A string representing the complete software version" )
+        ]
+    string VersionString;
+    
+    [   Description ( 
+        "The major number component of the version value" )
+        ]
+    uint16 MajorVersion;
+    
+    [   Description ( 
+            "The minor number component of the version" )
+        ]
+    uint16 MinorVersion;
+
+    [   Description ( 
+            "The revision or maintenance release component of the "
+            "version" )
+        ]
+    uint16 RevisionNumber;
+
+    [   Description (
+            "The build number of the software" )
+        ]
+    uint16 BuildNumber;
+
+    [   Description ( 
+            "The date the software was built or released" )
+        ]
+    string BuildDate;
+
+    [   Description ( 
+            "The system architecture (e.g. x86 or IA64) " )
+        ]
+    string Architecture;
+
+    [   Description ( 
+            "The system operating system (e.g. Red hat Enterprise Server or SunOS)" )
+        ]
+    string OSName;
+
+    [   Description ( 
+            "The system operating system type (e.g. Linux or SunOS)" )
+        ]
+    string OSType;
+
+    [   Description ( 
+            "The system operating system version (e.g. 10 or 5.10)" )
+        ]
+    string OSVersion;
+
+    [   Description ( 
+            "A string representing the complete software version of the installed kit" )
+        ]
+    string KitVersionString;
+
+        [   Description ( 
+            "The hostname of the machine (including domain name if available)" )
+        ]
+    string Hostname;
+
+    [   Description ( 
+            "Short name version of the OSName that provides an abbreviated name of OS without formating." )
+        ]
+    string OSAlias;
+
+    [   Description ( 
+            "Output of uname -m or uname -p" )
+        ]
+    string UnameArchitecture;
+
+    [   Description ( 
+            "Lowest log severity threshold currently in use in the agent" ),
+        ValueMap {"HYSTERICAL", "TRACE", "INFO", "WARNING", "ERROR", "SUPPRESS"}
+        ]
+    string MinActiveLogSeverityThreshold;
+
+    [   Description ( 
+            "Type of hardware this machine runs on (Physical or Virtual)" ),
+        ValueMap {"Physical", "Virtual", "Unknown"}
+        ]
+    string MachineType;
+
+    [   Description ( 
+            "Number of physical processors in the machine" )
+        ]
+    uint64 PhysicalProcessors;
+
+    [   Description ( 
+            "Number of logical processors in the machine" )
+        ]
+    uint64 LogicalProcessors;
+};

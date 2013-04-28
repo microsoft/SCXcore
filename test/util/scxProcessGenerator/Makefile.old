@@ -1,0 +1,78 @@
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+
+# Source, header, and library files.
+HEADERS=platform.h \
+	scxProcess.h \
+	scxProcessGenerator.h \
+	StringArrayGenerator.h \
+	TempCopyFile.h \
+	Usage.h
+
+SOURCES=main.cpp \
+	platform.cpp \
+	scxProcess.cpp \
+	scxProcessGenerator.cpp \
+	StringArrayGenerator.cpp \
+	TempCopyFile.cpp \
+	Usage.cpp
+
+LINK_LIBS=kernel32.lib \
+	  user32.lib \
+	  gdi32.lib \
+	  winspool.lib \
+	  comdlg32.lib \
+	  advapi32.lib \
+	  shell32.lib \
+	  ole32.lib \
+	  oleaut32.lib \
+	  uuid.lib \
+	  odbc32.lib \
+	  odbccp32.lib
+
+UNAME=$(shell uname)
+
+# Platform dependenent build options.
+ifeq ($(UNAME),AIX)
+	CXX=xlC_r -q64 -Daix -lperfstat -o $@ 
+endif 
+ifeq ($(UNAME),HP-UX)
+	UNAME_M=$(shell uname -m)
+	ifeq ($(UNAME_M),ia64)
+		CXX=aCC -Dhpux +DD64 -D_LARGE_FILES -AA -mt +We +W2236,2111,2815,2334 -o $@
+	else
+		CXX=aCC -Dhpux +DD64 -D_LARGE_FILES -AA -mt +W2236,2111,2815,2334 -o $@
+	endif
+endif
+ifeq ($(UNAME),Linux)
+	CXX=g++ -Wall -D_FILE_OFFSET_BITS=64 -o $@
+endif 
+ifeq ($(UNAME),SunOS)
+	CXX=CC -o $@
+endif
+
+# Tool descriptions
+# RM - Remove a file
+# RMDIR - Remove a directory
+# MKPATH - Create a directory and all necessary dirs along the way
+# NOOP - Command which is not executed on this platform
+# pf_tp(path_list) - Transform the paths in the list to paths accepted by platform
+# pf_fwrite(text,filename) - Creates/replaces a new file with 'text' as content
+# pf_fappend(text,filename) - Append text to file at the end
+
+ifeq ($(UNAME),Windows_NT)
+	RM=cmd /c del /f /q
+else
+	RM=rm -f
+endif
+
+# Application build targets.
+all : scxProcessGenerator
+
+clean:
+	$(RM) scxProcessGenerator
+	$(RM) *.o
+
+scxProcessGenerator : $(SOURCES) $(HEADERS)
+	$(CXX) $(SOURCES) -lpthread

@@ -1,0 +1,121 @@
+-*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2008-02-14
+# 
+# MacOS/X (Darwin) Platform-specific overrides to the general POSIX platform file
+# 
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# Check versions
+#--------------------------------------------------------------------------------
+
+MACOS_VERSION=$(shell sw_vers -productVersion)
+PF_PARTS=$(subst ., ,$(MACOS_VERSION))
+
+# Typically 10
+PF_MAJOR=$(word 1,$(PF_PARTS))
+# Typically 5
+PF_MINOR=$(word 2,$(PF_PARTS))
+
+
+include Makefile.gcc4
+# Override from Makefile.gcc4
+CXX_CGEN_FLAGS=-fPIC
+
+DEFINES=-Dmacos -DPF_MAJOR=$(PF_MAJOR) -DPF_MINOR=$(PF_MINOR)
+
+ifeq ($(SCX_STACK_ONLY), true)
+	DEFINES += -DSCX_STACK_ONLY
+endif
+
+#--------------------------------------------------------------------------------
+# Check architecture - Intel is x86; double check (if needed) support for PPC
+#--------------------------------------------------------------------------------
+
+PF_ARCH=x86
+
+#--------------------------------------------------------------------------------
+# Build width
+#--------------------------------------------------------------------------------
+PF_WIDTH=32
+
+#--------------------------------------------------------------------------------
+# Paths
+#--------------------------------------------------------------------------------
+
+# Path to where the CPPUNIT libraries are checked in 
+CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/mac/ia32/cppunit
+
+#--------------------------------------------------------------------------------
+# Tools on this platform
+#--------------------------------------------------------------------------------
+
+# Link a dynamic lib 
+LINK_DYNLIB=g++ -dynamiclib -Xlinker -install_name -Xlinker /usr/libexec/microsoft/scx/lib -m32 -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR) -all_load
+
+#--------------------------------------------------------------------------------
+# Link switches for this platform, per target
+#--------------------------------------------------------------------------------
+
+LDFLAGS_DYNLIB = -ldl -lpthread -framework CoreServices
+LDFLAGS_EXECUTABLE = -ldl -lpthread -framework CoreServices
+
+# The Core Provider Module links with these 
+LDFLAGS_COREPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# The Test Provider Module links with these
+LDFLAGS_TESTPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# No per function retain flag for Mac, use exp file for exposed symbols
+get_ld_flags_for_retaining_symbols=
+
+# No per function strip flags for Mac, since we use the exp file for exposed symbols
+get_stip_flags=
+
+# Core Provider specific link flags. Used to specify what symbols should be exported
+COREPROVIDERMODULE_EXTRA_LINKFLAGS=-Xlinker -exported_symbols_list -Xlinker $(INTERMEDIATE_DIR)/coreprovider.exp
+
+# Test Provider specific link flags. Used to specify what symbols should be exported
+TESTPROVIDERMODULE_EXTRA_LINKFLAGS=-Xlinker -exported_symbols_list -Xlinker $(INTERMEDIATE_DIR)/testprovider.exp
+
+# Provide strip argument with the exposed symbols file for the core provider
+COREPROVIDERMODULE_EXTRA_STRIPFLAGS=-u -r -s $(INTERMEDIATE_DIR)/coreprovider.exp
+
+# Provide strip argument with the exposed symbols file for the test provider
+TESTPROVIDERMODULE_EXTRA_STRIPFLAGS=-u -r -s $(INTERMEDIATE_DIR)/testprovider.exp
+
+# The exposed symbols in the exposed symbols file need to be prefixed with an underscore
+EXPOSED_SYMS_PREFIX=_
+
+# The testrunner links with these
+LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE)   
+
+# Run pkg-config to get ssl library switches for this platform
+SSL_LIBS = `pkg-config --libs openssl`
+
+#--------------------------------------------------------------------------------
+# Compiler switch tweaks
+#--------------------------------------------------------------------------------
+
+CXXFLAGS+=$(DEFINES) -Wno-long-long -I/Developer/Headers/FlatCarbon
+
+#--------------------------------------------------------------------------------
+# Link command for static libraries (archives - retweaked for Mac OS X)
+#--------------------------------------------------------------------------------
+LINK_STATLIB=ar -r -c
+
+# For Mac OS X, the ar command does not support to -o command switch for
+# for specifying output files.  Instead, it relies on order
+#
+LINK_STATLIB_OUTFLAG=$@
+
+#--------------------------------------------------------------------------------
+# File type suffixes
+
+PF_DYN_LIB_FILE_SUFFIX=dylib
+
+#-------------------------------- End of File -----------------------------------
+

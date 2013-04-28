@@ -1,0 +1,236 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+# 
+# Platform-specific overrides to the general POSIX platform file
+# 
+#--------------------------------------------------------------------------------
+
+
+#--------------------------------------------------------------------------------
+# Check Major version
+#--------------------------------------------------------------------------------
+
+CHECK_SUSE=$(shell if [ -e /etc/SuSE-release ]; then echo 1; fi)
+CHECK_RHEL_OR_CENTOS=$(shell if [ -e /etc/redhat-release ]; then echo 1; fi)
+
+ifeq ($(CHECK_RHEL_OR_CENTOS), 1)
+	CHECK_CENTOS=$(shell grep -i "Red Hat" /etc/redhat-release || echo 1)
+	ifneq ($(CHECK_CENTOS), 1)
+		CHECK_RHEL=1
+	endif
+endif
+
+# scripts below extract version information from corresponding "release" file,
+# assuming version can be found as "<space><Major>[.<Minor>]";
+# if minor is not set, "0" is returned
+ifeq ($(CHECK_SUSE),1)
+	PF_DISTRO=SUSE
+	PF_MAJOR=$(shell head -n 1 /etc/SuSE-release | sed 's/.* \([0-9][0-9]*\)[ \.].*/\1/')
+	PF_MINOR=$(shell (head -n 1 /etc/SuSE-release | sed 's/.* [0-9][0-9]*[\.]\([0-9][0-9]*\).*/\1/') | grep -v '[^0-9]' || echo '0')
+endif
+
+ifeq ($(CHECK_RHEL),1)
+	PF_DISTRO=REDHAT
+	PF_MAJOR=$(shell head -n 1 /etc/redhat-release | sed 's/.* \([0-9][0-9]*\)[ \.].*/\1/')
+	PF_MINOR=$(shell (head -n 1 /etc/redhat-release | sed 's/.* [0-9][0-9]*[\.]\([0-9][0-9]*\).*/\1/') | grep -v '[^0-9]' || echo '0')
+endif
+
+
+# Handle universal agents
+
+ifneq ($(PF_DISTRO), REDHAT)
+ifneq ($(PF_DISTRO), SUSE)
+	PF_DISTRO=ULINUX
+	PF_DISTRO_ULINUX_D=$(shell [ -e /usr/bin/dpkg ] && echo 1)
+	ifneq ($(PF_DISTRO_ULINUX_D), 1)
+		PF_DISTRO_ULINUX_R=$(shell [ -e /usr/bin/rpmbuild ] && echo 1)
+	endif
+
+	# Reassign SCXOMI directories to any OMI output directory (generic non-SSL use)
+	SCXOMI_DEV_ROOT := $(SCXOMI_DIR)/output_openssl_1.0.0
+	SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include
+	SCXOMI_LIBS := $(SCXOMI_DEV_ROOT)/lib
+
+	# Set PF_MAJOR and PF_MINOR to fake values to pacify preprocessor
+	PF_MAJOR=1
+	PF_MINOR=0
+
+	ifneq ($(PF_DISTRO_ULINUX_D), 1)
+	ifneq ($(PF_DISTRO_ULINUX_R), 1)
+		@echo Cannot determine platform type
+		false
+	endif
+	endif
+endif
+endif
+
+# Catchall
+ifeq (,$(PF_DISTRO))
+	VERSTRING=UNKNOWN
+	PF_DISTRO=UNKNOWN
+	PF_MAJOR=UNKNOWN
+	PF_MINOR=UNKNOWN
+	$(warning "Unmatched version string")
+endif
+
+
+#--------------------------------------------------------------------------------
+# Check architecture
+#--------------------------------------------------------------------------------
+
+UNAME_P=$(shell uname -m)
+
+ifneq (,$(findstring 64,$(UNAME_P)))
+	PF_ARCH=x64
+	ARCH=x64
+else
+ifneq (,$(findstring 86,$(UNAME_P)))
+	PF_ARCH=x86
+	ARCH=ia32
+else
+	ifneq (,$(findstring athlon,$(UNAME_P)))
+		PF_ARCH=x86
+		ARCH=ia32
+	else
+		PF_ARCH=UNKNOWN
+	endif
+endif
+endif
+
+ifeq ($(PF_DISTRO)$(PF_MAJOR),REDHAT4)
+	include Makefile.gcc3
+else
+	include Makefile.gcc4
+endif		
+
+#--------------------------------------------------------------------------------
+# Build width
+#--------------------------------------------------------------------------------
+ifeq ($(PF_ARCH),x86)
+	PF_WIDTH=32
+else
+	PF_WIDTH=64
+endif
+
+#================================================================================
+# OpenSSL 
+# For ULINUX, we need to build against two versions of OpenSSL, 0.9.8 and 1.0.0. 
+#================================================================================
+ifeq ($(PF_DISTRO),ULINUX)
+
+# Let's figure out the system version of SSL installed (for unit test purposes)
+
+OPENSSL_SYSTEM_VERSION_FULL=$(shell openssl version | awk '{print $$2}')
+OPENSSL_SYSTEM_VERSION_098=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^0.9.8'; echo $$?)
+OPENSSL_SYSTEM_VERSION_100=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^1.0.'; echo $$?)
+
+ifeq ($(OPENSSL_SYSTEM_VERSION_098), 0)
+export OPENSSL_SYSTEM_VERSION="0.9.8"
+else
+ifeq ($(OPENSSL_SYSTEM_VERSION_100), 0)
+export OPENSSL_SYSTEM_VERSION="1.0.0"
+else
+$(error Unable to determine SSL system version installed!)
+endif
+endif
+
+displaySSLversion:
+	@echo "OpenSSL system full version: $(OPENSSL_SYSTEM_VERSION_FULL)"
+	@echo "OpenSSL system full version 098: $(OPENSSL_SYSTEM_VERSION_098)"
+	@echo "OpenSSL system full version 100: $(OPENSSL_SYSTEM_VERSION_100)"
+	@echo "OpenSSL system version: $(OPENSSL_SYSTEM_VERSION)"
+
+# Now define other SSL variables for expansion/directory purposes
+
+export OPENSSL098DIR=openssl_0.9.8
+export OPENSSL100DIR=openssl_1.0.0
+
+LINK_OPENSSL098=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL098DIR) -L$(SCXPAL_TARGET_DIR)
+LINK_OPENSSL100=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL100DIR) -L$(SCXPAL_TARGET_DIR)
+
+ifeq ($(PF_WIDTH),64)
+	PKG_CONFIG_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib/pkgconfig
+	LD_LIBRARY_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib
+	OPENSSL_BINPATH_OPENSSL098=/usr/local_ssl_0.9.8/bin/openssl
+	PKG_CONFIG_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib64/pkgconfig
+	LD_LIBRARY_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib64
+	OPENSSL_BINPATH_OPENSSL100=/usr/local_ssl_1.0.0/bin/openssl
+else
+	PKG_CONFIG_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib/pkgconfig
+	LD_LIBRARY_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib
+	OPENSSL_BINPATH_OPENSSL098=/usr/local_ssl_0.9.8/bin/openssl
+	PKG_CONFIG_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib/pkgconfig
+	LD_LIBRARY_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib
+	OPENSSL_BINPATH_OPENSSL100=/usr/local_ssl_1.0.0/bin/openssl
+endif 
+endif 
+
+#--------------------------------------------------------------------------------
+# Paths
+#--------------------------------------------------------------------------------
+
+# Path to where the CPPUNIT libraries are checked in 
+CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/linux/$(ARCH)/cppunit
+
+#--------------------------------------------------------------------------------
+# Tools on this platform
+#--------------------------------------------------------------------------------
+
+# Link a dynamic lib 
+LINK_DYNLIB=g++ -shared -Wl,-rpath,/usr/lib
+ifeq ($(PF_ARCH),x86)
+	LINK_DYNLIB+= -m32 
+else
+	LINK_DYNLIB+= -m64 
+endif
+LINK_DYNLIB+= -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR)
+
+#--------------------------------------------------------------------------------
+# Link switches for this platform, per target
+#--------------------------------------------------------------------------------
+
+LDFLAGS_RPM =  -lrpm -lpopt
+LDFLAGS_DYNLIB = -ldl -lpthread -lcrypt -lrt
+LDFLAGS_EXECUTABLE = -ldl -lpthread -lrt
+
+ifneq ($(PF_DISTRO),ULINUX)
+LDFLAGS_DYNLIB += $(LDFLAGS_RPM)
+LDFLAGS_EXECUTABLE += $(LDFLAGS_RPM)
+endif
+
+ifeq ($(PF_DISTRO),SUSE)
+	ifeq ($(PF_MAJOR),9)
+	else
+		LDFLAGS_EXECUTABLE += -pie
+	endif
+endif
+
+# The Core Provider Module links with these 
+LDFLAGS_COREPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# The Test Provider Module links with these
+LDFLAGS_TESTPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# Test Provider specific link flags. Used to hide symbols
+TESTPROVIDERMODULE_EXTRA_LINKFLAGS=-Wl,--version-script=$(INTERMEDIATE_DIR)/testprovider.map
+
+# The testrunner links with these
+LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE)   
+
+# Transforms a list of symbols that should be exposed to the correct link flags
+get_ld_flags_for_retaining_symbols=$(addprefix -u, $(1))
+
+# Run pkg-config to get ssl library switches for this platform
+SSL_LIBS = `pkg-config --libs openssl`
+
+#--------------------------------------------------------------------------------
+# Compiler switch tweaks
+#--------------------------------------------------------------------------------
+
+CXXFLAGS+=
+
+
+#-------------------------------- End of File -----------------------------------

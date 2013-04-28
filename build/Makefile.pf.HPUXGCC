@@ -1,0 +1,82 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-10-12
+# 
+# Overrides to the HPUX makefile when using GCC
+# 
+#--------------------------------------------------------------------------------
+
+include Makefile.pf.posix
+
+#--------------------------------------------------------------------------------
+# Check Major version
+#--------------------------------------------------------------------------------
+
+UNAME_R=$(shell uname -r)
+PF_PARTS=$(subst ., ,$(UNAME_R))
+PF_MAJOR=$(word 2,$(PF_PARTS))
+
+#--------------------------------------------------------------------------------
+# Check architecture
+#--------------------------------------------------------------------------------
+
+UNAME_M=$(shell uname -m)
+ifeq ($(UNAME_M),ia64)
+	ARCH=ia64
+	PF_ARCH=ia64
+else
+	ARCH=hppa
+	PF_ARCH=pa-risc
+endif
+
+#--------------------------------------------------------------------------------
+# Build width
+#--------------------------------------------------------------------------------
+PF_WIDTH=32
+
+#--------------------------------------------------------------------------------
+# Paths
+#--------------------------------------------------------------------------------
+
+# Path to where the CPPUNIT libraries are checked in 
+CPPUNIT_LIB_PATH=$(TST_EXT_LIB_DIR)/hpux/$(ARCH)/cppunit
+
+#--------------------------------------------------------------------------------
+# Tools on this platform
+#--------------------------------------------------------------------------------
+
+# Common compiler flags (sent to compile command and link commands)
+COMMONFLAGS=-pthread -milp32
+
+# CXX Compiler flags (Redefined to include COMMONFLAGS)
+CXXFLAGS=$(COMMONFLAGS) $(DEFINES) $(CXX_WARN_FLAGS)
+
+# Link an executable
+LINK=g++ $(COMMONFLAGS) -L. -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR)
+
+# Link a dynamic lib 
+LINK_DYNLIB = g++ -shared $(COMMONFLAGS) -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR)
+
+#--------------------------------------------------------------------------------
+# Link switches for this platform, per target
+#--------------------------------------------------------------------------------
+
+LDFLAGS_DYNLIB =
+LDFLAGS_EXECUTABLE =
+
+# The Core Provider Module links with these 
+LDFLAGS_COREPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# The Test Provider Module links with these
+LDFLAGS_TESTPROVIDERMODULE = $(LDFLAGS_DYNLIB)
+
+# The testrunner links with these
+LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE)
+
+# Currently building only TAR on Solaris
+PF_KIT_FILE_SUFFIX=tar
+
+
+#-------------------------------- End of File -----------------------------------

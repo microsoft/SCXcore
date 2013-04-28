@@ -1,0 +1,155 @@
+# -*- mode: Makefile; -*- 
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+#--------------------------------------------------------------------------------
+
+PROVIDER_DIR := $(SCX_SRC_ROOT)/providers
+PROVIDER_SUPPORT_DIR := $(PROVIDER_DIR)/support
+APPSERVER_SUPPORT_DIR := $(PROVIDER_DIR)/support/appserver
+
+#--------------------------------------------------------------------------------
+# Meta Provider
+
+STATIC_METAPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/support/metaprovider.cpp \
+	$(PROVIDER_DIR)/SCX_Agent_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# AS Provider
+
+STATIC_APPSERVERLIB_SRCFILES = \
+	$(APPSERVER_SUPPORT_DIR)/appserverenumeration.cpp \
+	$(APPSERVER_SUPPORT_DIR)/appserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/jbossappserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/tomcatappserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/weblogicappserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/weblogicappserverenumeration.cpp \
+	$(APPSERVER_SUPPORT_DIR)/websphereappserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/manipulateappserverinstances.cpp \
+	$(APPSERVER_SUPPORT_DIR)/persistappserverinstances.cpp \
+	$(APPSERVER_SUPPORT_DIR)/removenonexistentappserverinstances.cpp \
+	$(PROVIDER_DIR)/SCX_Application_Server_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# CPU Provider
+
+STATIC_CPUPROVIDER_SRCFILES = \
+	$(PROVIDER_DIR)/SCX_ProcessorStatisticalInformation_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# Disk Provider
+
+STATIC_DISKPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/support/diskprovider.cpp \
+	$(PROVIDER_DIR)/SCX_DiskDrive_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_DiskDriveStatisticalInformation_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_FileSystem_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_FileSystemStatisticalInformation_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# LogFile Provider
+
+STATIC_LOGFILEPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/support/logfileutils.cpp \
+	$(PROVIDER_DIR)/support/logfileprovider.cpp \
+	$(PROVIDER_DIR)/SCX_LogFile_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# Memory Provider
+
+STATIC_MEMORYPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/support/memoryprovider.cpp \
+	$(PROVIDER_DIR)/SCX_MemoryStatisticalInformation_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# Network Provider
+
+STATIC_NETWORKPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/SCX_EthernetPortStatistics_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_IPProtocolEndpoint_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_LANEndpoint_Class_Provider.cpp \
+	$(PROVIDER_DIR)/support/networkprovider.cpp
+
+#--------------------------------------------------------------------------------
+# OS Provider
+
+STATIC_OSPROVIDERLIB_SRCFILES = \
+	$(PROVIDER_SUPPORT_DIR)/scxrunasconfigurator.cpp \
+	$(PROVIDER_DIR)/SCX_OperatingSystem_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# Process Provider
+
+STATIC_PROCESSPROVIDERLIB_SRCFILES = \
+    $(PROVIDER_DIR)/support/processprovider.cpp \
+	$(PROVIDER_DIR)/SCX_UnixProcess_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_UnixProcessStatisticalInformation_Class_Provider.cpp
+
+#--------------------------------------------------------------------------------
+# Provider Library
+
+STATIC_PROVIDERLIB_SRCFILES = \
+	$(PROVIDER_DIR)/schema.c \
+	$(PROVIDER_DIR)/stubs.cpp \
+	$(PROVIDER_DIR)/module.cpp \
+	$(PROVIDER_SUPPORT_DIR)/logpolicy.cpp \
+	$(PROVIDER_SUPPORT_DIR)/scxcimutils.cpp \
+	$(STATIC_METAPROVIDERLIB_SRCFILES) \
+	$(STATIC_APPSERVERLIB_SRCFILES) \
+	$(STATIC_CPUPROVIDER_SRCFILES) \
+	$(STATIC_DISKPROVIDERLIB_SRCFILES) \
+	$(STATIC_LOGFILEPROVIDERLIB_SRCFILES) \
+	$(STATIC_MEMORYPROVIDERLIB_SRCFILES) \
+	$(STATIC_NETWORKPROVIDERLIB_SRCFILES) \
+	$(STATIC_OSPROVIDERLIB_SRCFILES) \
+	$(STATIC_PROCESSPROVIDERLIB_SRCFILES)
+
+
+# The OMI source files won't compile with our very strict flags - ease up for them
+# (and, for HP, allow a mechanism to modify the flags)
+$(call src_to_obj,$(STATIC_PROVIDERLIB_SRCFILES)): CXX_WARN_STRICT_FLAGS=$(CXX_WARN_STRICT_FLAGS_PROVIDERS)
+$(call src_to_obj,$(STATIC_PROVIDERLIB_SRCFILES)): C_WARN_STRICT_FLAGS=$(CXX_WARN_STRICT_FLAGS_PROVIDERS)
+
+STATIC_PROVIDERLIB_OBJFILES = $(call src_to_obj,$(STATIC_PROVIDERLIB_SRCFILES))
+
+# TODO: Not clear why the srcfiles need to be a dependency, but without it, build won't build after updating a source file
+$(INTERMEDIATE_DIR)/libomprovider.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_PROVIDERLIB_OBJFILES) $(STATIC_PROVIDERLIB_SRCFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $(STATIC_PROVIDERLIB_OBJFILES)  # $^
+
+
+CLASSES = SCX_Agent \
+	SCX_Application_Server \
+	SCX_DiskDrive \
+	SCX_DiskDriveStatisticalInformation \
+	SCX_FileSystem \
+	SCX_FileSystemStatisticalInformation \
+	SCX_EthernetPortStatistics \
+	SCX_LANEndpoint \
+	SCX_IPProtocolEndpoint \
+	SCX_LogFile \
+	SCX_MemoryStatisticalInformation \
+	SCX_OperatingSystem \
+	SCX_ProcessorStatisticalInformation \
+	SCX_UnixProcess \
+	SCX_UnixProcessStatisticalInformation
+
+OMIGEN = $(TARGET_DIR)/omi/bin/omigen
+
+# .PHONY : schema_gen devel-deps
+# TODO - this target needs devel-deps to run first, but if it's included as a dependency, schema_gen won't run!
+# schema_gen : devel-deps
+schema_gen :
+	# The omigen facility is unhappy if no ~/.omigenrc file exists, so create one for this run
+	touch ~/.omigenrc
+	cd $(TARGET_DIR)/omi; $(OMIGEN) $(MOF_PATH)/scx.mof -d $(PROVIDER_DIR) $(CLASSES) --cpp -I $(SCXOMI_DIR)/share/omischema
+	rm ~/.omigenrc
+
+# Note: For omi_reg to work properly, run './configure --enable-local-omi'
+omi_reg :
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(TARGET_DIR)/omi/lib; cd $(TARGET_DIR)/omi; bin/omireg --destdir=$(TARGET_DIR)/omi -n root/scx -o @requestor@ $(TARGET_DIR)/libSCXCoreProviderModule.so
+
+# bin/omiserver --destdir /home/jeffcof/dev/blue/opsmgr/target/Linux_REDHAT_6.1_x64_64_Debug/omi
+
+#-------------------------------- End of File -----------------------------------

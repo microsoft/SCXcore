@@ -1,0 +1,41 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+# 
+# Definition of all unit tests for SCXAdmin
+#
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# All tests for scxadmin
+POSIX_UNITTESTS_SCXADMIN_SRCFILES = \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_admin/cimconfigurator_test.cpp \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_admin/logconfigurator_test.cpp \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_admin/cmdparser_test.cpp \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_admin/service_control_test.cpp \
+
+# For a full build, also include these
+ifneq ($(SCX_STACK_ONLY),true)
+POSIX_UNITTESTS_SCXADMIN_SRCFILES += \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_admin/runasadminprovider_test.cpp \
+
+endif
+
+# Extra include dirs for certain include files
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/cimconfigurator_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/cimconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/service_control_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/service_control_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/logconfigurator_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/logconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/cmdparser_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/cmdparser_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/runasadminprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/runasadminprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/runasconfigurator_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin -I$(SCX_SRC_ROOT)/providers/runas_provider
+$(INTERMEDIATE_DIR)/test/code/shared/tools/scx_admin/runasconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/shared/tools/scx_admin -I$(SCX_SRC_ROOT)/providers/runas_provider
+
+#-------------------------------- End of File -----------------------------------
+
