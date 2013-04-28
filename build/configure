@@ -1,0 +1,85 @@
+#!/bin/bash
+
+scxpal_dir="../../scxpal"
+scxomi_dir=`(cd ../../omi/distro; pwd -P)`
+cache_debug="Release"
+enable_debug=""
+enable_purify_agent=""
+enable_purify_server=""
+enable_profiling="false"
+
+omi_configure_quals="--prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath"
+
+for opt
+do
+
+  arg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+
+  case $opt in
+
+    -h | --help)
+      help=1
+    ;;
+
+    --enable-debug)
+      cache_debug="Debug"
+      enable_debug="--enable-debug"
+    ;;
+
+    --enable-purify-agent)
+      enable_purify_agent="--enable-purify-agent"
+    ;;
+
+    --enable-purify-server)
+      enable_purify_server="--enable-purify-server"
+    ;;
+
+    --enable-local-omi)
+      omi_configure_quals="--prefix=. --disable-libpath"
+    ;;
+
+    --enable-profiling)
+      enable_profiling="true"
+    ;;
+
+    *)
+      echo "configure: invalid option '$opt'"
+      echo "Try configure --help' for more information."
+      exit 1
+    ;;
+
+  esac
+
+done
+
+if [ "$help" = "1" ]; then
+
+    cat<<EOF
+
+Usage: ./configure [OPTIONS]
+
+OVERVIEW:
+
+This script configures SCXOM for building. Type the following commands.
+
+    $ ./configure
+    $ make
+
+OPTIONS:
+    -h, --help                  Print this help message.
+    --enable-debug              Perform a debug build.
+    --enable-purify-agent       Allow agent to be run with purify (memory leak detection)
+    --enable-purify-server      Allow server to be run with purify (memory leak detection)
+    --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
+    --enable-profiling          Enables the use of code coverage tools (Bullseye).
+
+EOF
+    exit 0
+fi
+
+make -C $scxpal_dir/build cache BUILD_TYPE="$cache_debug" BUILD_PROFILING="$enable_profiling"
+make cache BUILD_TYPE="$cache_debug" BUILD_PROFILING="$enable_profiling"
+
+# Fix permissions in case they aren't executable - and then configure OMI
+chmod ug+x ${scxomi_dir}/configure ${scxomi_dir}/buildtool
+(cd ${scxomi_dir}; ./configure ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals})

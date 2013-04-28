@@ -1,0 +1,959 @@
+// -*- idl -*-
+#pragma locale ("en_US")
+// ===================================================================
+// File:        scx.mof
+// Version:     1.4.17
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ===================================================================
+
+// ===================================================================
+// === Schema: SCX OSBase ============================================
+// ===================================================================
+
+// SCX_Agent
+// -------------------------------------------------------------------
+
+#pragma include("scx-agent.mof")
+
+// SCX_Application_Server
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "SCX Application Server")
+    ]
+class SCX_Application_Server : CIM_LogicalElement {
+    
+    [ Key,
+      Override( "Name" ),
+      Description ( "SCX_Application_Server identifier" ) 
+    ]
+    string Name;
+    
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "SCX Application Server";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Represents a JEE Application Server";
+
+    [   Description ( 
+        "HTTP Port" )
+        ]
+    string HttpPort;
+    
+    [   Description ( 
+        "HTTPS Port" )
+        ]
+    string HttpsPort;
+    
+    [   Description ( 
+        "Port to use" )
+        ]
+    string Port;
+    
+    [   Description ( 
+        "Protocol to use" )
+        ]
+    string Protocol;
+    
+    [   Description ( 
+        "Version" )
+        ]
+    string Version;
+    
+    [   Description ( 
+        "Major Version" )
+        ]
+    string MajorVersion;
+    
+    [   Description ( 
+        "DiskPath" )
+        ]
+    string DiskPath;
+
+    [   Description ( 
+        "Type" )
+        ]
+    string Type;
+
+    [   Description ( 
+        "Profile" )
+        ]
+    string Profile;
+
+    [   Description ( 
+        "Cell" )
+        ]
+    string Cell;
+
+    [   Description ( 
+        "Node" )
+        ]
+    string Node;
+
+    [   Description ( 
+        "Server" )
+        ]
+    string Server;
+
+    [   Description ( 
+        "IsDeepMonitored" )
+        ]
+    boolean IsDeepMonitored;
+
+    [   Description ( 
+        "IsRunning" )
+        ]
+    boolean IsRunning;
+
+   // WI41620: Avoid error by taking an elevation type.  Note that this is here if SUDO elevation
+   //   is defined for non-privileged account, but we don't actually care if it's passed or not.
+    [   Description ( 
+        "Set the deep monitored state for application server <id> to <deep> using protocol <protocol>" ),
+        Static(true)
+        ]
+    boolean SetDeepMonitoring([IN] string id, [IN] boolean deep, [IN] string protocol, [IN] string elevationType);
+};
+
+// SCX_DiskDrive
+// -------------------------------------------------------------------
+[   Version ( "1.3.1" ), 
+    Description (
+        "Disk information")
+    ]
+class SCX_DiskDrive : CIM_DiskDrive {
+    
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Disk drive information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Information pertaining to a physical unit of secondary storage";
+
+        [    Description ( 
+            "Remove a disk that should no longer be monitored"
+            ),
+             Static(true)
+        ]
+    boolean RemoveByName(
+        [IN] string Name);
+
+    [   Override( "Name" ),
+        Description ( 
+            "Disk identifier" ) 
+        ]
+    string Name;
+    
+    [   Description ( 
+            "Is the disk online" ) 
+        ] 
+    boolean IsOnline;
+    
+    [   Description ( 
+            "Type of interface (e.g. SCSI, IDE etc)" ) 
+        ]
+    string InterfaceType;
+    
+    [   Description ( 
+            "Manufacturer of the disk" ) 
+        ]
+    string Manufacturer;
+    
+    [   Description ( 
+            "Model of the disk" ) 
+        ]
+    string Model;
+    
+    [   Description ( 
+            "Number of cylinders of the disk" ) 
+        ]
+    uint64 TotalCylinders;
+    
+    [   Description ( 
+            "Number of heads of the disk" ) 
+        ]
+    uint64 TotalHeads;
+    
+    [   Description ( 
+            "Number of sectors of the disk" ) 
+        ]
+    uint64 TotalSectors;
+    
+    [   Description ( 
+            "Number of tracks of the disk" ) 
+        ]
+    uint64 TotalTracks;
+    
+    [   Description ( 
+            "Number of tracks per cylinder" ) 
+        ]
+    uint64 TracksPerCylinder;
+};
+
+
+// SCX_FileSystem
+// -------------------------------------------------------------------
+[   Version ( "1.4.5" ), 
+    Description (
+        "File system information")
+    ]
+class SCX_FileSystem : CIM_FileSystem {
+
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "File system information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Information about a logical unit of secondary storage";
+
+    [   Description ( 
+            "Is the file system online" ) 
+        ]
+    boolean IsOnline;
+
+    [   Description (
+            "The total number of inodes available in the file system.  "
+            "A value of zero for TotalInodes indicates that this file "
+            "system does not have a preset limit." )
+        ]
+    uint64 TotalInodes;
+
+    [   Description (
+            "The reserve data capacity of the file system in bytes." )
+        ]
+    uint64 FreeInodes;
+
+    [    Description ( 
+            "Remove a file system that should no longer be monitored" ),
+             Static(true)
+        ]
+    boolean RemoveByName(
+        [IN] string Name);
+};
+
+
+// SCX_LogFile
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Log file")
+    ]
+class SCX_LogFile : CIM_LogicalFile {
+
+   [    Description ( 
+       "Get rows from a log file that matches any of the supplied regular expressions" ) ,
+        Static(true)
+        ]
+        uint32 GetMatchedRows([IN] string filename, [IN] string regexps[], [IN] string qid,
+                              [OUT, ArrayType("Ordered")] string rows[],
+                              [IN] string elevationType);
+};
+
+
+// SCX_LogFileRecord
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+       "Record from a log file" )
+    ]
+class SCX_LogFileRecord : CIM_RecordForLog {
+
+    [   Key, 
+        Description ( 
+            "Name of file that this log record comes from" ) 
+        ]
+    string FileName;
+
+    [   Key, 
+        Description ( 
+            "Position in file that this log record comes from" ) 
+        ]
+    uint64 FilePosition;
+};
+
+
+// SCX_Memory
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Memory information")
+    ]
+class SCX_Memory : CIM_Memory {
+    
+};
+
+
+// SCX_Processor
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Processor information")
+    ]
+class SCX_Processor : CIM_Processor {
+    
+};
+
+
+// SCX_UnixProcess
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Unix Process Information")
+    ]
+class SCX_UnixProcess : CIM_UnixProcess {
+   
+   [ Description ( "A caption for this element" ) ]
+   string Caption = "Unix process information";
+
+   [ Description ( "Descriptive text for this element") ]
+   string Description = "A snapshot of a current process";
+
+   // WI41620: Avoid error by taking an elevation type.  Note that this is here if SUDO elevation
+   //   is defined for non-privileged account, but we don't actually care if it's passed or not.
+   [    Description ( 
+        "Return list of processes that are the top <count> for <resource>" ),
+        Static(true)
+        ]
+   string TopResourceConsumers([IN] string resource, [IN] uint16 count, [IN] string elevationType);
+};
+
+
+// SCX_EthernetPort
+// -------------------------------------------------------------------
+[   Version ( "1.3.3" ), 
+    Description (
+        "Ethernet Port Information")
+    ]
+class SCX_EthernetPort : CIM_EthernetPort {
+   
+};
+
+
+// SCX_LANEndpoint
+// -------------------------------------------------------------------
+[   Version ( "1.4.0" ), 
+    Description (
+        "LAN Endpoint Information")
+    ]
+class SCX_LANEndpoint : CIM_LANEndpoint {
+    [ Description("MAC Address formatted with embedded colon characters") ]
+    string FormattedMACAddress;
+
+    [ Description("Description of LAN Endpoint element") ]
+    string Description = "LAN Endpoint description information";
+
+    [ Description("Description of LAN Endpoint element") ]
+    string Caption = "LAN Endpoint caption information";
+};
+
+
+// SCX_IPProtocolEndpoint
+// -------------------------------------------------------------------
+[   Version ( "1.4.0" ), 
+    Description (
+        "IP Protocol Endpoint Information")
+    ]
+class SCX_IPProtocolEndpoint : CIM_IPProtocolEndpoint {
+   
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "IP protocol endpoint information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Properties of an IP protocol connection endpoint";
+    
+    [ Description ( "The broadcast IP for this ProtocolEndpoint") ]
+    string IPv4BroadcastAddress;
+};
+
+
+// SCX_OperatingSystem
+// -------------------------------------------------------------------
+[   Version ( "1.3.7" ),  
+    Description (
+       "SCX Operating System")
+    ]
+class SCX_OperatingSystem : CIM_OperatingSystem {
+   
+// Note: Caption and Description are not set here since they are set by the provider
+
+    [   Description (
+             "The capability of this operating system. "
+             "One capability is '32 bit' or '64 bit'. ")
+        ]
+    string OperatingSystemCapability;
+
+    [   Description (
+             "The elapsed time, in seconds, since the OS was booted."
+             "A convenience property, versus having to calculate"
+             "the time delta from LastBootUpTime to LocalDateTime."),
+        Units("Seconds")
+        ]
+    uint64 SystemUpTime ;
+
+   [    Description ( 
+            "Execute a command, with the option of terminating the command "
+            "after a timeout specified in seconds. (timeout = 0 means no timeout)" ),
+        Static(true)
+        ]
+    boolean ExecuteCommand(
+        [IN] string Command, 
+        [OUT] sint32 ReturnCode, 
+        [OUT] string StdOut, 
+        [OUT] string StdErr, 
+        [IN] uint32 timeout,
+        [IN] string ElevationType);
+    
+   [    Description ( 
+            "Execute a command in the default shell, with the option of terminating the command "
+            "after a timeout specified in seconds. (timeout = 0 means no timeout)" ),
+        Static(true)
+        ]
+    boolean ExecuteShellCommand(
+        [IN] string Command, 
+        [OUT] sint32 ReturnCode, 
+        [OUT] string StdOut, 
+        [OUT] string StdErr, 
+        [IN] uint32 timeout,
+        [IN] string ElevationType);
+    
+    [   Description ( 
+            "Execute a script, with the option of terminating the script "
+            "after a timeout specified in seconds. (timeout = 0 means no timeout)" ),
+        Static(true)
+        ]
+    boolean ExecuteScript(
+        [IN] string Script, 
+        [IN] string Arguments, 
+        [OUT] sint32 ReturnCode, 
+        [OUT] string StdOut, 
+        [OUT] string StdErr, 
+        [IN] uint32 timeout, 
+        [IN] string ElevationType);
+};
+
+
+
+
+// ===================================================================
+// === Schema: SCX Perf ==============================================
+// ===================================================================
+
+// SCX_StatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description ( 
+        "Base class for Microsoft SCX performance data" )
+    ]
+class SCX_StatisticalInformation : CIM_StatisticalInformation {
+    
+    [   Description ( 
+            "If data is aggregated from several instances" ) 
+        ]
+    boolean IsAggregate;
+};
+
+
+// SCX_ProcessorStatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Processor performance and status" )
+    ]
+class SCX_ProcessorStatisticalInformation : SCX_StatisticalInformation {
+       
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Processor information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "CPU usage statistics";
+
+    [   Key, 
+        Override( "Name" ), 
+        Description ( 
+            "Processor identifier" ) 
+        ]
+    string Name;
+   
+    [   Description ( 
+            "Percentage of time during the sample interval that the "
+            "processor was idle" ),
+        Units("Percent")
+        ]
+    uint8 PercentIdleTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in user mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentUserTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in nice mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentNiceTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in privileged "
+            "mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentPrivilegedTime;
+
+    [   Description ( 
+            "Percentage of time during the sample interval that the "
+            "processor spent receiving and servicing hardware interrupts" ),
+        Units("Percent")
+        ]
+    uint8 PercentInterruptTime;
+
+    [   Description ( 
+            "Percentage of time spent receiving and servicing DPC" ),
+        Units("Percent")
+        ]
+    uint8 PercentDPCTime;
+
+    [   Description ( 
+            "Percentage of time that the processor spent executing a "
+            "non-idle thread" ),
+        Units("Percent")
+        ]
+    uint8 PercentProcessorTime;
+
+    [   Description ( 
+            "Percentage of time that the processor spent waiting for IO "
+            "operations to complete" ),
+        Units("Percent")
+        ]
+    uint8 PercentIOWaitTime;
+};
+
+
+// SCX_MemoryStatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description ( 
+        "Memory performance and status" )
+    ]
+class SCX_MemoryStatisticalInformation : SCX_StatisticalInformation {
+
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Memory information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Memory usage and performance statistics";
+
+    [   Key, 
+        Override( "Name" ),
+        Description ( 
+            "Memory identifier" ) 
+        ]
+    string Name;
+
+    [   Description ( 
+            "Available physical memory in MBytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 AvailableMemory;
+
+    [   Description ( 
+            "Available physical memory in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentAvailableMemory;
+
+    [   Description ( 
+            "Used physical memory in MBytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 UsedMemory;
+
+    [   Description ( 
+            "Used physical memory in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedMemory;
+
+    [   Description ( 
+            "Percentage of memory used by cache" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedByCache;
+
+    [   Description ( 
+            "Pages read or written from/to disk per second to resolve "
+            "hard page faults" ),
+        Units("Pages per Second")
+        ]
+    uint64 PagesPerSec;
+
+    [   Description ( 
+            "Pages read from disk per second to resolve hard page faults" ),
+        Units("Pages per Second")
+        ]
+    uint64 PagesReadPerSec;
+
+    [   Description ( 
+            "Pages written to disk per second to resolve hard page faults" ),
+        Units("Pages per Second")
+        ]
+    uint64 PagesWrittenPerSec;
+
+    [   Description ( 
+            "Available swap space in MBytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 AvailableSwap;
+
+    [   Description ( 
+            "Available swap space in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentAvailableSwap;
+
+    [   Description ( 
+            "Used swap space in MBytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 UsedSwap;
+
+    [   Description ( 
+            "Used swap space in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedSwap;
+};
+
+
+// SCX_EthernetPortStatistics
+// -------------------------------------------------------------------
+[   Version ( "1.4.4" ), 
+    Description (
+        "Ethernet Port Statistics")
+    ]
+class SCX_EthernetPortStatistics : CIM_EthernetPortStatistics {
+   
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Ethernet port information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Statistics on transfer performance for a port";
+
+    [   Description ( 
+            "The total number of bytes sent or received through the port" ),
+        Units("Bytes")
+        ]
+    uint64 BytesTotal;
+    
+    [   Description ( 
+            "The aggregated number of receive errors" ) 
+        ]
+    uint64 TotalRxErrors;
+    
+    [   Description ( 
+            "The aggregated number of transmit errors" ) 
+        ]
+    uint64 TotalTxErrors;
+    
+    [   Description ( 
+            "The aggregated number of collisions" ) 
+        ]
+    uint64 TotalCollisions;
+};
+
+
+// SCX_DiskDriveStatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.3.4" ), 
+    Description (
+        "Disk performance and status" )
+    ]
+class SCX_DiskDriveStatisticalInformation : SCX_StatisticalInformation {
+    
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Disk drive information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Performance statistics related to a physical unit of secondary storage";
+
+    [   Key,
+        Override( "Name" ),
+        Description ( 
+            "Disk device identifier" ) 
+        ]
+    string Name;
+    
+    [   Description ( 
+            "Is the disk online" ) 
+        ]
+    boolean IsOnline;
+
+    [   Description ( 
+            "Percent of time disk is busy" ),
+        Units("Percent")
+        ]
+    uint8 PercentBusyTime;
+
+    [   Description ( 
+            "Percent of time disk is idle" ),
+        Units("Percent")
+        ]
+    uint8 PercentIdleTime;
+
+    [   Description ( 
+            "Total Disk bytes per second" ),
+        Units("Bytes per Second")
+        ]
+    uint64 BytesPerSecond;
+
+    [   Description ( 
+            "Bytes read from disk per second "),
+        Units("Bytes per Second")
+        // Not available on HP-UX
+        ]
+    uint64 ReadBytesPerSecond;
+
+    [   Description ( 
+            "Bytes written to disk per second" ),
+        Units("Bytes per Second")
+        // Not available on HP-UX
+        ]
+    uint64 WriteBytesPerSecond;
+
+    [   Description ( 
+            "Total I/Os per second" ),
+        Units("Transfers per Second")
+        ]
+    uint64 TransfersPerSecond;
+
+    [   Description ( 
+            "Read I/Os per second" ),
+        Units("Transfers per Second")
+        // Not available on HP-UX
+        ]
+    uint64 ReadsPerSecond;
+
+    [   Description ( 
+            "Write I/Os per second" ),
+        Units("Transfers per Second")
+        // Not available on HP-UX
+        ]
+    uint64 WritesPerSecond;
+
+    [   Description ( 
+            "Average time, in seconds, of a read of data from the disk" ),
+        Units("Seconds")
+        // Only available on Linux
+        ]
+    real64 AverageReadTime;
+
+    [   Description ( 
+            "Average time, in seconds, of a write of data to the disk" ),
+        Units("Seconds")
+        // Only available on Linux
+        ]
+    real64 AverageWriteTime;
+
+    [   Description ( 
+            "Average time, in seconds, of a disk transfer" ),
+        Units("Seconds")
+        ]
+    real64 AverageTransferTime;
+
+    [   Description ( 
+            "Average number of queued read/write requests" ) 
+        ]
+    real64 AverageDiskQueueLength;
+};
+
+
+// SCX_FileSystemStatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.4.8" ), 
+    Description (
+        "File system performance and status" )
+    ]
+class SCX_FileSystemStatisticalInformation : SCX_StatisticalInformation {
+
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "File system information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Performance statistics related to a logical unit of secondary storage";
+
+    [   Key,
+        Override( "Name" ),
+        Description ( 
+            "File system identifier" ) 
+        ]
+    string Name;
+    
+    [   Description ( 
+            "Is the file system online" ) 
+        ]
+    boolean IsOnline;
+    
+    [   Description ( 
+            "Available space in megabytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 FreeMegabytes;
+
+    [   Description ( 
+            "Used space in megabytes" ),
+        Units("MegaBytes")
+        ]
+    uint64 UsedMegabytes;
+
+    [   Description ( 
+            "Available space in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentFreeSpace;
+
+    [   Description ( 
+            "Used space in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedSpace;
+
+    [   Description ( 
+            "Available inodes in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentFreeInodes;
+
+    [   Description ( 
+            "Used inodes in percent" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedInodes;
+
+    [   Description ( 
+            "Percent of time filesystem is busy " ),
+        Units("Percent")
+        // Only available on Solaris
+        ]
+    uint8 PercentBusyTime;
+
+    [   Description ( 
+            "Percent of time filesystem is idle " ),
+        Units("Percent")
+        // Only available on Solaris
+        ]
+    uint8 PercentIdleTime;
+
+    [   Description ( 
+            "Total bytes per second" ),
+        Units("Bytes per Second")
+        ]
+    uint64 BytesPerSecond;
+
+    [   Description ( 
+            "Bytes read per second" ),
+        Units("Bytes per Second")
+        ]
+    uint64 ReadBytesPerSecond;
+
+    [   Description ( 
+            "Bytes written per second" ),
+        Units("Bytes per Second")
+        ]
+    uint64 WriteBytesPerSecond;
+
+    [   Description ( 
+            "Total I/Os per second" ),
+        Units("Transfers per Second")
+        ]
+    uint64 TransfersPerSecond;
+
+    [   Description ( 
+            "Read I/Os per second" ),
+        Units("Transfers per Second")
+        // Not available on HP-UX
+        ]
+    uint64 ReadsPerSecond;
+
+    [   Description ( 
+            "Write I/Os per second" ),
+        Units("Transfers per Second")
+        // Not available on HP-UX
+        ]
+    uint64 WritesPerSecond;
+
+    [   Description ( 
+            "Average time of transfer in seconds" ),
+        Units("Seconds")
+        // Not available on Linux
+        ]
+    real64 AverageTransferTime;
+
+    [   Description ( 
+            "Average number of queued read/write requests" ) 
+        ]
+    real64 AverageDiskQueueLength;
+};
+
+
+// SCX_UnixProcessStatisticalInformation
+// -------------------------------------------------------------------
+[   Version ( "1.4.17" ),
+    Description (
+        "Unix Process Statistical Information")
+    ]
+class SCX_UnixProcessStatisticalInformation : CIM_UnixProcessStatisticalInformation {
+   
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Unix process information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Performance statistics for an individual Unix process";
+
+    [   Description ( 
+            "Block reads per second" ),
+        Units("Transfers per Second")
+        ]
+    uint64 BlockReadsPerSecond;
+    
+    [   Description ( 
+            "Block writes per second" ),
+        Units("Transfers per Second")
+        ]
+    uint64 BlockWritesPerSecond;
+
+    [   Description ( 
+            "Total Block transfers per second" ),
+        Units("Transfers per Second")
+        ]
+    uint64 BlockTransfersPerSecond;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in user mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentUserTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in privileged mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentPrivilegedTime;
+
+    [   Description ( 
+            "Used physical memory in kilobytes" ),
+        Units("KiloBytes")
+        ]
+    uint64 UsedMemory;
+
+    [   Description ( 
+            "Ratio of Resident Set Size to Virtual Memory for process (essentially percentage of process loaded into memory)" ),
+        Units("Percent")
+        ]
+    uint8 PercentUsedMemory;
+
+    [   Description ( 
+            "Pages read from disk per second to resolve hard page faults" ),
+        Units("Pages per Second")
+        ]
+    uint64 PagesReadPerSec;
+};
+
+// =============================================================EOF===
+

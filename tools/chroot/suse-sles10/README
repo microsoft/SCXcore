@@ -1,0 +1,65 @@
+*************************************************************************************
+*** Copyright (c) Microsoft Corporation.  All rights reserved.
+*************************************************************************************
+***
+*** Instructions for setting up SCX Ws-Management daemon with chroot
+*** 
+*************************************************************************************
+
+
+STEP 1  
+Create a directory named "chroot" under /var/opt/microsoft/scx/ on a server with 
+SCX Agent already installed.
+Copy the chroot scripts (mkjail-wsmand.sh and scx-wsmand.chroot) to this new
+directory.
+Ensure ownership is root.root and permissions are 744
+
+# cd /var/opt/microsoft/scx
+# mkdir chroot
+# cd chroot
+# cp <ORIGINAL-FILE-LOCATION>/mkjail-wsmand.sh ./
+# cp <ORIGINAL-FILE-LOCATION>/scx-wsmand.chroot ./
+# chown root.root *
+# chmod 744 *
+
+
+STEP 2
+Create the jail
+
+# cd /var/opt/microsoft/scx/chroot
+# ./mkjail-wsmand.sh
+
+
+STEP 3
+Stop original services
+
+# service scx-cimd stop
+# service scx-wsmand stop
+
+
+STEP 4
+Start CIM Server and new chroot'ed WS-Management service
+
+# service scx-cimd start
+# service scx-wsmand.chroot start
+
+
+
+*** 
+*** NOTES
+***
+*************************************************************************************
+
+* Syslog logging is not supported. Must be investigated further!
+
+* Startup of openwsmand binary does not report status correctly using rc-scripts.
+  rc-scripts seems to always return -1 when used together with the chroot binary.
+  This has been temporarily solved with a dirty fix.
+
+* Shutdown of openwsmand binary does not work using killproc. 
+  This has been solved temporarily with "killall" in current version of the script.
+
+* Only very limited testing has been performed.
+
+
+

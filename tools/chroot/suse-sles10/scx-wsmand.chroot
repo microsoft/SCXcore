@@ -1,0 +1,96 @@
+#!/bin/bash
+##
+# Copyright (c) Microsoft Corporation.  All rights reserved. 
+#
+# Contains settings for the SCX WS-Management Deamon.
+#
+#
+
+### BEGIN INIT INFO
+# Provides:          scx-wsmand
+# Required-Start:    $network scx-cimd
+# Required-Stop:     $network scx-cimd
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: Microsoft SCX WS-Management Daemon
+# Description:       Microsoft System Center Agent - WS-Management daemon
+### END INIT INFO
+
+SCX_HOME=/opt/microsoft/scx
+SCX_WSMAND_NAME="Microsoft SCX WS-Management Daemon"
+
+SCX_WSMAND_BIN=/opt/microsoft/scx/bin/openwsmand
+test -x $SCX_WSMAND_BIN || { echo "$SCX_WSMAND_BIN not installed"; 
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 5; fi; }
+
+# Check for existence of needed config file and read it
+SCX_WSMAND_CONFIG=/etc/opt/microsoft/scx/conf/openwsman.conf
+test -r $SCX_WSMAND_CONFIG || { echo "$SCX_WSMAND_CONFIG not existing";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 6; fi; }
+
+# PID File
+SCX_WSMAND_PIDFILE=/var/opt/microsoft/scx/tmp/scx-wsmand.pid
+
+# CHROOT
+SCX_WSMAND_CHROOT=/var/opt/microsoft/scx/chroot/wsmand
+
+if test -e /etc/rc.status; then
+    . /etc/rc.status
+else
+    echo "Could not source /etc/rc.status."
+    exit 1
+fi
+
+# Reset status of this service
+rc_reset
+
+case "$1" in
+    start)
+        if [ -d $SCX_WSMAND_CHROOT ]; then
+          LD_LIBRARY_PATH=$SCX_HOME/lib; export LD_LIBRARY_PATH
+          service scx-cimd status
+          if [ $? -eq 0 ]; then
+            echo -n "Creating cim.socket in jail"
+            rm -f ${SCX_WSMAND_CHROOT}/var/opt/microsoft/scx/tmp/cim.socket
+            ln /var/opt/microsoft/scx/tmp/cim.socket ${SCX_WSMAND_CHROOT}/var/opt/microsoft/scx/tmp/cim.socket
+            if [ $? -eq 0 ]; then
+              rc_status -v
+              echo -n "Starting $SCX_WSMAND_NAME "
+              startproc -v -p ${SCX_WSMAND_CHROOT}${SCX_WSMAND_PIDFILE} /usr/bin/chroot ${SCX_WSMAND_CHROOT} $SCX_WSMAND_BIN -S --config-file=$SCX_WSMAND_CONFIG --pid-file=$SCX_WSMAND_PIDFILE 
+	      /bin/true; rc_status -v
+            else
+              /bin/false; rc_status -v
+            fi
+          else
+            echo -n "scx-cimd has not been started"
+            /bin/false; rc_status -v
+          fi
+        else
+          echo -n "Jail does not exist in $SCX_WSMAND_CHROOT"
+          /bin/false; rc_status -v
+        fi
+        ;;
+    stop)
+        echo -n "Shutting down $SCX_WSMAND_NAME "
+        killall openwsmand
+        rm -f ${SCX_WSMAND_CHROOT}/var/opt/microsoft/scx/tmp/cim.socket
+        rc_status -v
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        rc_status
+        ;;
+    status)
+        echo -n "Checking for service $SCX_WSMAND_NAME "
+        checkproc -p $SCX_WSMAND_PIDFILE $SCX_WSMAND_BIN
+        rc_status -v
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+rc_exit

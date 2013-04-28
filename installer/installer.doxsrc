@@ -1,0 +1,108 @@
+/*--------------------------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+
+*/
+/**
+    \file        
+
+    \brief       Documentation for installer
+    
+    \date        2007-09-26 14:24:44
+
+*/
+/*----------------------------------------------------------------------------*/
+
+/**
+    \page Installer Internal Workings of the Installer Builder
+
+    \section dirs Directories in the installer dir
+
+    \subsection installerBuilder installer/InstallerBuilder
+     Contains python scripts for generating installers.
+
+     \subsection conf installer/conf
+     Configuration files to be packaged with installer.
+
+     \subsection docs installer/docs
+     Text files to be packaged with installer. E.g. README
+
+     \subsection intermediate installer/intermediate
+     The installer builder uses this temporary directory in the process of creating installers.
+     pre- and post-install scripts and prototypes are among the files generated into this directory.
+     
+     \subsection staging installer/intermediate/staging
+     Staging directory used when building installers.
+
+     \section how How the InstallerBuilder creates a package
+     \subsection howSD Staging Directory
+     First, the staging directory is created and populated. Most files are copied
+     directly from the target directory of the build process. Doc files,
+     like README, are copied from installer/docs. Configuration files, like
+     wsmand.conf, are copied from installer/conf.
+     The class mainly responsible for this is caller StargingDir. It uses
+     the classes in filegenerator.py to represent files and directories. The
+     StagingDir class is the same for each platform so some switching on
+     platform is done in the code. If more deviances are found it should be
+     considered to implement this as an inheritance structure.
+
+     \subsection howScripts Scripts
+     pre-, post-install scripts and friends are generated from the python
+     scripts. They are roughly divided into three parts.
+
+     First comes the definitions part which defines variables used
+     throughout the script. This part is platform independent.
+
+     Then comes the functions part which contains functions for all things
+     we will want to do in the script. This part will be highly platform
+     dependent. The python script will make sure that the correct
+     implementations are written to the shell script.
+     Parameters available to the python script on which to switch
+     implementation are:
+     \li Platform Group (posix)
+     \li Platform (linux)
+     \li Platform distribution (SuSE)
+     \li Platform major version (10)
+     \li Platform minor version (sp1)
+     \li Architecture (x86)
+     \li Width (32)
+     \li Build type (Release)
+
+     Lastly comes the main part which describes what the script does and in
+     what order. This part is platform independent.
+
+     The first two parts will be the same for all scripts. It is only the
+     last part that is different between e.g. a preinstall and a postinstall
+     script.
+     
+     The scripts are generated into the intermediate directory.
+
+     \subsection howDL Dependency Lists
+     All dependencies are listed explicitly in the python scripts. A more
+     intelligent solution may be needed in the future.
+     An example of how it may look is presented below
+     \ex
+     \code
+            if pfdist == "SuSE" and pfmajor == "10":
+                deps = [libssh-4.7.11,
+                        libxml-4.7.12]
+     \endcode
+
+     \subsection howBP Build Package
+     When all the previous steps have been completed, then the installer
+     package can be built.
+
+     \subsection howPackage Putting the package together
+     Putting the complete package together is a process that is platform
+     (and package system) dependent. Some tasks are similar though.
+
+     There is a class Package which is a superclass handling the common
+     functionality like using the StagingDir class to create a staging
+     directory and using the scriptgenerator class to generate pre and post
+     install scripts for example.
+
+     The classes LinuxRPM, SunOSPkg and HPUXPackage inherit from this class
+     but implement the speciffic tasks of creating package description files
+     and building the package.
+     
+
+*/

@@ -1,0 +1,153 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2008-02-27
+# 
+# Platform-specific makefile for AIX
+# 
+#--------------------------------------------------------------------------------
+
+ARCH=ppc
+PF_ARCH=ppc
+
+# Define flags. (These will be submitted to all commands that use the preprocesor)
+DEFINES+=-Daix -DPF_MAJOR=$(PF_MAJOR) -DPF_MINOR=$(PF_MINOR) 
+
+ifeq ($(SCX_STACK_ONLY), true)
+	DEFINES += -DSCX_STACK_ONLY
+endif
+
+# Compiler flags that regulates warning level.
+# Suppress warning 1540-2864: Only the last two digits of year are given by 'x' conversion in some locales.
+CXX_WARN_FLAGS=-qwarn64 -qformat -qhalt=w -qflag=w -qsuppress=1540-2864
+C_WARN_FLAGS=-qformat -qhalt=w -qflag=w:w -qsuppress=1540-2864
+
+# Common compiler flags (sent to compile command and link commands)
+# (-qthreaded is implied by using the _r version of xlc++)
+#64bit: COMMONFLAGS=-q64 -qlanglvl=strict98 -qrtti -qpic
+#
+# Note: We used to use -qextchk , but this doesn't work well
+# with OMI.  Defaul;t is off, and documentation says:
+#    Generates bind-time type-checking information and
+#    checks for compile-time consistency.
+# Since it's not clear if this ever helped us, is gone for now
+
+COMMONFLAGS=-q32 -qlanglvl=strict98 -qrtti -qpic
+
+
+# CXX Compiler flags 
+CXXFLAGS=$(COMMONFLAGS) -qlonglong $(DEFINES) $(CXX_WARN_FLAGS)
+CFLAGS=$(COMMONFLAGS) $(DEFINES) $(C_WARN_FLAGS)
+
+# CXX Debug flags for debug builds
+ifeq ($(BUILD_TYPE),Debug)
+	COMMONFLAGS += -g -qcheck 
+# 	COMMONFLAGS += -qheapdebug     Currently disabled, see WI11161
+	DEFINES += -D_DEBUG
+else
+	COMMONFLAGS += -O2 -qcompact
+	DEFINES += -DNDEBUG
+endif
+
+# Linker flags
+LINK_OUTFLAG=-o $@
+LINK_STATLIB_OUTFLAG=$@
+
+# Add profiling flags to compile/link command, if requested.
+ifeq ($(BUILD_PROFILING), prof)
+        COMMONFLAGS += -p
+endif
+ifeq ($(BUILD_PROFILING), gprof)
+        COMMONFLAGS += -pg
+endif
+
+#--------------------------------------------------------------------------------
+# Tools for this platform
+
+# Compiler for CPP files
+CXX=xlC_r
+
+# Link command for executables
+# Link an executable
+LINK=$(CXX) $(COMMONFLAGS) -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR) -L$(SCXOMI_LIBS)
+
+# Link command for static libraries (archives)
+#64bit: LINK_STATLIB=ar -rc -X 64
+LINK_STATLIB=ar -rc -X 32
+
+# Link a dynamic lib ("create a shared library that uses runtime linking")
+LINK_DYNLIB = $(CXX) -G $(COMMONFLAGS) -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR) -bernotok -blibpath:/usr/lib:/lib:/opt/microsoft/scx/lib
+
+# Include paths
+INCLUDES=-I$(SCX_SHARED_INCLUDE_DIR) -I$(SCX_INCLUDE_DIR) -I$(INT_INCLUDE_DIR) -I$(SCXPAL_INT_INCLUDE_DIR) -I$(SCX_BRD) -I$(SCXPAL_DIR) -I$(SCX_SHARED_TST_EXT_INCLUDE_DIR) -I$(SCXOMI_INCLUDE)
+UNITTEST_EXTRA_INCLUDES=-I$(SCXPAL_TEST_ROOT)/include -I$(SCX_SHARED_SRC_ROOT)
+
+# No operation, i.e. suppressing a command
+NOOP=@echo Step suppressed 
+
+# Command for making dependecies
+# Note the we need a special rule that redirects the output with -MF rather that '>'
+MKDEP=xlc++_r -E -qmakedep=gcc 
+
+#--------------------------------------------------------------------------------
+# File type suffixes
+
+PF_OBJ_FILE_SUFFIX=o
+PF_STAT_LIB_FILE_SUFFIX=a
+PF_DYN_LIB_FILE_SUFFIX=so
+PF_EXE_FILE_SUFFIX=
+PF_KIT_FILE_SUFFIX=tar
+
+#--------------------------------------------------------------------------------
+# Check versions
+#--------------------------------------------------------------------------------
+
+# Typically 5
+PF_MAJOR=$(shell uname -v)
+# Typically 3 for AIX 5.3
+PF_MINOR=$(shell uname -r)
+
+#--------------------------------------------------------------------------------
+# Build width
+#--------------------------------------------------------------------------------
+#64bit: PF_WIDTH=64
+PF_WIDTH=32
+
+#--------------------------------------------------------------------------------
+# Paths
+#--------------------------------------------------------------------------------
+
+# Path to where the CPPUNIT libraries are checked in 
+CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/aix/$(ARCH)/cppunit_32bit
+#64bit: CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/aix/$(ARCH)/cppunit_64bit
+
+#--------------------------------------------------------------------------------
+# Link switches for this platform, per target
+#--------------------------------------------------------------------------------
+
+	LDFLAGS_DYNLIB =
+	LDFLAGS_EXECUTABLE =
+
+# The Core Provider Module links with these 
+LDFLAGS_COREPROVIDERMODULE = $(LDFLAGS_DYNLIB) -lperfstat -lodm -lcfg -llvm
+
+# The Test Provider Module links with these
+LDFLAGS_TESTPROVIDERMODULE = $(LDFLAGS_DYNLIB) -lodm -lcfg -llvm
+
+# The scx-admin tool links with these
+LDFLAGS_SCX_ADMIN_TOOL = -lperfstat -lodm -lcfg -llvm
+
+# Transforms a list of symbols that should be exposed to the correct link flags
+get_ld_flags_for_retaining_symbols=$(addprefix -u, $(1))
+
+# The testrunner links with these
+#
+# Need the -brtl flag on testrunner to resolve against libmicxx.so (from OMI)
+# Otherwise, the testrunner only links against static libraries, and libmicxx.so
+# isn't available that way.
+LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE) -brtl -lperfstat -lodm -lcfg -llvm -lm
+
+SSL_LIBS = -lssl -lcrypto
+
+#-------------------------------- End of File -----------------------------------

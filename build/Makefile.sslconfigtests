@@ -1,0 +1,17 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+# 
+# Definition of all unit tests for sslconfig
+#
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# All tests for sslconfig
+POSIX_UNITTESTS_SSLCONFIG_SRCFILES = \
+	$(SCX_SHARED_TEST_ROOT)/tools/scx_ssl_config/scxsslcert_test.cpp \
+
+#-------------------------------- End of File -----------------------------------
+

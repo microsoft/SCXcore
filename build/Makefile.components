@@ -1,0 +1,422 @@
+# -*- mode: Makefile; -*- 
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+#--------------------------------------------------------------------------------
+
+#================================================================================
+# Static Libraries
+#================================================================================
+
+include $(SCX_BRD)/build/Makefile.sslconfig
+include $(SCX_BRD)/build/Makefile.providers
+
+#--------------------------------------------------------------------------------
+# Log policy
+
+STATIC_LOGPOLICYLIB_SRCFILES = \
+	$(SCX_SRC_ROOT)/providers/support/logpolicy.cpp
+
+STATIC_LOGPOLICYLIB_OBJFILES = $(call src_to_obj,$(STATIC_LOGPOLICYLIB_SRCFILES))
+
+$(INTERMEDIATE_DIR)/liblogpolicy.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_LOGPOLICYLIB_OBJFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+#--------------------------------------------------------------------------------
+# ProductDependencies static library
+
+STATIC_PRODUCTDEPENDENCIES_SRCFILES = \
+	$(SCX_SRC_ROOT)/providers/support/productdependencies.cpp
+
+STATIC_PRODUCTDEPENDENCIES_OBJFILES = $(call src_to_obj,$(STATIC_PRODUCTDEPENDENCIES_SRCFILES))
+
+STATIC_PRODUCTDEPENDENCIES_DEPFILES = \
+	$(INTERMEDIATE_DIR)/libProductDependencies.$(PF_STAT_LIB_FILE_SUFFIX)
+
+$(INTERMEDIATE_DIR)/libProductDependencies.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_PRODUCTDEPENDENCIES_OBJFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+#================================================================================
+# Dynamic libraries
+#================================================================================
+
+#--------------------------------------------------------------------------------
+# The Core Provider Module library
+
+# The static libraries prerequisite list, expands to e.g. libXYZ.a
+
+SCXPAL_STATICLIB_DEPS = \
+	palsystem \
+	scxassertabort \
+	Util \
+	scxcore
+
+COREPROVIDERMODULE_STATICLIB_DEPS = \
+	omprovider
+
+# Foreach XYZ in the list above, reference $(SCXPAL_TARGET_DIR)/libXYZ.a
+SCXPAL_STATICLIB_DEPFILES = \
+	$(addprefix $(SCXPAL_TARGET_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXPAL_STATICLIB_DEPS))) \
+	$(STATIC_PRODUCTDEPENDENCIES_DEPFILES)
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+COREPROVIDERMODULE_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(COREPROVIDERMODULE_STATICLIB_DEPS)))
+
+# Foreach XYZ in the list above, build -lXYZ
+SCXPAL_LINK_STATICLIBS = $(addprefix -l, $(SCXPAL_STATICLIB_DEPS)) \
+	-lProductDependencies \
+	-llogpolicy
+
+COREPROVIDERMODULE_LINK_STATICLIBS = $(addprefix -l, $(COREPROVIDERMODULE_STATICLIB_DEPS))
+
+OMI_FORCED_TARGETS=$(STATIC_PROVIDERLIB_OBJFILES)
+OMI_DYNAMIC_LIBS=-lmicxx
+
+$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/liblogpolicy.$(PF_STAT_LIB_FILE_SUFFIX)
+	-$(MKPATH) $(TARGET_DIR)
+	$(PROFILING) $(LINK_DYNLIB) $(COREPROVIDERMODULE_EXTRA_LINKFLAGS) $(LINK_OUTFLAG) $(OMI_FORCED_TARGETS) -L$(SCXOMI_LIBS) $(COREPROVIDERMODULE_LINK_STATICLIBS) $(OMI_DYNAMIC_LIBS) $(SCXPAL_LINK_STATICLIBS) $(LDFLAGS_COREPROVIDERMODULE) $(CXX_CGEN_FLAGS) $(SCXPAL_SRC_ROOT)/scxcorelib/pal/noop.cpp
+
+#--------------------------------------------------------------------------------
+# The Test Provider Module library
+
+# The static libraries prerequisite list, expands to e.g. libXYZ.a
+TESTPROVIDERMODULE_STATICLIB_DEPS = \
+	testprovider \
+	providersupport \
+	logpolicy \
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+TESTPROVIDERMODULE_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(TESTPROVIDERMODULE_STATICLIB_DEPS)))
+
+# Foreach XYZ in the list above, build -lXYZ
+TESTPROVIDERMODULE_LINK_STATICLIBS = $(addprefix -l, $(TESTPROVIDERMODULE_STATICLIB_DEPS))
+
+# Get the flags used for retaining exposed symbols
+TESTPROVIDERMODULE_SYMBOLS_LINKFLAGS = $(call get_ld_flags_for_retaining_symbols,$(TESTPROVIDERMODULE_EXPOSED_SYMS))
+
+$(TARGET_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(TESTPROVIDERMODULE_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/testprovider.map $(INTERMEDIATE_DIR)/testprovider.exp
+	-$(MKPATH) $(TARGET_DIR)
+	$(PROFILING) $(LINK_DYNLIB) $(TESTPROVIDERMODULE_EXTRA_LINKFLAGS) $(LINK_OUTFLAG) $(TESTPROVIDERMODULE_SYMBOLS_LINKFLAGS) $(TESTPROVIDERMODULE_LINK_STATICLIBS) $(SCXPAL_LINK_STATICLIBS) $(LDFLAGS_TESTPROVIDERMODULE) $(PF_TESTPROVIDERLIB_EXTRA_LIBS)
+
+$(INTERMEDIATE_DIR)/testprovider.map:
+	@echo "{ global: " > $@
+	@echo "$(addsuffix ;, $(TESTPROVIDERMODULE_EXPOSED_SYMS))" >> $@
+	@echo "local: *; };" >> $@
+
+$(INTERMEDIATE_DIR)/testprovider.exp:
+	$(foreach SYM,$(TESTPROVIDERMODULE_EXPOSED_SYMS),$(shell echo $(EXPOSED_SYMS_PREFIX)$(SYM) >> $@))
+
+
+#================================================================================
+# Administration Tool
+#================================================================================
+
+SCXADMIN_DIR=$(SCX_SRC_ROOT)/shared/tools/scx_admin
+
+# Static lib files for admin tool
+STATIC_SCXADMIN_SRCFILES = \
+	$(SCXADMIN_DIR)/servicecontrol.cpp \
+	$(SCXADMIN_DIR)/cimconfigurator.cpp \
+	$(SCXADMIN_DIR)/logconfigurator.cpp \
+	$(SCXADMIN_DIR)/cmdparser.cpp \
+	$(SCXADMIN_DIR)/runasadminprovider.cpp
+
+# We need to include include this module WITHOUT pulling in the provider library.
+# On AIX, this causes OMI dependencies to be dragged in. We want better separation.
+STATIC_SCXADMIN_SRCFILES += \
+	$(PROVIDER_SUPPORT_DIR)/scxrunasconfigurator.cpp
+
+$(INTERMEDIATE_DIR)/source/code/shared/tools/scx_admin/%.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/source/code/shared/tools/scx_admin/%.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+
+STATIC_SCXADMIN_OBJFILES = $(call src_to_obj,$(STATIC_SCXADMIN_SRCFILES))
+
+$(INTERMEDIATE_DIR)/libscxadmin.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXADMIN_OBJFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+# The main program
+SCXADMIN_SRCFILES=\
+	$(SCXADMIN_DIR)/scx_admin.cpp
+
+SCXADMIN_OBJFILES = $(call src_to_obj,$(SCXADMIN_SRCFILES))
+
+
+SCXADMIN_DEPFILES=$(SCXADMIN_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) $(STATIC_SCXADMIN_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) 
+
+# Static dependencies on POSIX platforms
+SCXADMIN_STATICLIB_DEPS = \
+	scxadmin
+
+#	omprovider \
+#	providersupport \
+#	metaprovider
+
+ifneq ($(SCX_STACK_ONLY), true)      # For a full agent, also include these:
+#SCXADMIN_STATICLIB_DEPS += \
+#	runasprovider \
+
+endif
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+SCXADMIN_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXADMIN_STATICLIB_DEPS)))
+
+$(TARGET_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX): \
+	$(SCXADMIN_OBJFILES) $(INTERMEDIATE_DIR)/libscxadmin.$(PF_STAT_LIB_FILE_SUFFIX) $(SCXADMIN_DEPFILES) $(SCXADMIN_STATICLIB_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/tools
+	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(SCXADMIN_OBJFILES) $(SCXADMIN_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_SCX_ADMIN_TOOL) $(LDFLAGS_EXECUTABLE)
+
+#================================================================================
+# Logfile Reader Command Line Program
+#================================================================================
+
+LOGFILEREADER_DIR=$(SCX_SRC_ROOT)/providers/support
+
+# Static lib files for scxlogfilereader command line program
+STATIC_LOGFILEREADER_SRCFILES = \
+	$(LOGFILEREADER_DIR)/logfileutils.cpp
+
+STATIC_LOGFILEREADER_OBJFILES = $(call src_to_obj,$(STATIC_LOGFILEREADER_SRCFILES))
+
+$(INTERMEDIATE_DIR)/libscxlogfilereader.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_LOGFILEREADER_OBJFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+# The main program
+LOGFILEREADER_SRCFILES=\
+	$(LOGFILEREADER_DIR)/logfilereader.cpp
+
+LOGFILEREADER_OBJFILES = $(call src_to_obj,$(LOGFILEREADER_SRCFILES))
+
+LOGFILEREADER_DEPFILES=$(LOGFILEREADER_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) $(STATIC_LOGFILEREADER_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) 
+
+# Static dependencies on POSIX platforms
+LOGFILEREADER_STATICLIB_DEPS = \
+	scxlogfilereader \
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+LOGFILEREADER_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(LOGFILEREADER_STATICLIB_DEPS)))
+
+$(TARGET_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX): \
+	$(LOGFILEREADER_OBJFILES) $(INTERMEDIATE_DIR)/libscxlogfilereader.$(PF_STAT_LIB_FILE_SUFFIX) $(LOGFILEREADER_DEPFILES) $(LOGFILEREADER_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/tools
+	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(LOGFILEREADER_OBJFILES) $(LOGFILEREADER_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_SCX_ADMIN_TOOL) $(LDFLAGS_EXECUTABLE)
+
+#================================================================================
+# Regular Expression Test Tool
+#================================================================================
+
+REGEX_TEST_DIR=$(SCX_SRC_ROOT)/shared/tools/regex_test
+
+REGEX_TEST_SRCFILES=\
+	$(REGEX_TEST_DIR)/regex_test.cpp
+
+REGEX_TEST_OBJFILES = $(call src_to_obj,$(REGEX_TEST_SRCFILES))
+
+REGEX_TEST_DEPFILES=$(REGEX_TEST_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
+
+$(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX): \
+	$(REGEX_TEST_OBJFILES) $(REGEX_TEST_DEPFILES) $(REGEX_TEST_STATICLIB_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/tools
+	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(REGEX_TEST_OBJFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_TESTRUNNER) $(LDFLAGS_EXECUTABLE)
+
+#================================================================================
+# Development Convenience Targets
+#================================================================================
+
+logfilereader-tool: $(TARGET_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX)
+admin-tool: $(TARGET_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX)
+regex-test: $(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX)
+
+ifeq ($(PF_DISTRO),ULINUX)
+ssl-tool: $(TARGET_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(TARGET_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+else
+ssl-tool: $(TARGET_DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+endif
+
+# All SCX tools
+scx-tools: logfilereader-tool admin-tool regex-test ssl-tool
+
+coreprovider: \
+	$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
+
+providers: \
+	$(TARGET_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) \
+	$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
+
+# An alias 
+omi: omi_all
+
+omi_all:
+ifeq ($(PF_DISTRO),ULINUX)
+
+	$(ECHO) "========================= Performing make omi"
+
+	@echo Checking for local installation of OpenSSL version 0.9.8 on build machine ... 
+	@if ! [ -e $(LD_LIBRARY_PATH_OPENSSL098) ]; \
+	then \
+	echo Did not find $(LD_LIBRARY_PATH_OPENSSL098), which is required.; \
+	echo You must install a local copy of OpenSSL version 0.9.8 to build successfully.; \
+	exit 1; \
+	else \
+	echo Found local installation of OpenSSL 0.9.8, proceeding ; \
+	fi
+
+	@echo Checking for local installation of OpenSSL version 1.0.0 on build machine ... 
+	@if ! [ -e $(LD_LIBRARY_PATH_OPENSSL100) ]; \
+	then \
+	echo Did not find $(LD_LIBRARY_PATH_OPENSSL100), which is required.; \
+	echo You must install a local copy of OpenSSL version 1.0.0 to build successfully.; \
+	exit 1; \
+	else \
+	echo Found local installation of OpenSSL version 1.0.0, proceeding ; \
+	fi
+
+	$(ECHO) "========================= Performing make omi (0.9.8)"
+
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL098); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL098); \
+	export OPENSSL_CFLAGS=`pkg-config --cflags openssl`; \
+	export OPENSSL_LIBS=`pkg-config --libs openssl`; \
+	echo "Building OMI with OPENSSL_CFLAGS: $$OPENSSL_CFLAGS"; \
+	echo "Building OMI with OPENSSL_LIBS:   $$OPENSSL_LIBS"; \
+	cd $(SCXOMI_DIR); \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	$(MAKE) -C $(SCXOMI_DIR) all
+
+	$(ECHO) "========================= Performing make omi (1.0.0)"
+
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL100); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL100); \
+	export OPENSSL_CFLAGS=`pkg-config --cflags openssl`; \
+	export OPENSSL_LIBS=`pkg-config --libs openssl`; \
+	echo "Building OMI with OPENSSL_CFLAGS: $$OPENSSL_CFLAGS"; \
+	echo "Building OMI with OPENSSL_LIBS:   $$OPENSSL_LIBS"; \
+	cd $(SCXOMI_DIR); \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	$(MAKE) -C $(SCXOMI_DIR) all
+
+else
+
+	$(ECHO) "========================= Performing make omi"
+	$(MAKE) -C $(SCXOMI_DIR) all
+
+endif
+
+omi_clean:
+	# What to do here to clean up OMI build? - TODO
+
+get_platform_string:
+	@$(call pf_fwrite,"$(BUILD_CONFIGURATION)", $(SCX_BRD)/build/platform_string.txt)
+
+# Used to generate compontents necessary for other projects to compile with the 
+# core components
+devel-deps: $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) omi
+	-$(RMDIR) $(TARGET_DIR)/scxcore-devel
+ifeq ($(PF_DISTRO),ULINUX)
+	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)
+	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)
+else
+	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib
+endif
+	$(COPYDIR) $(SCX_SHARED_INCLUDE_DIR) $(TARGET_DIR)/scxcore-devel/shared
+	$(COPYDIR) $(SCX_INCLUDE_DIR) $(TARGET_DIR)/scxcore-devel
+	$(COPY) $(SCXPAL_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
+	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
+	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(TARGET_DIR)/scxcore-devel/lib
+	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(TARGET_DIR)/scxcore-devel/include/testutils
+	# Create an OMI development area for use in running utilities
+	#   TODO - Is there an alias for mkdir?  Not $(MKDIR) or $(MAKEDIR), those didn't work
+	$(RMDIR) -rf $(TARGET_DIR)/omi 
+	-mkdir -p $(TARGET_DIR)/omi/etc/omiregister/root-scx
+	$(COPY) -r $(SCXOMI_DIR)/etc $(TARGET_DIR)/omi
+	$(COPY) -r $(SCXOMI_DEV_ROOT)/* $(TARGET_DIR)/omi
+	$(COPY) -r $(SCXOMI_DIR)/share $(TARGET_DIR)/omi
+	#
+ifneq ($(PF_DISTRO),ULINUX)
+	# Copy OMI (non-ULINUX) bits here! - TODO
+	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/libs_version.txt)
+else
+	# Copy OMI (ULINUX) bits here! - TODO
+	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)/libs_version.txt)
+	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)/libs_version.txt)
+endif
+
+#================================================================================
+# Doxygen Targets
+#================================================================================
+
+# Build the Doxygen documentation for the SCXCore lib
+doxygen_corelib:
+	-$(RMDIR) $(DOXYGEN_OUTPUT_DIR)/scxcore_doc
+	$(MKPATH) $(DOXYGEN_OUTPUT_DIR)/scxcore_doc
+	( cat doxygen_scxcore.cfg ; \
+	  echo "STRIP_FROM_PATH=$(SCX_SRC_ROOT)"; \
+	  echo "OUTPUT_DIRECTORY=$(DOXYGEN_OUTPUT_DIR)/scxcore_doc"; \
+	  echo "WARN_LOGFILE=$(TARGET_DIR)/doxygen_build.log"; ) | doxygen -
+	if [ -s $(TARGET_DIR)/doxygen_build.log ] ; then echo "$(TARGET_DIR)/doxygen_build.log:1:Warnings in doxygenlog"; fi
+
+doxygen_clean:
+	-$(RMDIR) $(DOXYGEN_OUTPUT_DIR)/scxcore_doc
+
+#================================================================================
+# Dependency generation Targets
+#================================================================================
+
+# Rule for automatically generating dependencies.
+OBJFILES=$(STATIC_CORELIB_OBJFILES) \
+	$(STATIC_ASSERT_ABORTLIB_OBJFILES) \
+	$(STATIC_PROVIDERLIB_OBJFILES) \
+	$(STATIC_SCXADMIN_OBJFILES) \
+	$(SCXADMIN_OBJFILES) \
+	$(SCXSSLCONFIG_OBJFILES) \
+	$(REGEX_TEST_OBJFILES)
+
+DEPFILES=$(OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
+
+#================================================================================
+# Version information header file
+#================================================================================
+
+ $(INT_INCLUDE_DIR)/buildversion.h : $(SCX_BRD)/build/Makefile.version
+	-$(MKPATH) $(@D)
+	@$(ECHO) "Creating $@" 
+	@$(call pf_fwrite,"/*------------------------------------------------------------------------------",  $@)
+	@$(call pf_fappend,"    Copyright (C) 2007 Microsoft Corp.                                          ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"*/                                                                              ", $@)
+	@$(call pf_fappend,"/**                                                                             ", $@)
+	@$(call pf_fappend,"    \file                                                                       ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"    \brief       Auto generated file containing build version information       ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"    \author      Automated Build System                                         ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"    DO NOT EDIT THIS FILE!                                                      ", $@)
+	@$(call pf_fappend,"    DO NOT CHECK IN THIS FILE!                                                  ", $@)
+	@$(call pf_fappend,"*/                                                                              ", $@)
+	@$(call pf_fappend,"/*----------------------------------------------------------------------------*/", $@)
+	@$(call pf_fappend,"#ifndef BUILDVERSION_H                                                          ", $@)
+	@$(call pf_fappend,"#define BUILDVERSION_H                                                          ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"#include <string>                                                               ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"/** Major version number */                                                     ", $@)
+	@$(call pf_fappend,"const int SCX_BUILDVERSION_MAJOR   = $(SCX_BUILDVERSION_MAJOR);                 ", $@)
+	@$(call pf_fappend,"/** Minor version number */                                                     ", $@)
+	@$(call pf_fappend,"const int SCX_BUILDVERSION_MINOR   = $(SCX_BUILDVERSION_MINOR);                 ", $@)
+	@$(call pf_fappend,"/** Patch version number */                                                     ", $@)
+	@$(call pf_fappend,"const int SCX_BUILDVERSION_PATCH   = $(SCX_BUILDVERSION_PATCH);                 ", $@)
+	@$(call pf_fappend,"/** Build number */                                                             ", $@)
+	@$(call pf_fappend,"const int SCX_BUILDVERSION_BUILDNR = $(SCX_BUILDVERSION_BUILDNR);               ", $@)
+	@$(call pf_fappend,"/** Build date */                                                               ", $@)
+	@$(call pf_fappend,"const std::wstring SCX_BUILDVERSION_DATE(L\"$(SCX_BUILDVERSION_DATE)\");        ", $@)
+	@$(call pf_fappend,"/** Build status */                                                             ", $@)
+	@$(call pf_fappend,"const std::wstring SCX_BUILDVERSION_STATUS(L\"$(SCX_BUILDVERSION_STATUS)\");    ", $@)
+	@$(call pf_fappend,"                                                                                ", $@)
+	@$(call pf_fappend,"#endif /* BUILDVERSION_H */                                                     ", $@)
+	@$(call pf_fappend,"/*----------------------------E-N-D---O-F---F-I-L-E---------------------------*/", $@)
+
+
+#-------------------------------- End of File -----------------------------------

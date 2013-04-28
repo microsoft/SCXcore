@@ -1,0 +1,110 @@
+# -*- mode: Makefile; -*-
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+# 2007-08-23
+# 
+# Definition of all provider unit tests
+#
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# Provider tests.
+
+# For now, providertestutils.cpp lives in PAL, but is built in OM.  This creates
+# some build issues.  To resolve, create a link to the real file.
+
+$(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp: $(SCXPAL_TEST_ROOT)/testutils/providertestutils.cpp
+# We need to recreate the symlink if the link is older than what it points to.  Touch will not work, and ln -fs does not work on Sun5.9
+	rm -f $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
+	ln -s $(SCXPAL_TEST_ROOT)/testutils/providertestutils.cpp $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
+
+POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
+	$(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/meta_provider/metaprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/appserverenumeration_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/appserverinstance_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/jbossappserverinstance_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/tomcatappserverinstance_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/weblogicappserverenumeration_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/weblogicappserverinstance_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/websphereappserverinstance_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/manipulateappserverinstances_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/persistappserverinstances_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/cpu_provider/cpuprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/disk_provider/diskprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfilereader_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/memory_provider/memoryprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/runas_provider/scxrunasconfigurator_test.cpp
+
+
+# The OMI source files won't compile with our very strict flags - ease up for them
+# (and, for HP, allow a mechanism to modify the flags)
+$(call src_to_obj,$(POSIX_UNITTESTS_PROVIDERS_SRCFILES)): CXX_WARN_STRICT_FLAGS=$(CXX_WARN_STRICT_FLAGS_PROVIDERS)
+$(call src_to_obj,$(POSIX_UNITTESTS_PROVIDERS_SRCFILES)): C_WARN_STRICT_FLAGS=$(CXX_WARN_STRICT_FLAGS_PROVIDERS)
+
+$(call src_to_obj,$(POSIX_UNITTESTS_PROVIDERS_SRCFILES)): INCLUDES += -I$(SCXOMI_DIR) -I$(SCXOMI_DIR)/common -I$(SCX_SRC_ROOT)/providers/support
+$(patsubst %.$(PF_OBJ_FILE_SUFFIX), %.d, $(call src_to_obj,$(POSIX_UNITTESTS_PROVIDERS_SRCFILES))): INCLUDES += -I$(SCXOMI_DIR) -I$(SCXOMI_DIR)/common -I$(SCX_SRC_ROOT)/providers/support
+
+# Extra include dirs for certain include files
+
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverenumeration_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverenumeration_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverinstance_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverinstance_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/jbossappserverinstance_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/jbossappserverinstance_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/tomcatappserverinstance_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/tomcatappserverinstance_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/weblogicappserverenumeration_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/weblogicappserverenumeration_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/weblogicappserverinstance_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/weblogicappserverinstance_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/websphereappserverinstance_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/websphereappserverinstance_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/manipulateappserverinstances_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/manipulateappserverinstances_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/persistappserverinstances_test.d: INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/persistappserverinstances_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(APPSERVER_SUPPORT_DIR)
+
+$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.d: INCLUDES += -I-I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+
+$(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+
+ifeq (1,0)
+
+POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
+	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/appserverprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/process_provider/processprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/process_provider/unixprocesskey_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/runas_provider/runasprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/disk_provider/diskkey_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/network_provider/networkprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/os_provider/osprovider_test.cpp
+
+
+# Extra include dirs for certain include files
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/processprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/process_provider
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/processprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/process_provider
+$(INTERMEDIATE_DIR)/test/code/providers/memory_provider/memoryprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/memory_provider
+$(INTERMEDIATE_DIR)/test/code/providers/memory_provider/memoryprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/memory_provider
+$(INTERMEDIATE_DIR)/test/code/providers/cpu_provider/cpuprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/cpu_provider
+$(INTERMEDIATE_DIR)/test/code/providers/cpu_provider/cpuprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/cpu_provider
+$(INTERMEDIATE_DIR)/test/code/providers/disk_provider/diskprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/disk_provider
+$(INTERMEDIATE_DIR)/test/code/providers/disk_provider/diskprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/disk_provider
+$(INTERMEDIATE_DIR)/test/code/providers/network_provider/networkprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/network_provider -I$(SCXPAL_SRC_ROOT)/scxsystemlib/networkinterface
+$(INTERMEDIATE_DIR)/test/code/providers/network_provider/networkprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/network_provider -I$(SCXPAL_SRC_ROOT)/scxsystemlib/networkinterface
+$(INTERMEDIATE_DIR)/test/code/providers/os_provider/osprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/os_provider
+$(INTERMEDIATE_DIR)/test/code/providers/os_provider/osprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/os_provider
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverprovider_test.d: INCLUDES += -I$(SCX_SRC_ROOT)/providers/appserver_provider
+$(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/appserverprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(SCX_SRC_ROOT)/providers/appserver_provider
+
+endif # ifeq (1,0)
+
+#-------------------------------- End of File -----------------------------------

@@ -1,0 +1,155 @@
+# -*- mode: Makefile; -*- 
+#--------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#--------------------------------------------------------------------------------
+
+#================================================================================
+# Static Libraries
+#================================================================================
+
+#================================================================================
+# Installation Tools
+#================================================================================
+
+SCXSSLCONFIG_DIR=$(SCX_SHARED_SRC_ROOT)/tools/scx_ssl_config
+
+# Static lib files for ssl tool
+STATIC_SCXSSLCONFIG_SRCFILES = \
+	$(SCXSSLCONFIG_DIR)/scxsslcert.cpp
+
+STATIC_SCXSSLCONFIG_OBJFILES = $(call src_to_obj,$(STATIC_SCXSSLCONFIG_SRCFILES))
+
+SCXSSLCONFIG_SRCFILES=\
+	$(SCXSSLCONFIG_DIR)/scx_ssl_config.cpp
+
+ifneq ($(PF_DISTRO),ULINUX)
+
+$(INTERMEDIATE_DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXSSLCONFIG_OBJFILES)
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+SCXSSLCONFIG_OBJFILES = $(call src_to_obj,$(SCXSSLCONFIG_SRCFILES))
+
+SCXSSLCONFIG_DEPFILES=$(SCXSSLCONFIG_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) $(STATIC_SCXSSLCONFIG_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
+
+else
+
+# If universal agent, make two sets of binaries
+# Build paths to static object output for each version of OpenSSL
+
+STATIC_SCXSSLCONFIG_OBJFILES_DIR=$(dir $(STATIC_SCXSSLCONFIG_OBJFILES))
+STATIC_SCXSSLCONFIG_OBJFILES_NOTDIR=$(notdir $(STATIC_SCXSSLCONFIG_OBJFILES))
+STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL098 = $(STATIC_SCXSSLCONFIG_OBJFILES_DIR)$(OPENSSL098DIR)/$(STATIC_SCXSSLCONFIG_OBJFILES_NOTDIR)
+STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL100 = $(STATIC_SCXSSLCONFIG_OBJFILES_DIR)$(OPENSSL100DIR)/$(STATIC_SCXSSLCONFIG_OBJFILES_NOTDIR)
+
+# Build paths to object output for each version of OpenSSL
+SCXSSLCONFIG_OBJFILES_DIR = $(dir $(call src_to_obj,$(SCXSSLCONFIG_SRCFILES)))
+SCXSSLCONFIG_OBJFILES_NOTDIR = $(notdir $(call src_to_obj,$(SCXSSLCONFIG_SRCFILES)))
+SCXSSLCONFIG_OBJFILES_OPENSSL098 = $(SCXSSLCONFIG_OBJFILES_DIR)$(OPENSSL098DIR)/$(SCXSSLCONFIG_OBJFILES_NOTDIR)
+SCXSSLCONFIG_OBJFILES_OPENSSL100 = $(SCXSSLCONFIG_OBJFILES_DIR)$(OPENSSL100DIR)/$(SCXSSLCONFIG_OBJFILES_NOTDIR)
+
+endif
+
+# Static dependencies on POSIX platforms
+
+ifneq ($(PF_DISTRO),ULINUX)
+
+#
+# Not ULINUX
+#
+
+SCXSSLCONFIG_STATICLIB_DEPS = \
+	scxsslconfig
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+SCXSSLCONFIG_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXSSLCONFIG_STATICLIB_DEPS)))
+
+$(TARGET_DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX): \
+	$(SCXSSLCONFIG_OBJFILES) $(INTERMEDIATE_DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) $(SCXSSLCONFIG_DEPFILES) $(SCXSSLCONFIG_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/tools
+	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(SCXSSLCONFIG_OBJFILES) $(SCXSSLCONFIG_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(SSL_LIBS) $(LDFLAGS_COREPROVIDERMODULE) $(LDFLAGS_EXECUTABLE)
+
+else
+
+#
+# ULINUX
+#
+
+SCXSSLCONFIG_STATICLIB_DEPS_OPENSSL = \
+	scxsslconfig 
+
+# Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
+SCXSSLCONFIG_DEPFILES=$(SCXSSLCONFIG_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) $(STATIC_SCXSSLCONFIG_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
+
+# Need two targets, one for each flavor of OpenSSL 
+scxsslconfig_both_targets: \
+	$(TARGET_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) \
+	$(TARGET_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+
+# These targets override those in the Makefile.rules file
+# They build code and everything downstream to order for each version of OpenSSL
+# Non-universal Linux builds handle these steps implicitly through suffix rules.
+$(INTERMEDIATE_DIR)/source/code/shared/tools/scx_ssl_config/$(OPENSSL100DIR)/%.$(PF_OBJ_FILE_SUFFIX) : $(SCXSSLCONFIG_DIR)/%.cpp
+	$(MKPATH) $(@D)
+	$(PROFILING) $(CXX) -c $(CXXFLAGS) $(INCLUDES) -I$(<D) -o $@ $<
+
+$(INTERMEDIATE_DIR)/source/code/shared/tools/scx_ssl_config/$(OPENSSL098DIR)/%.$(PF_OBJ_FILE_SUFFIX) : $(SCXSSLCONFIG_DIR)/%.cpp
+	$(MKPATH) $(@D)
+	$(PROFILING) $(CXX) -c $(CXXFLAGS) $(INCLUDES) -I$(<D) -o $@ $<
+
+$(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL098)
+	-$(MKPATH) $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)
+
+	# Set parameters to point pkg-config to different OpenSSL versions
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL098); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL098); \
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+$(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL100)
+	-$(MKPATH) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)
+
+	# Use appropriate environment variable to set pkg-config paths.
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL100); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL100); \
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+$(TARGET_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX): $(SCXSSLCONFIG_OBJFILES_OPENSSL098) $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) $(SCXSSLCONFIG_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/$(OPENSSL098DIR)
+	-$(MKPATH) $(TARGET_DIR)/tools
+
+	# Use appropriate pkg-config environment variable to set library and header paths
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL098); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL098); \
+	$(PROFILING) $(LINK_OPENSSL098) $(LINK_OUTFLAG) $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL098) $(SCXSSLCONFIG_OBJFILES_OPENSSL098) $(SCXPAL_STATICLIB_DEPFILES) $(SSL_LIBS) $(LDFLAGS_EXECUTABLE)
+
+$(TARGET_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX): $(SCXSSLCONFIG_OBJFILES_OPENSSL100) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) $(SCXSSLCONFIG_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) 
+	-$(MKPATH) $(TARGET_DIR)/$(OPENSSL100DIR)
+	-$(MKPATH) $(TARGET_DIR)/tools
+
+	# Use appropriate pkg-config environment variable to set library and header paths
+	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL100); \
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL100); \
+	$(PROFILING) $(LINK_OPENSSL100) $(LINK_OUTFLAG) $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL100) $(SCXSSLCONFIG_OBJFILES_OPENSSL100) $(SCXPAL_STATICLIB_DEPFILES) $(SSL_LIBS) $(LDFLAGS_EXECUTABLE)
+
+# Test builds require this to produce test kits built with system version of openssl.
+
+ifeq ($(OPENSSL_SYSTEM_VERSION),"0.9.8")
+
+# System kit is openssl 0.9.8
+$(INTERMEDIATE_DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL098)
+	-$(MKPATH) $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)
+	@echo Building with system openssl kit, version 0.9.8....
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+else
+ifeq ($(OPENSSL_SYSTEM_VERSION),"1.0.0")
+
+# System kit is 1.0.0	
+$(INTERMEDIATE_DIR)/libscxsslconfig.$(PF_STAT_LIB_FILE_SUFFIX) : $(STATIC_SCXSSLCONFIG_OBJFILES_OPENSSL100)
+	-$(MKPATH) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)
+	@echo  Building with system openssl kit, version 1.0.0 ....
+	$(LINK_STATLIB) $(LINK_STATLIB_OUTFLAG) $^
+
+endif
+endif
+
+endif
