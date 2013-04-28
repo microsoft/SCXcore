@@ -42,7 +42,7 @@
     <!-- Branch level prefix is used in the label name: For Production builds from
     scx_core branch it should be just ScxCore, for branch builds it should have the
     branch name associated. -->
-    <BranchLabelPrefix>ScxCoreMain</BranchLabelPrefix>
+    <BranchLabelPrefix>ScxCoreSCXDEV</BranchLabelPrefix>
 
     <!--  BUILD DIRECTORY
      This property is included only for backwards compatibility. The build directory used for a build 
