@@ -227,7 +227,7 @@ class Script:
             '    mv -f %(SSL_DIR)s/scx-seclevel1.pem %(SSL_DIR)s/scx-host-`hostname`.pem',
             '    ln -s -f %(SSL_DIR)s/scx-host-`hostname`.pem %(SSL_DIR)s/scx.pem',
             '  fi',
-            '  ( set +e; [ -f /etc/profile ] && source /etc/profile; set -e; %(SCX_SSL_CONFIG)s )',
+            '  ( set +e; [ -f /etc/profile ] && . /etc/profile; set -e; %(SCX_SSL_CONFIG)s )',
             '  if [ $? -ne 0 ]; then',
             '    exit 1', # No need to print reason since SSL tool does that.
             '  fi',
