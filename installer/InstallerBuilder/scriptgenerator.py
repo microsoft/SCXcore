@@ -646,9 +646,15 @@ class Script:
                 ]
 
             if self.configuration['pfarch'] == "x86":
-                body += [ "    LIB_DIR=/lib" ]
+                body += [
+                    "    LIB_DIR=/lib",
+                    "    DIR_LIST=/lib/ /usr/lib/\""
+                    ]
             else:
-                body += [ "    LIB_DIR=/lib64" ]
+                body += [
+                    "    LIB_DIR=/lib64",
+                    "    DIR_LIST=/lib64/ /usr/lib64/\""
+                    ]
 
             body += [
                 "    # We stage (in /opt/microsoft/scx/lib_openssl_0.9.8) two soft links of interest:",
@@ -661,7 +667,6 @@ class Script:
                 "      # and extensions and then start looking for our SSL libraries ...",
                 "      LIBCRYPTO_FILE=",
                 "      LIBSSL_FILE=",
-                "      DIR_LIST=\"${LIB_DIR}/ /usr/lib/\"",
                 "      SSL_VERSION_SUBS=`echo ${SSL_VERSION} | awk -F - '{print $1}'`",
                 "      EXT_LIST=\"${SSL_VERSION} `echo ${SSL_VERSION} | tr -d A-Za-z` ${SSL_VERSION_SUBS} `echo ${SSL_VERSION_SUBS} | tr -d A-Za-z` \"",
                 "",
