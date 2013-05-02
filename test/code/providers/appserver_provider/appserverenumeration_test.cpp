@@ -115,6 +115,8 @@ class MockProcessInstance : public ProcessInstance
 public:
 #if defined(hpux)
     MockProcessInstance(scxpid_t pid, struct pst_status *pstatus) : ProcessInstance(pid,pstatus) {}
+#elif defined(aix)
+    MockProcessInstance(scxpid_t pid, struct procentry64 *pentry) : ProcessInstance(pid,pentry) {}
 #else
     MockProcessInstance(scxpid_t pid, const char* basename) : ProcessInstance(pid,basename) {}
 #endif
@@ -173,6 +175,10 @@ public:
         struct pst_status stat;
         strcpy(stat.pst_ucomm, basename);
         SCXCoreLib::SCXHandle<MockProcessInstance> inst(new MockProcessInstance(pid, &stat));
+#elif defined(aix)
+        struct procentry64 entry;
+        strcpy(entry.pi_comm, basename);
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst(new MockProcessInstance(pid, &entry));
 #else
         SCXCoreLib::SCXHandle<MockProcessInstance> inst(new MockProcessInstance(pid, basename));
 #endif
