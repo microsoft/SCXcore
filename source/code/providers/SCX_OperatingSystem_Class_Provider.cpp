@@ -19,6 +19,7 @@
 #include "support/scxcimutils.h"
 #include "support/scxrunasconfigurator.h"
 #include "support/startuplog.h"
+#include "support/osprovider.h"
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -34,106 +35,6 @@ namespace
 
 namespace SCXCore
 {
-    //
-    // OS Provider Implementation
-    //
-
-    class OSProvider
-    {
-    public:
-        OSProvider();
-        ~OSProvider();
-
-        void Load();
-        void Unload();
-
-        SCXHandle<OSEnumeration> GetOS_Enumerator() { return m_osEnum; }
-        SCXHandle<MemoryEnumeration> GetMemory_Enumerator() { return m_memEnum; }
-        SCXHandle<SCXOSTypeInfo> GetOSTypeInfo() { return m_OSTypeInfo; }
-        SCXLogHandle& GetLogHandle() { return m_log; }
-
-    private:
-        //! PAL implementation representing os information for local host
-        SCXCoreLib::SCXHandle<OSEnumeration> m_osEnum;
-
-        //! PAL implementation representing memory information for local host
-        SCXCoreLib::SCXHandle<MemoryEnumeration> m_memEnum;
-
-        //! PAL for providing static OS information
-        SCXCoreLib::SCXHandle<SCXOSTypeInfo> m_OSTypeInfo;
-
-        SCXCoreLib::SCXLogHandle m_log;
-        static int ms_loadCount;
-    };
-
-    /*----------------------------------------------------------------------------*/
-    /**
-       Default constructor
-    */
-    OSProvider::OSProvider() :
-        m_osEnum(NULL),
-        m_memEnum(NULL),
-        m_OSTypeInfo(NULL)
-    {
-    }
-
-    /*----------------------------------------------------------------------------*/
-    /**
-       Destructor
-    */
-    OSProvider::~OSProvider()
-    {
-    }
-
-    void OSProvider::Load()
-    {
-        SCXASSERT( ms_loadCount >= 0 );
-        if ( 1 == ++ms_loadCount )
-        {
-            m_log = SCXLogHandleFactory::GetLogHandle(L"scx.core.providers.osprovider");
-            LogStartup();
-            SCX_LOGTRACE(m_log, L"OSProvider::Load()");
-
-            // Operating system provider
-            SCXASSERT( NULL == m_osEnum );
-            m_osEnum = new OSEnumeration();
-            m_osEnum->Init();
-
-            // We need the memory provider for some stuff as well
-            SCXASSERT( NULL == m_memEnum );
-            m_memEnum = new MemoryEnumeration();
-            m_memEnum->Init();
-
-            // And OS type information
-            SCXASSERT( NULL == m_OSTypeInfo );
-            m_OSTypeInfo = new SCXOSTypeInfo();
-        }
-    }
-
-    void OSProvider::Unload()
-    {
-        SCX_LOGTRACE(m_log, L"OSProvider::Unload()");
-
-        SCXASSERT( ms_loadCount >= 1 );
-        if (0 == --ms_loadCount)
-        {
-            if (m_osEnum != NULL)
-            {
-                m_osEnum->CleanUp();
-                m_osEnum = NULL;
-            }
-
-            if (m_memEnum != NULL)
-            {
-                m_memEnum->CleanUp();
-                m_memEnum = NULL;
-            }
-
-            m_OSTypeInfo = NULL;
-        }
-    }
-
-
     //
     // RunAs Provider Implementation
     //
@@ -415,10 +316,6 @@ namespace SCXCore
 
         return newCommand;
     }
-
-
-    int OSProvider::ms_loadCount = 0;
-    static OSProvider g_OSProvider;
 
     int RunAsProvider::ms_loadCount = 0;
     static RunAsProvider g_RunAsProvider;

@@ -111,7 +111,7 @@ public:
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, m_keyNames[0], instance.GetKeyName(0, CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"Memory", instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
 
-        std::wstring tmpExpectedProperties[16] = {L"Caption",
+        std::wstring tmpExpectedProperties[] = {L"Caption",
                                                   L"Description",
                                                   L"Name",
                                                   L"IsAggregate",
@@ -127,20 +127,9 @@ public:
                                                   L"UsedSwap",
                                                   L"PercentUsedSwap",
                                                   L"PercentUsedByCache"};
-        std::set<std::wstring> expectedProperties(tmpExpectedProperties, tmpExpectedProperties + 16);
-        for (MI_Uint32 i = 0; i < instance.GetNumberOfProperties(); ++i)
-        {
-            TestableInstance::PropertyInfo info;
-            CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, instance.FindProperty(i, info));
-            CPPUNIT_ASSERT_EQUAL(1u, expectedProperties.count(info.name));
-        }
-        for (std::set<std::wstring>::const_iterator iter = expectedProperties.begin();
-             iter != expectedProperties.end();
-             ++iter)
-        {
-            TestableInstance::PropertyInfo info;
-            CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, instance.FindProperty((*iter).c_str(), info));
-        }
+
+        const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
+        VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
 
         // Test that the percentages add up to about 100%.
         TestableInstance::PropertyInfo info;
