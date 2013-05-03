@@ -91,8 +91,7 @@ public:
             CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, m_keyNames[0], instance.GetKeyName(0, CALL_LOCATION(errMsg)));
 
 #if defined(linux)
-            const int numprops = 12;
-            std::wstring tmpExpectedProperties[numprops] = {L"Caption",
+            std::wstring tmpExpectedProperties[] = {L"Caption",
                                                             L"Description",
                                                             L"Name",
                                                             L"IsAggregate",
@@ -105,8 +104,7 @@ public:
                                                             L"PercentProcessorTime",
                                                             L"PercentIOWaitTime"};
 #elif defined(sun) | defined(aix)
-            const int numprops = 9;
-            std::wstring tmpExpectedProperties[numprops] = {L"Caption",
+            std::wstring tmpExpectedProperties[] = {L"Caption",
                                                             L"Description",
                                                             L"Name",
                                                             L"IsAggregate",
@@ -116,8 +114,7 @@ public:
                                                             L"PercentProcessorTime",
                                                             L"PercentIOWaitTime"};
 #elif defined(hpux)
-            const int numprops = 10;
-            std::wstring tmpExpectedProperties[numprops] = {L"Caption",
+            std::wstring tmpExpectedProperties[] = {L"Caption",
                                                             L"Description",
                                                             L"Name",
                                                             L"IsAggregate",
@@ -128,21 +125,9 @@ public:
                                                             L"PercentProcessorTime",
                                                             L"PercentIOWaitTime"};
 #endif
-            std::set<std::wstring> expectedProperties(tmpExpectedProperties, tmpExpectedProperties + numprops);
 
-            for (MI_Uint32 i = 0; i < instance.GetNumberOfProperties(); ++i)
-            {
-                TestableInstance::PropertyInfo info;
-                CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, MI_RESULT_OK, instance.FindProperty(i, info));
-                CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, expectedProperties.count(info.name));
-            }
-            for (std::set<std::wstring>::const_iterator iter = expectedProperties.begin();
-                 iter != expectedProperties.end();
-                 ++iter)
-            {
-                TestableInstance::PropertyInfo info;
-                CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, MI_RESULT_OK, instance.FindProperty((*iter).c_str(), info));
-            }
+            const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
+            VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
         }
     }
 };

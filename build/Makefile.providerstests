@@ -32,10 +32,12 @@ POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
 	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/manipulateappserverinstances_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/persistappserverinstances_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/cpu_provider/cpuprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/disk_provider/diskkey_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/disk_provider/diskprovider_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfilereader_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/memory_provider/memoryprovider_test.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/os_provider/osprovider_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/runas_provider/scxrunasconfigurator_test.cpp
 
 
@@ -83,10 +85,8 @@ POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
 	$(SCX_UNITTEST_ROOT)/providers/process_provider/processprovider_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/process_provider/unixprocesskey_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/runas_provider/runasprovider_test.cpp \
-	$(SCX_UNITTEST_ROOT)/providers/disk_provider/diskkey_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/network_provider/networkprovider_test.cpp \
-	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp \
-	$(SCX_UNITTEST_ROOT)/providers/os_provider/osprovider_test.cpp
+	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp
 
 
 # Extra include dirs for certain include files

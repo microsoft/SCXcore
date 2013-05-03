@@ -13,274 +13,301 @@
 /*----------------------------------------------------------------------------*/
 
 #include <scxcorelib/scxcmn.h>
-#include <source/code/providers/disk_provider/diskprovider.h>
+#include <scxsystemlib/scxostypeinfo.h>
 #include <scxcorelib/scxexception.h>
 #include <testutils/scxunit.h>
 #include <testutils/disktestutils.h>
 #include <testutils/providertestutils.h>
-#include "testablediskprovider.h"
+#include "support/diskprovider.h"
 
-using namespace SCXCore;
+#include "SCX_DiskDrive.h"
+#include "SCX_DiskDrive_Class_Provider.h"
+#include "SCX_DiskDriveStatisticalInformation_Class_Provider.h"
+#include "SCX_FileSystem_Class_Provider.h"
+#include "SCX_FileSystemStatisticalInformation_Class_Provider.h"
+
 using namespace SCXCoreLib;
 using namespace SCXSystemLib;
-using namespace SCXProviderLib;
-
 
 class SCXDiskKeyTest : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE( SCXDiskKeyTest );
-    CPPUNIT_TEST( testGetFileSystemStatisticalInformationInstance );
-    CPPUNIT_TEST( testGetDiskDriveStatisticalInformationInstance );
-    CPPUNIT_TEST( testGetDiskDriveInstance );
-    CPPUNIT_TEST( testDiskDriveSystemCreationClassName );
-    CPPUNIT_TEST( testDiskDriveSystemNameIsSameForAll );
-    CPPUNIT_TEST( testDiskDriveCreationClassName );
-    CPPUNIT_TEST( testDiskDriveDeviceIDIsKey );
 
-    CPPUNIT_TEST( testFileSystemNameIsKey );
-    CPPUNIT_TEST( testFileSystemCreationClassName );
-    CPPUNIT_TEST( testFileSystemCSCreationClassName );
-    CPPUNIT_TEST( testFileSystemCSNameIsSameForAll );
+    CPPUNIT_TEST( TestDiskDriveEnumerateKeysOnly );
+    CPPUNIT_TEST( TestFileSystemEnumerateKeysOnly );
+    CPPUNIT_TEST( TestDiskDriveStatisticalInformationEnumerateKeysOnly );
+    CPPUNIT_TEST( TestFileSystemStatisticalInformationEnumerateKeysOnly );
 
-    SCXUNIT_TEST_ATTRIBUTE(testGetFileSystemStatisticalInformationInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testGetDiskDriveStatisticalInformationInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testGetDiskDriveInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDiskDriveSystemCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDiskDriveSystemNameIsSameForAll, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDiskDriveCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDiskDriveDeviceIDIsKey, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testFileSystemNameIsKey, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testFileSystemCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testFileSystemCSCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testFileSystemCSNameIsSameForAll, SLOW);
+    CPPUNIT_TEST( TestDiskDriveCheckKeyValues );
+    CPPUNIT_TEST( TestFileSystemCheckKeyValues );
+
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialFileSystemStatisticalInformation );
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialDiskDriveStatisticalInformation );
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialDiskDrive );
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialFileSystem );
+
+    CPPUNIT_TEST( TestDiskDriveGetInstance );
+    CPPUNIT_TEST( TestFileSystemGetInstance );
+    CPPUNIT_TEST( TestDiskDriveStatisticalInformationGetInstance );
+    CPPUNIT_TEST( TestFileSystemStatisticalInformationGetInstance );
+
+
+    SCXUNIT_TEST_ATTRIBUTE(TestDiskDriveEnumerateKeysOnly, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestFileSystemEnumerateKeysOnly, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDiskDriveStatisticalInformationEnumerateKeysOnly, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestFileSystemStatisticalInformationEnumerateKeysOnly, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestDiskDriveCheckKeyValues, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestFileSystemCheckKeyValues, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialFileSystemStatisticalInformation, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialDiskDriveStatisticalInformation, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialDiskDrive, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialFileSystem, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestDiskDriveGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestFileSystemGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDiskDriveStatisticalInformationGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestFileSystemStatisticalInformationGetInstance, SLOW);
+
     CPPUNIT_TEST_SUITE_END();
+
+private:
+    std::vector<std::wstring> m_keyNamesFSS;
+    std::vector<std::wstring> m_keyNamesDDS;
+    std::vector<std::wstring> m_keyNamesDD;
+    std::vector<std::wstring> m_keyNamesFS;
 
 public:
     void setUp(void)
     {
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_DiskDrive_Class_Provider>(CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_FileSystem_Class_Provider>(CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
+
+        m_keyNamesFSS.push_back(L"Name");
+
+        m_keyNamesDDS.push_back(L"Name");
+
+        m_keyNamesDD.push_back(L"SystemCreationClassName");
+        m_keyNamesDD.push_back(L"SystemName");
+        m_keyNamesDD.push_back(L"CreationClassName");
+        m_keyNamesDD.push_back(L"DeviceID");
+
+        m_keyNamesFS.push_back(L"Name");
+        m_keyNamesFS.push_back(L"CSCreationClassName");
+        m_keyNamesFS.push_back(L"CSName");
+        m_keyNamesFS.push_back(L"CreationClassName");
     }
 
     void tearDown(void)
     {
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_DiskDrive_Class_Provider>(CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_FileSystem_Class_Provider>(CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
-    void testGetFileSystemStatisticalInformationInstance()
+    void TestDiskDriveEnumerateKeysOnly()
     {
-        try {
-            TestableDiskProvider provider;
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"Name");
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByCompleteKeySuccess(L"SCX_FileSystemStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByPartialKeyFailure(L"SCX_FileSystemStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        }
-    }
-
-    void testGetDiskDriveStatisticalInformationInstance()
-    {
-        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::testGetDiskDriveStatisticalInformationInstance") )
-            return;
-
-        try {
-            TestableDiskProvider provider;
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"Name");
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByCompleteKeySuccess(L"SCX_DiskDriveStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByPartialKeyFailure(L"SCX_DiskDriveStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        }
-    }
-
-    void testGetDiskDriveInstance()
-    {
-        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::testGetDiskDriveInstance") )
-            return;
-
-        try {
-            TestableDiskProvider provider;
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"CreationClassName");
-            keyNames.push_back(L"SystemCreationClassName");
-            keyNames.push_back(L"SystemName");
-            keyNames.push_back(L"DeviceID");
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByCompleteKeySuccess(L"SCX_DiskDrive", keyNames));
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByPartialKeyFailure(L"SCX_DiskDrive", keyNames));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXErrnoOpenException& e) {
-            if (e.ErrorNumber() == 13) {
-                // Skip permission denied because some properties
-                // require root access.
-                SCXUNIT_WARNING(L"Skipping test - need root access");
-                SCXUNIT_RESET_ASSERTION();
-            }
-        }
-    }
-
-    void testGetFileSystemInstance()
-    {
-        try {
-            TestableDiskProvider provider;
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"Name");
-            keyNames.push_back(L"CSName");
-            keyNames.push_back(L"CSCreationClassName");
-            keyNames.push_back(L"CreationClassName");
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByCompleteKeySuccess(L"SCX_FileSystem", keyNames));
-            CPPUNIT_ASSERT(provider.VerifyGetInstanceByPartialKeyFailure(L"SCX_FileSystem", keyNames));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        }
-    }
-
-
-    void GivenAllInstanceNamesEnumerated(std::wstring classToEnumerate, SCXInstanceCollection& instances)
-    {
-        SCXCoreLib::SCXHandle<TestableDiskProvider> pp( new TestableDiskProvider() );
-
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(classToEnumerate);
-        SCXCallContext context(objectPath, eDirectSupport);
-        pp->TestDoEnumInstanceNames(context, instances, true);
-    }
-
-    /**
-        Tests if key is a key for each instance of classToCheck.
-     */
-    void testIsKey(std::wstring classToCheck, std::wstring key)
-    {
-        SCXInstanceCollection instances;
-
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-            return;
-        }
-
-        for(unsigned int i = 0; i < instances.Size(); ++i)
+        if ( ! MeetsPrerequisites(L"SCXDiskKeyTest::TestDiskDriveEnumerateKeysOnly"))
         {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
+            return;
         }
-    }
-
-    /**
-        Tests if key has value "value" for each instance of classToCheck.
-     */
-    void testKeyValueEquals(std::wstring classToCheck, std::wstring key, std::wstring value)
-    {
-        SCXInstanceCollection instances;
-
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestDiskDriveEnumerateKeysOnly") )
+        {
             return;
         }
 
-        for(unsigned int i = 0; i < instances.Size(); ++i)
-        {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Value of \"", key).append(L"\" is not \"").append(value).append(L"\"")),
-                                   value == instances[i]->GetKey(key)->GetStrValue());
-        }
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_DiskDrive_Class_Provider>(
+            m_keyNamesDD, context, CALL_LOCATION(errMsg));
     }
 
-    /**
-        Tests if key has the same non-empty value for each instance of classToCheck.
-     */
-    void testKeyIsSameForAllInstances(std::wstring classToCheck, std::wstring key)
+    void TestFileSystemEnumerateKeysOnly()
     {
-        SCXInstanceCollection instances;
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_FileSystem_Class_Provider>(
+            m_keyNamesFS, context, CALL_LOCATION(errMsg));
+    }
 
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
+    void TestDiskDriveStatisticalInformationEnumerateKeysOnly()
+    {
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestDiskDriveStatisticalInformationEnumerateKeysOnly") )
+        {
             return;
         }
 
-        if (instances.Size() == 0)
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(
+            m_keyNamesDDS, context, CALL_LOCATION(errMsg));
+    }
+
+    void TestFileSystemStatisticalInformationEnumerateKeysOnly()
+    {
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(
+            m_keyNamesFSS, context, CALL_LOCATION(errMsg));
+    }
+
+    void TestDiskDriveCheckKeyValues()
+    {
+        if ( ! MeetsPrerequisites(L"SCXDiskKeyTest::TestDiskDriveCheckKeyValues"))
         {
-            // Nothing to test;
             return;
         }
-        CPPUNIT_ASSERT(NULL != instances[0]->GetKey(key));
-        std::wstring value = instances[0]->GetKey(key)->GetStrValue();
-        CPPUNIT_ASSERT(L"" != value);
-        for(unsigned int i = 1; i < instances.Size(); ++i)
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestDiskDriveCheckKeyValues") )
         {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Value of \"", key).append(L"\" is not \"").append(value).append(L"\"")),
-                                   value == instances[i]->GetKey(key)->GetStrValue());
+            return;
         }
+
+        std::wostringstream errMsg;
+// Some hpux may timeout because can't find server address.
+// Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
+#if !defined(sun) && !defined(hpux)
+        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
+#endif
+        TestableContext context;
+
+        std::vector<std::wstring> keysSame;
+        keysSame.push_back(L"SystemName");
+
+        std::vector<std::wstring> keyNames;
+        std::vector<std::wstring> keyValues;
+        keyNames.push_back(L"SystemCreationClassName");
+        keyValues.push_back(L"SCX_ComputerSystem");
+#if !defined(sun) && !defined(hpux)
+        keyNames.push_back(L"SystemName");
+        keyValues.push_back(fqHostName);
+#endif
+        keyNames.push_back(L"CreationClassName");
+        keyValues.push_back(L"SCX_DiskDrive");
+        StandardTestCheckKeyValues<mi::SCX_DiskDrive_Class_Provider>(keyNames, keyValues, keysSame, context,
+            CALL_LOCATION(errMsg));
     }
 
-    void testDiskDriveSystemCreationClassName()
+    void TestFileSystemCheckKeyValues()
     {
-        testKeyValueEquals(L"SCX_DiskDrive", L"SystemCreationClassName", L"SCX_ComputerSystem");
+        std::wostringstream errMsg;
+// Some hpux may timeout because can't find server address.
+// Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
+#if !defined(sun) && !defined(hpux)
+        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
+#endif
+        TestableContext context;
+
+        std::vector<std::wstring> keysSame;
+        keysSame.push_back(L"CSName");
+
+        std::vector<std::wstring> keyNames;
+        std::vector<std::wstring> keyValues;
+        keyNames.push_back(L"CSCreationClassName");
+        keyValues.push_back(L"SCX_ComputerSystem");
+#if !defined(sun) && !defined(hpux)
+        keyNames.push_back(L"CSName");
+        keyValues.push_back(fqHostName);
+#endif
+        keyNames.push_back(L"CreationClassName");
+        keyValues.push_back(L"SCX_FileSystem");
+        StandardTestCheckKeyValues<mi::SCX_FileSystem_Class_Provider>(keyNames, keyValues, keysSame, context,
+            CALL_LOCATION(errMsg));
     }
 
-    void testDiskDriveSystemNameIsSameForAll()
+    void TestDiskDriveGetInstance()
     {
-        testKeyIsSameForAllInstances(L"SCX_DiskDrive", L"SystemName");
+        if ( ! MeetsPrerequisites(L"SCXDiskKeyTest::TestDiskDriveGetInstance"))
+        {
+            return;
+        }
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestDiskDriveGetInstance") )
+        {
+            return;
+        }
+
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_DiskDrive_Class_Provider, mi::SCX_DiskDrive_Class>(
+            context, m_keyNamesDD.size(), CALL_LOCATION(errMsg));
     }
 
-    void testDiskDriveCreationClassName()
+    void TestFileSystemGetInstance()
     {
-        testKeyValueEquals(L"SCX_DiskDrive", L"CreationClassName", L"SCX_DiskDrive");
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_FileSystem_Class_Provider, mi::SCX_FileSystem_Class>(
+            context, m_keyNamesFS.size(), CALL_LOCATION(errMsg));
     }
 
-    void testDiskDriveDeviceIDIsKey()
+    void TestDiskDriveStatisticalInformationGetInstance()
     {
-        testIsKey(L"SCX_DiskDrive", L"DeviceID");
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestDiskDriveStatisticalInformationGetInstance") )
+        {
+            return;
+        }
+
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_DiskDriveStatisticalInformation_Class_Provider,
+            mi::SCX_DiskDriveStatisticalInformation_Class>(
+            context, m_keyNamesDDS.size(), CALL_LOCATION(errMsg));
     }
 
-    void  testFileSystemNameIsKey()
+    void TestFileSystemStatisticalInformationGetInstance()
     {
-        testIsKey(L"SCX_FileSystem", L"Name");
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_FileSystemStatisticalInformation_Class_Provider,
+            mi::SCX_FileSystemStatisticalInformation_Class>(
+            context, m_keyNamesFSS.size(), CALL_LOCATION(errMsg));
     }
 
-    void  testFileSystemCreationClassName()
+    void TestVerifyKeyCompletePartialFileSystemStatisticalInformation()
     {
-        testKeyValueEquals(L"SCX_FileSystem", L"CreationClassName", L"SCX_FileSystem");
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystemStatisticalInformation_Class_Provider,
+                mi::SCX_FileSystemStatisticalInformation_Class>(m_keyNamesFSS, CALL_LOCATION(errMsg));
     }
 
-    void  testFileSystemCSCreationClassName()
+    void TestVerifyKeyCompletePartialDiskDriveStatisticalInformation()
     {
-        testKeyValueEquals(L"SCX_FileSystem", L"CSCreationClassName", L"SCX_ComputerSystem");
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestVerifyKeyCompletePartialDiskDriveStatisticalInformation") )
+        {
+            return;
+        }
+
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDriveStatisticalInformation_Class_Provider,
+                mi::SCX_DiskDriveStatisticalInformation_Class>(m_keyNamesDDS, CALL_LOCATION(errMsg));
     }
 
-    void  testFileSystemCSNameIsSameForAll()
+    void TestVerifyKeyCompletePartialDiskDrive()
     {
-        testKeyIsSameForAllInstances(L"SCX_FileSystem", L"CSName");
+        if ( ! MeetsPrerequisites(L"SCXDiskKeyTest::TestVerifyKeyCompletePartialDiskDrive"))
+        {
+            return;
+        }
+        if ( ! HasPhysicalDisks(L"SCXDiskKeyTest::TestVerifyKeyCompletePartialDiskDrive") )
+        {
+            return;
+        }
+ 
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDrive_Class_Provider,
+                mi::SCX_DiskDrive_Class>(m_keyNamesDD, CALL_LOCATION(errMsg));
+    }
+
+    void TestVerifyKeyCompletePartialFileSystem()
+    {
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystem_Class_Provider,
+                mi::SCX_FileSystem_Class>(m_keyNamesFS, CALL_LOCATION(errMsg));
     }
 };
 

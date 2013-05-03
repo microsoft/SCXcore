@@ -77,6 +77,7 @@ STATIC_NETWORKPROVIDERLIB_SRCFILES = \
 
 STATIC_OSPROVIDERLIB_SRCFILES = \
 	$(PROVIDER_SUPPORT_DIR)/scxrunasconfigurator.cpp \
+	$(PROVIDER_DIR)/support/osprovider.cpp \
 	$(PROVIDER_DIR)/SCX_OperatingSystem_Class_Provider.cpp
 
 #--------------------------------------------------------------------------------

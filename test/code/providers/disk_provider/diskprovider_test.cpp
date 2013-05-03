@@ -33,7 +33,6 @@ class SCXDiskProviderTest : public CPPUNIT_NS::TestFixture
 
     CPPUNIT_TEST( TestEnumInstanceNamesSanity );
     CPPUNIT_TEST( RemoveTotalInstanceShouldFail );
-    CPPUNIT_TEST( TestVerifyKeyCompletePartial );
     CPPUNIT_TEST( RemoveDiskDriveAlsoRemovesStatisticalInstance );
     CPPUNIT_TEST( RemoveFileSystemAlsoRemovesStatisticalInstance );
     
@@ -44,37 +43,9 @@ class SCXDiskProviderTest : public CPPUNIT_NS::TestFixture
     SCXUNIT_TEST_ATTRIBUTE(RemoveFileSystemAlsoRemovesStatisticalInstance, SLOW);
     CPPUNIT_TEST_SUITE_END();
 
-    bool MeetsPrerequisites(std::wstring testName)
-    {
-#if defined(aix)
-        // No privileges needed on AIX.
-        return true;
-#elif defined(linux) | defined(hpux) | defined(sun)
-        // Most platforms need privileges to execute Update() method.
-        if (0 == geteuid())
-        {
-            return true;
-        }
-
-        std::wstring warnText;
-
-        warnText = L"Platform needs privileges to run " + testName + L" test";
-
-        SCXUNIT_WARNING(warnText);
-        return false;
-#else
-#error Must implement method MeetsPrerequisites for this platform
-#endif
-    }
-
 public:
     void setUp(void)
     {
-    // This needs root access on RHEL4.
-#if defined(PF_DISTRO_REDHAT) && (PF_MAJOR==4)
-        if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::setUp"))
-            return;
-#endif
         std::wostringstream errMsg;
         SetUpAgent<mi::SCX_DiskDrive_Class_Provider>(CALL_LOCATION(errMsg));
         SetUpAgent<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
@@ -167,9 +138,13 @@ public:
     {
         std::wostringstream errMsg;
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::TestCountsAndEnumerations"))
+        {
             return;
+        }
         if ( ! HasPhysicalDisks(L"SCXDiskProviderTest::TestCountsAndEnumerations") )
+        {
             return;
+        }
 
         TestableContext dd, dds, fs, fss;
         EnumInstances<mi::SCX_DiskDrive_Class_Provider>(dd, CALL_LOCATION(errMsg));
@@ -187,7 +162,13 @@ public:
     {
         std::wostringstream errMsg;
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::TestEnumInstanceNamesSanity"))
+        {
             return;
+        }
+        if ( ! HasPhysicalDisks(L"SCXDiskProviderTest::TestEnumInstanceNamesSanity") )
+        {
+            return;
+        }
 
         TestableContext dd, dds, fs, fss;
         EnumInstances<mi::SCX_DiskDrive_Class_Provider>(dd, CALL_LOCATION(errMsg));
@@ -206,45 +187,9 @@ public:
         CPPUNIT_ASSERT_EQUAL(fs.Size()+1, fss.Size());
     }
 
-    void TestVerifyKeyCompletePartial()
-    {
-        std::wostringstream errMsg;
-        std::vector<std::wstring> keyNames;
-        
-        keyNames.push_back(L"SystemCreationClassName");
-        keyNames.push_back(L"SystemName");
-        keyNames.push_back(L"CreationClassName");
-        keyNames.push_back(L"DeviceID");
-        StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDrive_Class_Provider,
-                mi::SCX_DiskDrive_Class>(keyNames, CALL_LOCATION(errMsg));
-        
-        keyNames.clear();
-        keyNames.push_back(L"Name");
-        StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDriveStatisticalInformation_Class_Provider,
-                mi::SCX_DiskDriveStatisticalInformation_Class>(keyNames, CALL_LOCATION(errMsg));
-
-        keyNames.clear();
-        keyNames.push_back(L"CSCreationClassName");
-        keyNames.push_back(L"CSName");
-        keyNames.push_back(L"CreationClassName");
-        keyNames.push_back(L"Name");
-        StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystem_Class_Provider,
-                mi::SCX_FileSystem_Class>(keyNames, CALL_LOCATION(errMsg));
-        
-        keyNames.clear();
-        keyNames.push_back(L"Name");
-        StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystemStatisticalInformation_Class_Provider,
-                mi::SCX_FileSystemStatisticalInformation_Class>(keyNames, CALL_LOCATION(errMsg));
-    }
-
     void RemoveTotalInstanceShouldFail()
     {
         std::wostringstream errMsg;
-        // This needs root access on RHEL4
-#if defined(PF_DISTRO_REDHAT) && (PF_MAJOR==4)
-        if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::RemoveTotalInstanceShouldFail"))
-            return;
-#endif
         CPPUNIT_ASSERT( ! InvokeRemoveDiskDrive(L"_Total", CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT( ! InvokeRemoveFileSystem(L"_Total", CALL_LOCATION(errMsg)));
     }
@@ -254,18 +199,21 @@ public:
         std::wostringstream errMsg;
 
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::RemoveDiskDriveAlsoRemovesStatisticalInstance"))
+        {
             return;
+        }
         if ( ! HasPhysicalDisks(L"SCXDiskProviderTest::RemoveDiskDriveAlsoRemovesStatisticalInstance") )
+        {
             return;
+        }
 
         TestableContext dd, dds;
         EnumInstances<mi::SCX_DiskDrive_Class_Provider>(dd, CALL_LOCATION(errMsg));
         EnumInstances<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(dds, CALL_LOCATION(errMsg));
         const std::vector<TestableInstance> &instances = dd.GetInstances();
         CPPUNIT_ASSERT(instances.size() > 0);
-        CPPUNIT_ASSERT( InvokeRemoveDiskDrive(instances[0].GetStringValue(
-            "Name", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)));
-
+        CPPUNIT_ASSERT( InvokeRemoveDiskDrive(instances[0].GetProperty(L"Name",
+            CALL_LOCATION(errMsg)).GetValue_MIString(CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL(dd.Size()-1, DDCount());
         CPPUNIT_ASSERT_EQUAL(dds.Size()-1, DDSCount());
     }
@@ -274,16 +222,13 @@ public:
     {
         std::wostringstream errMsg;
 
-        if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::RemoveFileSystemAlsoRemovesStatisticalInstance"))
-            return;
-
         TestableContext fs, fss;
         EnumInstances<mi::SCX_FileSystem_Class_Provider>(fs, CALL_LOCATION(errMsg));
         EnumInstances<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(fss, CALL_LOCATION(errMsg));
         const std::vector<TestableInstance> &instances = fs.GetInstances();
         CPPUNIT_ASSERT(instances.size() > 0);
-        CPPUNIT_ASSERT( InvokeRemoveFileSystem(instances[0].GetStringValue(
-            "Name", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)));
+        CPPUNIT_ASSERT( InvokeRemoveFileSystem(instances[0].GetProperty(L"Name",
+            CALL_LOCATION(errMsg)).GetValue_MIString(CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)));
 
         CPPUNIT_ASSERT_EQUAL(fs.Size()-1, FSCount());
         CPPUNIT_ASSERT_EQUAL(fss.Size()-1, FSSCount());

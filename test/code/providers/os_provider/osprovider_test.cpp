@@ -11,149 +11,145 @@
 /*----------------------------------------------------------------------------*/
 
 #include <scxcorelib/scxcmn.h>
-
-#include <osprovider.h>
-
+#include <scxcorelib/scxexception.h>
+#include <scxsystemlib/scxostypeinfo.h>
+#include <scxsystemlib/osenumeration.h>
+#include <testutils/scxunit.h>
 #include <testutils/providertestutils.h>
-
 #include <cppunit/extensions/HelperMacros.h>
 #include <testutils/scxunit.h>
+#include "support/osprovider.h"
+#include "SCX_OperatingSystem_Class_Provider.h"
 
 using namespace SCXCore;
 using namespace SCXCoreLib;
 using namespace SCXSystemLib;
-using namespace SCXProviderLib;
-
-class TestableOSProvider : public TestableProvider, public OSProvider
-{
-public:
-    void TestDoInit()
-    {
-        DoInit();
-    }
-
-    void TestDoEnumInstanceNames(const SCXProviderLib::SCXCallContext& callContext,
-                                 SCXProviderLib::SCXInstanceCollection &names)
-    {
-        DoEnumInstanceNames(callContext, names);
-    }
-
-    void TestDoEnumInstances(const SCXProviderLib::SCXCallContext& callContext,
-                             SCXProviderLib::SCXInstanceCollection &instances)
-    {
-        DoEnumInstances(callContext, instances);
-    }
-
-    void TestDoGetInstance(const SCXProviderLib::SCXCallContext& callContext,
-                           SCXProviderLib::SCXInstance& instance)
-    {
-        DoGetInstance(callContext, instance);
-    }
-
-    void TestDoInvokeMethod(const SCXProviderLib::SCXCallContext& callContext,
-                            const std::wstring& methodname, const SCXProviderLib::SCXArgs& args,
-                            SCXProviderLib::SCXArgs& outargs, SCXProviderLib::SCXProperty& result)
-    {
-        DoInvokeMethod(callContext, methodname, args, outargs, result);
-    }
-
-    void TestDoCleanup()
-    {
-        DoCleanup();
-    }
-};
 
 class OSProvider_Test : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE( OSProvider_Test  );
     CPPUNIT_TEST( callDumpStringForCoverage );
-    CPPUNIT_TEST( testDoEnumInstanceNames );
-    CPPUNIT_TEST( testDoEnumInstances );
-    CPPUNIT_TEST( testDoGetInstance );
+    CPPUNIT_TEST( TestEnumerateInstancesKeysOnly );
+    CPPUNIT_TEST( TestEnumerateInstances );
+    CPPUNIT_TEST( TestGetInstance );
+    CPPUNIT_TEST( TestVerifyKeyCompletePartial );
 
     SCXUNIT_TEST_ATTRIBUTE(callDumpStringForCoverage, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoEnumInstanceNames, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoEnumInstances, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestEnumerateInstancesKeysOnly, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestEnumerateInstances, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartial, SLOW);
     CPPUNIT_TEST_SUITE_END();
 
 private:
-    SCXCoreLib::SCXHandle<TestableOSProvider> mp;
+    std::vector<std::wstring> m_keyNames;
 
 public:
 
+    OSProvider_Test()
+    {
+        m_keyNames.push_back(L"Name");
+        m_keyNames.push_back(L"CSCreationClassName");
+        m_keyNames.push_back(L"CSName");
+        m_keyNames.push_back(L"CreationClassName");
+    }
+
     void setUp(void)
     {
-        mp = new TestableOSProvider();
-        mp->TestDoInit();
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
     void tearDown(void)
     {
-        mp->TestDoCleanup();
-        mp = 0;
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
     void callDumpStringForCoverage()
     {
-        CPPUNIT_ASSERT(mp->DumpString().find(L"OSProvider") != std::wstring::npos);
+        CPPUNIT_ASSERT(g_OSProvider.DumpString().find(L"OSProvider") != std::wstring::npos);
     }
 
-    void testDoEnumInstanceNames()
+    void TestEnumerateInstancesKeysOnly()
     {
-        SCXInstanceCollection instances;
-        SCXInstance objectPath;
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        mp->TestDoEnumInstanceNames(context, instances);
-
-        CPPUNIT_ASSERT(1 == instances.Size());
-        CPPUNIT_ASSERT(4 == instances[0]->NumberOfKeys());
-        CPPUNIT_ASSERT(L"Name" == instances[0]->GetKey(0)->GetName());
-        CPPUNIT_ASSERT(L"CSCreationClassName" == instances[0]->GetKey(1)->GetName());
-        CPPUNIT_ASSERT(L"CSName" == instances[0]->GetKey(2)->GetName());
-        CPPUNIT_ASSERT(L"CreationClassName" == instances[0]->GetKey(3)->GetName());
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_OperatingSystem_Class_Provider>(
+            m_keyNames, context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
     }
 
-    void testDoEnumInstances()
+    void TestEnumerateInstances()
     {
-        SCXInstanceCollection instances;
-        SCXInstance objectPath;
-        SCXCallContext context(objectPath, eDirectSupport);
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateInstances<mi::SCX_OperatingSystem_Class_Provider>(
+            m_keyNames.size(), context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
 
-        mp->TestDoEnumInstances(context, instances);
-
-        CPPUNIT_ASSERT(1 == instances.Size());
-        CPPUNIT_ASSERT(4 == instances[0]->NumberOfKeys());
-
-        // Can't validate Key 0 (Name): Distribution name
-        CPPUNIT_ASSERT(L"SCX_ComputerSystem" == instances[0]->GetKey(1)->GetStrValue());
-        // Can't validate Key 2 (CSName): hostname.domain
-        CPPUNIT_ASSERT(L"SCX_OperatingSystem" == instances[0]->GetKey(3)->GetStrValue());
-
-        ValidateInstance(*(instances[0]));
+        ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-
-    void testDoGetInstance()
+    void TestGetInstance()
     {
-        SCXProperty key(L"Name", L"SCX_OperatingSystem");
-        SCXInstance instance;
-        SCXInstance objectPath;
-
-        objectPath.AddKey(key);
-
-        SCXCallContext context(objectPath, eDirectSupport);
-        mp->TestDoGetInstance(context, instance);
-
-        ValidateInstance(instance);
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_OperatingSystem_Class_Provider,
+            mi::SCX_OperatingSystem_Class>(context, m_keyNames.size(), CALL_LOCATION(errMsg));
+        ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-    void ValidateInstance(const SCXInstance& instance)
+    void TestVerifyKeyCompletePartial()
     {
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_OperatingSystem_Class_Provider,
+                mi::SCX_OperatingSystem_Class>(m_keyNames, CALL_LOCATION(errMsg));
+    }
+
+    void ValidateInstance(const TestableContext &context, std::wostringstream &errMsg)
+    {
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, context.Size());
+        
+        // Get fully qualified host name.
+        // Some hpux may timeout because can't find server address.
+        // Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
+#if !defined(sun) && !defined(hpux)
+        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
+#endif
+        // Get distribution name.
+        std::wstring distributionName;
+#if defined(sun) || defined(aix) || defined(hpux)
+        struct utsname utsName;
+        CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, 0 <= uname(&utsName));
+        distributionName = SCXCoreLib::StrFromMultibyte(utsName.sysname);
+#elif defined(linux)
+#if defined(PF_DISTRO_SUSE)
+        distributionName =  L"SuSE Distribution";
+#elif defined(PF_DISTRO_REDHAT)
+        distributionName =  L"Red Hat Distribution";
+#elif defined(PF_DISTRO_ULINUX)
+        distributionName =  L"Linux Distribution";
+#endif // defined(PF_DISTRO_SUSE)
+#endif // defined(sun) || defined(aix) || defined(HPUX)
+
+        const TestableInstance &instance = context[0];
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, distributionName, instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"SCX_ComputerSystem", instance.GetKeyValue(1, CALL_LOCATION(errMsg)));
+#if !defined(sun) && !defined(hpux)
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, fqHostName, instance.GetKeyValue(2, CALL_LOCATION(errMsg)));
+#endif
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"SCX_OperatingSystem", instance.GetKeyValue(3, CALL_LOCATION(errMsg)));
 #if defined(linux)
         std::wstring tmpExpectedProperties[] = {L"Caption",
                                                 L"Description",
+                                                L"Name",
+                                                L"EnabledState",
+                                                L"RequestedState",
+                                                L"EnabledDefault",
+                                                L"CSCreationClassName",
+                                                L"CSName",
+                                                L"CreationClassName",
                                                 L"OSType",
                                                 L"OtherTypeDescription",
                                                 L"Version",
@@ -179,6 +175,13 @@ public:
 #elif defined(aix)
         std::wstring tmpExpectedProperties[] = {L"Caption",
                                                 L"Description",
+                                                L"Name",
+                                                L"EnabledState",
+                                                L"RequestedState",
+                                                L"EnabledDefault",
+                                                L"CSCreationClassName",
+                                                L"CSName",
+                                                L"CreationClassName",
                                                 L"OSType",
                                                 L"OtherTypeDescription",
                                                 L"Version",
@@ -201,6 +204,13 @@ public:
 #elif defined(hpux)
         std::wstring tmpExpectedProperties[] = {L"Caption",
                                                 L"Description",
+                                                L"Name",
+                                                L"EnabledState",
+                                                L"RequestedState",
+                                                L"EnabledDefault",
+                                                L"CSCreationClassName",
+                                                L"CSName",
+                                                L"CreationClassName",
                                                 L"OSType",
                                                 L"OtherTypeDescription",
                                                 L"Version",
@@ -226,6 +236,13 @@ public:
 #elif defined(sun)
         std::wstring tmpExpectedProperties[] = {L"Caption",
                                                 L"Description",
+                                                L"Name",
+                                                L"EnabledState",
+                                                L"RequestedState",
+                                                L"EnabledDefault",
+                                                L"CSCreationClassName",
+                                                L"CSName",
+                                                L"CreationClassName",
                                                 L"OSType",
                                                 L"OtherTypeDescription",
                                                 L"Version",
@@ -248,59 +265,54 @@ public:
 #else
 #error Platform not supported
 #endif
-        const int numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
+        const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
         std::set<std::wstring> expectedProperties(tmpExpectedProperties, tmpExpectedProperties + numprops);
 
-        for (size_t i = 0; i < instance.NumberOfProperties(); ++i)
+        for (MI_Uint32 i = 0; i < instance.GetNumberOfProperties(); ++i)
         {
-            const SCXProperty* prop = instance.GetProperty(i);
-            CPPUNIT_ASSERT_MESSAGE(
-                std::string("Property mismatch: ") + SCXCoreLib::StrToMultibyte(prop->GetName()),
-                1 == expectedProperties.count(prop->GetName()));
+            TestableInstance::PropertyInfo info;
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, MI_RESULT_OK, instance.FindProperty(i, info));
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE + "Property mismatch: " + SCXCoreLib::StrToMultibyte(info.name),
+                1u, expectedProperties.count(info.name));
         }
 
         // Be sure that all of the properties in our set exist in the property list
         for (std::set<std::wstring>::const_iterator iter = expectedProperties.begin();
-             iter != expectedProperties.end();
-             ++iter)
+             iter != expectedProperties.end(); ++iter)
         {
 #if defined(PF_DISTRO_ULINUX)
             // Universal system OS provider looks at installed path to run GetLinuxOS.sh.
-            // If the kit isn't installed, things fail.  Fix that!
+            // If the kit isn't installed, "Version" is not set. For this reason we skip the "Version" property.
             if (L"Version" == *iter)
             {
                 continue;
             }
 #endif // defined(PF_DISTRO_ULINUX)
-            CPPUNIT_ASSERT_MESSAGE(
-                std::string("Missing property: ") + SCXCoreLib::StrToMultibyte(*iter),
-                0 != instance.GetProperty(*iter));
+            TestableInstance::PropertyInfo info;
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE + "Missing property: " + SCXCoreLib::StrToMultibyte(*iter),
+                MI_RESULT_OK, instance.FindProperty((*iter).c_str(), info));
         }
-
-        // Do some basic validity tests on some properties that always exist
-        // Note: Some of the numeric tests are "reasonable guesses", and may need adjustments
-
-        const SCXProperty *propCaption = instance.GetProperty(L"Caption");
-        const SCXProperty *propCountProcesses = instance.GetProperty(L"NumberOfProcesses");
-        const SCXProperty *propTotalSwap = instance.GetProperty(L"TotalSwapSpaceSize");
-        const SCXProperty *propTotalVM = instance.GetProperty(L"TotalVirtualMemorySize");
-        const SCXProperty *propFreeVM = instance.GetProperty(L"FreeVirtualMemory");
-        const SCXProperty *propFreeMem = instance.GetProperty(L"FreePhysicalMemory");
-        const SCXProperty *propTotalMem = instance.GetProperty(L"TotalVisibleMemorySize");
-        const SCXProperty *propTotalPage = instance.GetProperty(L"SizeStoredInPagingFiles");
-        const SCXProperty *propFreePage = instance.GetProperty(L"FreeSpaceInPagingFiles");
-        const SCXProperty *propOSCapability = instance.GetProperty(L"OperatingSystemCapability");
-
-        std::wstring strCaption = propCaption->GetStrValue();
-        scxulong uiCountProcesses = propCountProcesses->GetUIntValue();
-        scxulong ulTotalSwap = propTotalSwap->GetULongValue();
-        scxulong ulTotalVM = propTotalVM->GetULongValue();
-        scxulong ulFreeVM = propFreeVM->GetULongValue();
-        scxulong ulFreeMem = propFreeMem->GetULongValue();
-        scxulong ulTotalMem = propTotalMem->GetULongValue();
-        scxulong ulTotalPage = propTotalPage->GetULongValue();
-        scxulong ulFreePage = propFreePage->GetULongValue();
-        std::wstring strOSCapability = propOSCapability->GetStrValue();
+    
+        std::wstring strCaption = instance.GetProperty(L"Caption", CALL_LOCATION(errMsg)).
+            GetValue_MIString(CALL_LOCATION(errMsg));
+        scxulong uiCountProcesses = instance.GetProperty(L"NumberOfProcesses", CALL_LOCATION(errMsg)).
+            GetValue_MIUint32(CALL_LOCATION(errMsg));
+        scxulong ulTotalSwap = instance.GetProperty(L"TotalSwapSpaceSize", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulTotalVM = instance.GetProperty(L"TotalVirtualMemorySize", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulFreeVM = instance.GetProperty(L"FreeVirtualMemory", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulFreeMem = instance.GetProperty(L"FreePhysicalMemory", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulTotalMem = instance.GetProperty(L"TotalVisibleMemorySize", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulTotalPage = instance.GetProperty(L"SizeStoredInPagingFiles", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        scxulong ulFreePage = instance.GetProperty(L"FreeSpaceInPagingFiles", CALL_LOCATION(errMsg)).
+            GetValue_MIUint64(CALL_LOCATION(errMsg));
+        std::wstring strOSCapability = instance.GetProperty(L"OperatingSystemCapability", CALL_LOCATION(errMsg)).
+            GetValue_MIString(CALL_LOCATION(errMsg));
 
         // On ULINUX, we may be running on an installed machine
 #if !defined(PF_DISTRO_ULINUX)
@@ -316,7 +328,6 @@ public:
         CPPUNIT_ASSERT(ulFreePage <= ulTotalPage);
         CPPUNIT_ASSERT(strOSCapability == L"32 bit" || strOSCapability == L"64 bit");
     }
-
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( OSProvider_Test );
