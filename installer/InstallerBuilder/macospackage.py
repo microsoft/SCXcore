@@ -165,7 +165,6 @@ class MacOSPackageFile(Installer):
         postInstall.CallFunction(postInstall.RemoveConfBackupTemp())
         postinstall.CallFunction(postinstall.ConfigureOmiService())
         postinstall.CallFunction(postinstall.StartOmiService())
-        postinstall.CallFunction(postinstall.RegisterExtProviders())
         postinstall.WriteLn('exit 0')
         postinstall.Generate()
         scxutil.Copy(self.postinstallPath, self.postupgradePath)

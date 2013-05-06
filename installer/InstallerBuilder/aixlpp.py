@@ -83,7 +83,6 @@ class AIXLPPFile(Installer):
         postInstall.WriteLn('set -e')
         postInstall.CallFunction(postInstall.StartOmiService())
         postInstall.WriteLn('set +e')
-        postInstall.CallFunction(postInstall.RegisterExtProviders())
         postInstall.WriteLn('exit 0')
         postInstall.Generate()
 
