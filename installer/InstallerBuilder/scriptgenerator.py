@@ -653,7 +653,7 @@ class Script:
             else:
                 body += [
                     "    LIB_DIR=/lib64",
-                    "    DIR_LIST=/lib64/ /usr/lib64/\""
+                    "    DIR_LIST=\"/lib64/ /usr/lib64/\""
                     ]
 
             body += [
@@ -1069,20 +1069,6 @@ class Script:
     def RemoveLink_usr_sbin_scxadmin(self):
         return SHFunction('RemoveLink_usr_sbin_scxadmin',
                           ['rm /usr/sbin/scxadmin > /dev/null 2>&1'])
-
-    ##
-    # Runs cimmof on all .mof files in /opt/microsoft/scx/lib/providers/ext
-    #
-    def RegisterExtProviders(self):
-        varmap = {'cimmof':       self.variableMap['SCXHOME'] + '/bin/tools/scxcimmof',
-                  'mofdirectory': self.variableMap['SCXHOME'] + '/lib/providers/ext'}
-
-        body = ['sleep 1',
-                'for F in `/bin/ls %(mofdirectory)s/*.mof 2> /dev/null`; do',
-                '  %(cimmof)s -n \"root/PG_InterOp\" \"$F\"',
-                'done']
-            
-        return SHFunction('register_ext_providers', body, varmap)
 
     ##
     # Backs up configuration file (argument 1) to another name so it will not be

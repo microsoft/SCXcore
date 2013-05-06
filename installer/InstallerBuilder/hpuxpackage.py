@@ -79,7 +79,6 @@ class HPUXPackageFile(Installer):
         configure.WriteLn('set -e')
         configure.CallFunction(configure.StartOmiService())
         configure.WriteLn('set +e')
-        configure.CallFunction(configure.RegisterExtProviders())
         configure.WriteLn('exit 0')
         configure.Generate()
 
