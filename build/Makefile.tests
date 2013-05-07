@@ -23,10 +23,12 @@ endif
 # Support for BullseyeCoverage from Bullseye Testing Technology 
 # Note: this was also done in the Makefile.Pegasus - do in OMI build? - TODO
 ifeq ($(BUILD_TYPE),Bullseye)
-	COVFILE=$(INTERMEDIATE_DIR)/OpsMgr.cov
+	BULLSEYE_LINK=-L/opt/Bullseye/lib -lcov
+	COVFILE=$(SCXPAL_INTERMEDIATE_DIR)/OpsMgr.cov
 	PROFILING=COVFILE=$(COVFILE) covc --retain
 	export COVFILE
 else
+	BULLSEYE_LINK=
 	COVFILE=
 	PROFILING=
 endif
@@ -154,8 +156,10 @@ testrunner-status:
 	$(ECHO) "========================= Performing make OM testrunner"
 
 $(TARGET_DIR)/testrunner : testrunner-status $(UNITTESTS_OBJFILES) $(POSIX_UNITTESTS_STATICLIB_DEPFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES)
+	$(MAKE) -s ccenable
 	-$(MKPATH) $(TARGET_DIR)
-	$(QUANTIFY) $(LINK) $(LINK_OUTFLAG) $(UNITTESTS_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_LINK_STATICLIBS) $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(LDFLAGS_TESTRUNNER) $(SSL_LIBS)
+	$(LINK) $(LINK_OUTFLAG) $(UNITTESTS_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_LINK_STATICLIBS) $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(BULLSEYE_LINK) $(LDFLAGS_TESTRUNNER) $(SSL_LIBS)
+	$(MAKE) -s ccdisable
 
 testbuild :  $(TARGET_DIR)/testrunner
 
@@ -203,7 +207,7 @@ endif
 testrun_copycovfile :
 	if [ $(BUILD_TYPE) = Bullseye ]; then $(COPY) $(COVFILE) $(TARGET_DIR)/UnitTest.cov; fi
 
-testrun : ccenable pal_test testrun_setup $(BUILD_TESTRUN_PACKAGE) ccdisable
+testrun : pal_test testrun_setup $(BUILD_TESTRUN_PACKAGE)
 	$(ECHO) "========================= Performing OM testrun execution"
 	cd $(TARGET_DIR);testfiles/testrun_wrapper .
 	$(MAKE) testrun_copycovfile
@@ -215,12 +219,12 @@ endif
 
 test : testrun
 
-testrun_noslow : ccenable testrun_setup ccdisable
+testrun_noslow : testrun_setup
 	$(ECHO) "========================= Performing OM testrun execution"
 	cd $(TARGET_DIR); testfiles/testrun_wrapper . -attr=-SLOW -slow=25
 	$(MAKE) testrun_copycovfile
 
-testrun_nosudo : ccenable testrun_setup ccdisable
+testrun_nosudo : testrun_setup
 	$(ECHO) "========================= Performing OM testrun execution"
 	cd $(TARGET_DIR);./testrunner
 	$(MAKE) testrun_copycovfile
@@ -239,8 +243,6 @@ test_installerbuilder:
 #================================================================================
 # Enable/disable profiling
 #================================================================================
-
-ifneq ($(IS_SHARED_TREE),1)
 
 ccbuild: ccbuild_testrun
 
@@ -265,18 +267,6 @@ ccdisable_helper:
 
 
 testrun_code_coverage: ccbuild_testrun
-
-else
-
-# No profiling in shared branch (for now, anyway; need overall profiling story)
-
-ccbuild:
-
-ccenable:
-
-ccdisable:
-
-endif
 
 #================================================================================
 # Dependency generation Targets

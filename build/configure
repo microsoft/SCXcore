@@ -2,11 +2,10 @@
 
 scxpal_dir="../../scxpal"
 scxomi_dir=`(cd ../../omi/distro; pwd -P)`
-cache_debug="Release"
+build_type="Release"
 enable_debug=""
 enable_purify_agent=""
 enable_purify_server=""
-enable_profiling="false"
 
 omi_configure_quals="--prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath"
 
@@ -22,8 +21,20 @@ do
     ;;
 
     --enable-debug)
-      cache_debug="Debug"
+      if [ "$build_type" = "Bullseye" ]; then
+          echo "Cannot build debug if Bullseye is enabled"
+          exit 1
+      fi
+      build_type="Debug"
       enable_debug="--enable-debug"
+    ;;
+
+    --enable-bullseye)
+      if [ "$build_type" = "Debug" ]; then
+          echo "Cannot build Bullseye if debug is enabled"
+          exit 1
+      fi
+      build_type="Bullseye"
     ;;
 
     --enable-purify-agent)
@@ -36,10 +47,6 @@ do
 
     --enable-local-omi)
       omi_configure_quals="--prefix=. --disable-libpath"
-    ;;
-
-    --enable-profiling)
-      enable_profiling="true"
     ;;
 
     *)
@@ -71,14 +78,14 @@ OPTIONS:
     --enable-purify-agent       Allow agent to be run with purify (memory leak detection)
     --enable-purify-server      Allow server to be run with purify (memory leak detection)
     --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
-    --enable-profiling          Enables the use of code coverage tools (Bullseye).
+    --enable-bullseye           Enables the use of code coverage tools (Bullseye).
 
 EOF
     exit 0
 fi
 
-make -C $scxpal_dir/build cache BUILD_TYPE="$cache_debug" BUILD_PROFILING="$enable_profiling"
-make cache BUILD_TYPE="$cache_debug" BUILD_PROFILING="$enable_profiling"
+make -C $scxpal_dir/build cache BUILD_TYPE="$build_type"
+make cache BUILD_TYPE="$build_type"
 
 # Fix permissions in case they aren't executable - and then configure OMI
 chmod ug+x ${scxomi_dir}/configure ${scxomi_dir}/buildtool
