@@ -253,9 +253,14 @@ void SCX_UnixProcessStatisticalInformation_Class_Provider::GetInstance(
         // Global lock for ProcessProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
-        SCX_LOGTRACE(log, L"Process Provider GetInstances");
-        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
-        processEnum->Update();
+        // We have 7-part key:
+        //   [Key] Name=udevd
+        //   [Key] CSCreationClassName=SCX_ComputerSystem
+        //   [Key] CSName=jeffcof64-rhel6-01.scx.com
+        //   [Key] OSCreationClassName=SCX_OperatingSystem
+        //   [Key] OSName=Red Hat Distribution
+        //   [Key] Handle=54321
+        //   [Key] ProcessCreationClassName=SCX_UnixProcessStatisticalInformation
 
         if ( !instanceName.Handle_exists() ||
              !instanceName.Name_exists() || 
@@ -289,7 +294,12 @@ void SCX_UnixProcessStatisticalInformation_Class_Provider::GetInstance(
                         e.Where()));
         }
 
-        SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processInst = processEnum->GetInstance(StrFromMultibyte(instanceName.Handle_value().Str()));
+        SCX_LOGTRACE(log, L"Process Provider GetInstances");
+        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
+        processEnum->Update();
+
+        SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processInst =
+            processEnum->GetInstance(StrFromMultibyte(instanceName.Handle_value().Str()));
 
         std::string name;
         if (processInst != NULL)
@@ -316,8 +326,7 @@ void SCX_UnixProcessStatisticalInformation_Class_Provider::GetInstance(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_UnixProcessStatisticalInformation_Class_Provider::GetInstances", SCXCore::g_ProcessProvider.GetLogHandle() );
-
+    SCX_PEX_END( L"SCX_UnixProcessStatisticalInformation_Class_Provider::GetInstances", log );
 }
 
 void SCX_UnixProcessStatisticalInformation_Class_Provider::CreateInstance(

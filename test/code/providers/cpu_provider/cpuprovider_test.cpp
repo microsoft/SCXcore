@@ -63,7 +63,7 @@ public:
         std::wostringstream errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_ProcessorStatisticalInformation_Class_Provider>(
-            m_keyNames.size(), context, CALL_LOCATION(errMsg));
+            m_keyNames, context, CALL_LOCATION(errMsg));
         ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 

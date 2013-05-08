@@ -13,215 +13,148 @@
 /*----------------------------------------------------------------------------*/
 
 #include <scxcorelib/scxcmn.h>
-#include <source/code/providers/process_provider/processprovider.h>
-#include <testutils/providertestutils.h>
-
+#include <scxsystemlib/scxostypeinfo.h>
 #include <testutils/scxunit.h>
-#include <scxcorelib/scxexception.h>
-#include "testableprocessprovider.h"
+#include <testutils/providertestutils.h>
+#include "SCX_UnixProcess_Class_Provider.h"
+#include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
-using namespace SCXCore;
 using namespace SCXCoreLib;
-using namespace SCXSystemLib;
-using namespace SCXProviderLib;
-
 
 class SCXUnixProcessKeyTest : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE( SCXUnixProcessKeyTest );
-    CPPUNIT_TEST( testHandleIsKey );
-    CPPUNIT_TEST( testCreationClassName );
-    CPPUNIT_TEST( testOSNameIsSameForAll );
-    CPPUNIT_TEST( testOSCreationClassName );
-    CPPUNIT_TEST( testCSNameIsSameForAll );
-    CPPUNIT_TEST( testCSCreationClassName );
 
-    CPPUNIT_TEST( testStatisticalInformationHandleIsKey );
-    CPPUNIT_TEST( testStatisticalInformationNameIsKey );
-    CPPUNIT_TEST( testStatisticalInformationCreationClassName );
-    CPPUNIT_TEST( testStatisticalInformationOSNameIsSameForAll );
-    CPPUNIT_TEST( testStatisticalInformationOSCreationClassName );
-    CPPUNIT_TEST( testStatisticalInformationCSNameIsSameForAll );
-    CPPUNIT_TEST( testStatisticalInformationCSCreationClassName );
+    CPPUNIT_TEST( TestUnixProcessEnumerateKeysOnly );
+    CPPUNIT_TEST( TestUnixProcessStatisticalInformationEnumerateKeysOnly );
 
-    SCXUNIT_TEST_ATTRIBUTE(testHandleIsKey, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testOSNameIsSameForAll, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testOSCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testCSNameIsSameForAll, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testCSCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationHandleIsKey, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationNameIsKey, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationOSNameIsSameForAll, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationOSCreationClassName, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationCSNameIsSameForAll, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testStatisticalInformationCSCreationClassName, SLOW);
+    CPPUNIT_TEST( TestUnixProcessCheckKeyValues );
+    CPPUNIT_TEST( TestUnixProcessStatisticalInformationCheckKeyValues );
+
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialUnixProcess );
+    CPPUNIT_TEST( TestVerifyKeyCompletePartialUnixProcessStatisticalInformation );
+
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessEnumerateKeysOnly, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessStatisticalInformationEnumerateKeysOnly, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessCheckKeyValues, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessStatisticalInformationCheckKeyValues, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialUnixProcess, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartialUnixProcessStatisticalInformation, SLOW);
+
     CPPUNIT_TEST_SUITE_END();
+
+private:
+    std::vector<std::wstring> m_keyNamesUP;
+    std::vector<std::wstring> m_keyNamesUPS;
 
 public:
     void setUp(void)
     {
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_UnixProcess_Class_Provider>(CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
+        
+        m_keyNamesUP.push_back(L"CSCreationClassName");
+        m_keyNamesUP.push_back(L"CSName");
+        m_keyNamesUP.push_back(L"OSCreationClassName");
+        m_keyNamesUP.push_back(L"OSName");
+        m_keyNamesUP.push_back(L"CreationClassName");
+        m_keyNamesUP.push_back(L"Handle");
+
+        m_keyNamesUPS.push_back(L"Name");
+        m_keyNamesUPS.push_back(L"CSCreationClassName");
+        m_keyNamesUPS.push_back(L"CSName");
+        m_keyNamesUPS.push_back(L"OSCreationClassName");
+        m_keyNamesUPS.push_back(L"OSName");
+        m_keyNamesUPS.push_back(L"Handle");
+        m_keyNamesUPS.push_back(L"ProcessCreationClassName");
     }
 
     void tearDown(void)
     {
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_UnixProcess_Class_Provider>(CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
-    void GivenAllInstanceNamesEnumerated(std::wstring classToEnumerate, SCXInstanceCollection& instances)
+    void TestUnixProcessEnumerateKeysOnly()
     {
-        SCXCoreLib::SCXHandle<TestableProcessProvider> pp( new TestableProcessProvider() );
-        pp->TestDoInit();
-        pp->ForceSample(); // make sure we always have data to work on.
-
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(classToEnumerate);
-        SCXCallContext context(objectPath, eDirectSupport);
-        pp->TestDoEnumInstanceNames(context, instances);
-        pp->TestDoCleanup();
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_UnixProcess_Class_Provider>(
+            m_keyNamesUP, context, CALL_LOCATION(errMsg));
     }
 
-    /**
-        Tests if key is a key for each instance of classToCheck.
-     */
-    void testIsKey(std::wstring classToCheck, std::wstring key)
+    void TestUnixProcessStatisticalInformationEnumerateKeysOnly()
     {
-        SCXInstanceCollection instances;
-
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-            return;
-        }
-
-        for(unsigned int i = 0; i < instances.Size(); ++i)
-        {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
-        }
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateKeysOnly<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(
+            m_keyNamesUPS, context, CALL_LOCATION(errMsg));
     }
 
-    /**
-        Tests if key has value "value" for each instance of classToCheck.
-     */
-    void testKeyValueEquals(std::wstring classToCheck, std::wstring key, std::wstring value)
+    void TestUnixProcessCheckKeyValues()
     {
-        SCXInstanceCollection instances;
+        std::wostringstream errMsg;
+        TestableContext context;
 
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-            return;
-        }
+        std::vector<std::wstring> keysSame;// Unused.
 
-        for(unsigned int i = 0; i < instances.Size(); ++i)
-        {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Value of \"", key).append(L"\" is not \"").append(value).append(L"\"")),
-                                   value == instances[i]->GetKey(key)->GetStrValue());
-        }
+        std::vector<std::wstring> keyNames;
+        std::vector<std::wstring> keyValues;
+        keyNames.push_back(L"CSCreationClassName");
+        keyValues.push_back(L"SCX_ComputerSystem");
+        keyNames.push_back(L"CSName");
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
+        keyNames.push_back(L"OSCreationClassName");
+        keyValues.push_back(L"SCX_OperatingSystem");
+        keyNames.push_back(L"OSName");
+        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyNames.push_back(L"CreationClassName");
+        keyValues.push_back(L"SCX_UnixProcess");
+        StandardTestCheckKeyValues<mi::SCX_UnixProcess_Class_Provider>(
+            keyNames, keyValues, keysSame, context, CALL_LOCATION(errMsg));
     }
 
-    /**
-        Tests if key has the same non-empty value for each instance of classToCheck.
-     */
-    void testKeyIsSameForAllInstances(std::wstring classToCheck, std::wstring key)
+    void TestUnixProcessStatisticalInformationCheckKeyValues()
     {
-        SCXInstanceCollection instances;
+        std::wostringstream errMsg;
+        TestableContext context;
 
-        try {
-            GivenAllInstanceNamesEnumerated(classToCheck, instances);
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-            return;
-        }
+        std::vector<std::wstring> keysSame;// Unused.
 
-        CPPUNIT_ASSERT(NULL != instances[0]->GetKey(key));
-        std::wstring value = instances[0]->GetKey(key)->GetStrValue();
-        CPPUNIT_ASSERT(L"" != value);
-        for(unsigned int i = 1; i < instances.Size(); ++i)
-        {
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Could not find key: ", key)), NULL != instances[i]->GetKey(key));
-            CPPUNIT_ASSERT_MESSAGE(StrToMultibyte(StrAppend(L"Value of \"", key).append(L"\" is not \"").append(value).append(L"\"")),
-                                   value == instances[i]->GetKey(key)->GetStrValue());
-        }
+        std::vector<std::wstring> keyNames;
+        std::vector<std::wstring> keyValues;
+        keyNames.push_back(L"CSCreationClassName");
+        keyValues.push_back(L"SCX_ComputerSystem");
+        keyNames.push_back(L"CSName");
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
+        keyNames.push_back(L"OSCreationClassName");
+        keyValues.push_back(L"SCX_OperatingSystem");
+        keyNames.push_back(L"OSName");
+        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyNames.push_back(L"ProcessCreationClassName");
+        keyValues.push_back(L"SCX_UnixProcessStatisticalInformation");
+        StandardTestCheckKeyValues<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(
+            keyNames, keyValues, keysSame, context, CALL_LOCATION(errMsg));
     }
 
-    void testHandleIsKey()
+    void TestVerifyKeyCompletePartialUnixProcess()
     {
-        testIsKey(L"SCX_UnixProcess", L"Handle");
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_UnixProcess_Class_Provider,
+                mi::SCX_UnixProcess_Class>(m_keyNamesUP, CALL_LOCATION(errMsg));
     }
 
-    void testCreationClassName()
+    void TestVerifyKeyCompletePartialUnixProcessStatisticalInformation()
     {
-        testKeyValueEquals(L"SCX_UnixProcess", L"CreationClassName", L"SCX_UnixProcess");
+        std::wostringstream errMsg;
+        StandardTestVerifyGetInstanceKeys<mi::SCX_UnixProcessStatisticalInformation_Class_Provider,
+                mi::SCX_UnixProcessStatisticalInformation_Class>(m_keyNamesUPS, CALL_LOCATION(errMsg));
     }
-
-    void testOSNameIsSameForAll()
-    {
-        testKeyIsSameForAllInstances(L"SCX_UnixProcess", L"OSName");
-    }
-
-    void testOSCreationClassName()
-    {
-        testKeyValueEquals(L"SCX_UnixProcess", L"OSCreationClassName", L"SCX_OperatingSystem");
-    }
-
-    void testCSNameIsSameForAll()
-    {
-        testKeyIsSameForAllInstances(L"SCX_UnixProcess", L"CSName");
-    }
-
-    void testCSCreationClassName()
-    {
-        testKeyValueEquals(L"SCX_UnixProcess", L"CSCreationClassName", L"SCX_ComputerSystem");
-    }
-
-    void testStatisticalInformationHandleIsKey()
-    {
-        testIsKey(L"SCX_UnixProcessStatisticalInformation", L"Handle");
-    }
-
-    void testStatisticalInformationNameIsKey()
-    {
-        testIsKey(L"SCX_UnixProcessStatisticalInformation", L"Name");
-    }
-
-    void testStatisticalInformationCreationClassName()
-    {
-        testKeyValueEquals(L"SCX_UnixProcessStatisticalInformation", L"ProcessCreationClassName", L"SCX_UnixProcessStatisticalInformation");
-    }
-
-    void testStatisticalInformationOSNameIsSameForAll()
-    {
-        testKeyIsSameForAllInstances(L"SCX_UnixProcessStatisticalInformation", L"OSName");
-    }
-
-    void testStatisticalInformationOSCreationClassName()
-    {
-        testKeyValueEquals(L"SCX_UnixProcessStatisticalInformation", L"OSCreationClassName", L"SCX_OperatingSystem");
-    }
-
-    void testStatisticalInformationCSNameIsSameForAll()
-    {
-        testKeyIsSameForAllInstances(L"SCX_UnixProcessStatisticalInformation", L"CSName");
-    }
-
-    void testStatisticalInformationCSCreationClassName()
-    {
-        testKeyValueEquals(L"SCX_UnixProcessStatisticalInformation", L"CSCreationClassName", L"SCX_ComputerSystem");
-    }
-
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( SCXUnixProcessKeyTest );

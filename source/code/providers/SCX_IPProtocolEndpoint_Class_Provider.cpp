@@ -166,6 +166,38 @@ void SCX_IPProtocolEndpoint_Class_Provider::GetInstance(
         // Global lock for NetworkProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::NetworkProvider::Lock"));
 
+        // We have 4-part key:
+        //   [Key] Name=eth0
+        //   [Key] SystemCreationClassName=SCX_ComputerSystem
+        //   [Key] SystemName=jeffcof64-rhel6-01.scx.com
+        //   [Key] CreationClassName=SCX_IPProtocolEndpoint
+
+        if (!instanceName.Name_exists() || !instanceName.SystemCreationClassName_exists() ||
+            !instanceName.SystemName_exists() || !instanceName.CreationClassName_exists())
+        {
+            context.Post(MI_RESULT_INVALID_PARAMETER);
+            return;
+        }
+
+        std::string csName;
+        try {
+            NameResolver mi;
+            csName = StrToMultibyte(mi.GetHostDomainname()).c_str();
+        } catch (SCXException& e) {
+            SCX_LOGWARNING(SCXCore::g_NetworkProvider.GetLogHandle(), StrAppend(
+                               StrAppend(L"Can't read host/domainname because ", e.What()),
+                               e.Where()));
+        }
+
+        // Now compare (case insensitive for the class names, case sensitive for the others)
+        if ( 0 != strcasecmp("SCX_ComputerSystem", instanceName.SystemCreationClassName_value().Str())
+             || 0 != strcmp(csName.c_str(), instanceName.SystemName_value().Str())
+             || 0 != strcasecmp("SCX_IPProtocolEndpoint", instanceName.CreationClassName_value().Str()))
+        {
+            context.Post(MI_RESULT_NOT_FOUND);
+            return;
+        }
+
         SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"IPProtocolEndpoint Provider GetInstance");
 
         // Update network PAL instance. This is both update of number of interfaces and
