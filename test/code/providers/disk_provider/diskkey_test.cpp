@@ -169,24 +169,16 @@ public:
         }
 
         std::wostringstream errMsg;
-// Some hpux may timeout because can't find server address.
-// Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
-#if !defined(sun) && !defined(hpux)
-        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
-#endif
         TestableContext context;
 
-        std::vector<std::wstring> keysSame;
-        keysSame.push_back(L"SystemName");
+        std::vector<std::wstring> keysSame;// Unused.
 
         std::vector<std::wstring> keyNames;
         std::vector<std::wstring> keyValues;
         keyNames.push_back(L"SystemCreationClassName");
         keyValues.push_back(L"SCX_ComputerSystem");
-#if !defined(sun) && !defined(hpux)
         keyNames.push_back(L"SystemName");
-        keyValues.push_back(fqHostName);
-#endif
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
         keyNames.push_back(L"CreationClassName");
         keyValues.push_back(L"SCX_DiskDrive");
         StandardTestCheckKeyValues<mi::SCX_DiskDrive_Class_Provider>(keyNames, keyValues, keysSame, context,
@@ -196,24 +188,16 @@ public:
     void TestFileSystemCheckKeyValues()
     {
         std::wostringstream errMsg;
-// Some hpux may timeout because can't find server address.
-// Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
-#if !defined(sun) && !defined(hpux)
-        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
-#endif
         TestableContext context;
 
-        std::vector<std::wstring> keysSame;
-        keysSame.push_back(L"CSName");
+        std::vector<std::wstring> keysSame;// Unused.
 
         std::vector<std::wstring> keyNames;
         std::vector<std::wstring> keyValues;
         keyNames.push_back(L"CSCreationClassName");
         keyValues.push_back(L"SCX_ComputerSystem");
-#if !defined(sun) && !defined(hpux)
         keyNames.push_back(L"CSName");
-        keyValues.push_back(fqHostName);
-#endif
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
         keyNames.push_back(L"CreationClassName");
         keyValues.push_back(L"SCX_FileSystem");
         StandardTestCheckKeyValues<mi::SCX_FileSystem_Class_Provider>(keyNames, keyValues, keysSame, context,

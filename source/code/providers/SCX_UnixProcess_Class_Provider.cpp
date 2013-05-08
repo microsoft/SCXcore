@@ -265,17 +265,65 @@ void SCX_UnixProcess_Class_Provider::GetInstance(
         // Global lock for ProcessProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
-        SCX_LOGTRACE(SCXCore::g_ProcessProvider.GetLogHandle(), L"Process Provider GetInstances");
-        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
-        processEnum->Update();
+        // We have 6-part key:
+        //   [Key] CSCreationClassName=SCX_ComputerSystem
+        //   [Key] CSName=jeffcof64-rhel6-01.scx.com
+        //   [Key] OSCreationClassName=SCX_OperatingSystem
+        //   [Key] OSName=Red Hat Distribution
+        //   [Key] CreationClassName=SCX_UnixProcess
+        //   [Key] Handle=54321
 
-        if ( !instanceName.Handle_exists() || !strlen(instanceName.Handle_value().Str()) )
+        if (!instanceName.CSCreationClassName_exists() || !instanceName.CSName_exists() ||
+            !instanceName.OSCreationClassName_exists() || !instanceName.OSName_exists() ||
+            !instanceName.CreationClassName_exists() || !instanceName.Handle_exists())
         {
             context.Post(MI_RESULT_INVALID_PARAMETER);
             return;
         }
 
-        SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processInst = processEnum->GetInstance(StrFromMultibyte(instanceName.Handle_value().Str()));
+        std::string csName;
+        try {
+            NameResolver mi;
+            csName = StrToMultibyte(mi.GetHostDomainname()).c_str();
+        } catch (SCXException& e) {
+            SCX_LOGWARNING(SCXCore::g_ProcessProvider.GetLogHandle(), StrAppend(
+                               StrAppend(L"Can't read host/domainname because ", e.What()),
+                               e.Where()));
+        }
+
+        std::string osName;
+        try {
+            SCXSystemLib::SCXOSTypeInfo osinfo;
+            osName = StrToMultibyte(osinfo.GetOSName(true)).c_str();
+        } catch (SCXException& e){
+            SCX_LOGWARNING(SCXCore::g_ProcessProvider.GetLogHandle(), StrAppend(
+                        StrAppend(L"Can't read OS name because ", e.What()),
+                        e.Where()));
+        }
+
+        // Now compare (case insensitive for the class names, case sensitive for the others)
+        if ( 0 != strcasecmp("SCX_ComputerSystem", instanceName.CSCreationClassName_value().Str())
+             || 0 != strcmp(csName.c_str(), instanceName.CSName_value().Str())
+             || 0 != strcasecmp("SCX_OperatingSystem", instanceName.OSCreationClassName_value().Str())
+             || 0 != strcmp(osName.c_str(), instanceName.OSName_value().Str())
+             || 0 != strcasecmp("SCX_UnixProcess", instanceName.CreationClassName_value().Str()))
+        {
+            context.Post(MI_RESULT_NOT_FOUND);
+            return;
+        }
+
+        if (!strlen(instanceName.Handle_value().Str()) )
+        {
+            context.Post(MI_RESULT_INVALID_PARAMETER);
+            return;
+        }
+
+        SCX_LOGTRACE(SCXCore::g_ProcessProvider.GetLogHandle(), L"Process Provider GetInstances");
+        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
+        processEnum->Update();
+
+        SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processInst = processEnum->GetInstance(
+            StrFromMultibyte(instanceName.Handle_value().Str()));
 
         if (processInst == NULL)
         {
@@ -349,7 +397,6 @@ void SCX_UnixProcess_Class_Provider::Invoke_TopResourceConsumers(
             context.Post(MI_RESULT_INVALID_PARAMETER);
             return;
         }
-
         std::wstring return_str;
         std::wstring resourceStr = StrFromUTF8(in.resource_value().Str());
         SCXCore::g_ProcessProvider.GetTopResourceConsumers(resourceStr, (unsigned short)in.count_value(), return_str);

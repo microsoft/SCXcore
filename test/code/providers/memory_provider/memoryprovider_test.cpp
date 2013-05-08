@@ -79,7 +79,7 @@ public:
         std::wostringstream errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_MemoryStatisticalInformation_Class_Provider>(
-            m_keyNames.size(), context, CALL_LOCATION(errMsg));
+            m_keyNames, context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL(1u, context.Size());
         ValidateInstance(context, CALL_LOCATION(errMsg));
     }

@@ -23,7 +23,6 @@ static void EnumerateOneInstance(Context& context,
                           SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf)
 {
     // Add the key properperties first.
-    inst.InstanceID_value(StrToMultibyte(intf->GetName()).c_str());
     inst.CreationClassName_value("SCX_LANEndpoint");
     inst.Name_value(StrToMultibyte(intf->GetName()).c_str());
 
@@ -31,9 +30,9 @@ static void EnumerateOneInstance(Context& context,
     inst.SystemCreationClassName_value("SCX_ComputerSystem");
     SCXCoreLib::NameResolver mi;
     inst.SystemName_value(StrToMultibyte(mi.GetHostDomainname()).c_str());
-
     if (!keysOnly)
     {
+        inst.InstanceID_value(StrToMultibyte(intf->GetName()).c_str());
         inst.Caption_value("LAN endpoint caption information");
         inst.Description_value("LAN Endpoint description information");
         
@@ -139,6 +138,38 @@ void SCX_LANEndpoint_Class_Provider::GetInstance(
     {
         // Global lock for NetworkProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::NetworkProvider::Lock"));
+
+        // We have 4-part key:
+        //   [Key] Name=eth0
+        //   [Key] SystemCreationClassName=SCX_ComputerSystem
+        //   [Key] SystemName=jeffcof64-rhel6-01.scx.com
+        //   [Key] CreationClassName=SCX_IPProtocolEndpoint
+
+        if (!instanceName.Name_exists() || !instanceName.SystemCreationClassName_exists() ||
+            !instanceName.SystemName_exists() || !instanceName.CreationClassName_exists())
+        {
+            context.Post(MI_RESULT_INVALID_PARAMETER);
+            return;
+        }
+
+        std::string csName;
+        try {
+            NameResolver mi;
+            csName = StrToMultibyte(mi.GetHostDomainname()).c_str();
+        } catch (SCXException& e) {
+            SCX_LOGWARNING(SCXCore::g_NetworkProvider.GetLogHandle(), StrAppend(
+                               StrAppend(L"Can't read host/domainname because ", e.What()),
+                               e.Where()));
+        }
+
+        // Now compare (case insensitive for the class names, case sensitive for the others)
+        if ( 0 != strcasecmp("SCX_ComputerSystem", instanceName.SystemCreationClassName_value().Str())
+             || 0 != strcmp(csName.c_str(), instanceName.SystemName_value().Str())
+             || 0 != strcasecmp("SCX_LANEndpoint", instanceName.CreationClassName_value().Str()))
+        {
+            context.Post(MI_RESULT_NOT_FOUND);
+            return;
+        }
 
         SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"LANEndpoint Provider GetInstance");
 

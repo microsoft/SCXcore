@@ -14,295 +14,303 @@
 
 */
 /*----------------------------------------------------------------------------*/
-// For getpid()
-#include <unistd.h>
-
-#include <testutils/providertestutils.h>
 
 #include <scxcorelib/scxcmn.h>
-#include <processprovider.h>
+#include <scxsystemlib/scxostypeinfo.h>
 #include <testutils/scxunit.h>
-#include <scxcorelib/scxexception.h>
-#include "testableprocessprovider.h"
+#include <testutils/providertestutils.h>
+#include "SCX_UnixProcess_Class_Provider.h"
+#include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
-#include <iostream>
-
-using namespace SCXCore;
 using namespace SCXCoreLib;
-using namespace SCXSystemLib;
-using namespace SCXProviderLib;
 
 class SCXProcessProviderTest : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE( SCXProcessProviderTest );
-    CPPUNIT_TEST( testGetUnixProcessInstance );
-    CPPUNIT_TEST( testGetUnixProcessStatisticalInformationInstance );
-    CPPUNIT_TEST( testDoEnumInstanceNames );
-    CPPUNIT_TEST( testDoEnumInstances );
-    CPPUNIT_TEST( testDoGetInstance );
-    CPPUNIT_TEST( testDoInvokeMethod );
-    CPPUNIT_TEST( DoInvokeMethodThrowsUnknownResourceException );
-    CPPUNIT_TEST( testGetParametersAsPropertyVector );
 
-    SCXUNIT_TEST_ATTRIBUTE(testGetUnixProcessInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testGetUnixProcessStatisticalInformationInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoEnumInstanceNames, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoEnumInstances, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoGetInstance, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethod, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(DoInvokeMethodThrowsUnknownResourceException, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testGetParametersAsPropertyVector, SLOW);
+    CPPUNIT_TEST( TestUnixProcessEnumerateInstances );
+    CPPUNIT_TEST( TestUnixProcessStatisticalInformationEnumerateInstances );
+
+    CPPUNIT_TEST( TestUnixProcessGetInstance );
+    CPPUNIT_TEST( TestUnixProcessStatisticalInformationGetInstance );
+
+    CPPUNIT_TEST( TestUnixProcessGetThisInstance );
+    CPPUNIT_TEST( TestUnixProcessStatisticalInformationGetThisInstance );
+
+    CPPUNIT_TEST( TestUnixProcessInvokeTopResourceConsumers );
+    CPPUNIT_TEST( TestUnixProcessInvokeTopResourceConsumersFail );
+
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessEnumerateInstances, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessStatisticalInformationEnumerateInstances, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessGetInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessStatisticalInformationGetInstance, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessGetThisInstance, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessStatisticalInformationGetThisInstance, SLOW);
+
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessInvokeTopResourceConsumers, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestUnixProcessInvokeTopResourceConsumersFail, SLOW);
+
     CPPUNIT_TEST_SUITE_END();
 
 private:
-    /* Add any data commonly used in several tests as members here. */
-    SCXCoreLib::SCXHandle<TestableProcessProvider> pp;
+    std::vector<std::wstring> m_keyNamesUP;// SCX_UnixProcess key names.
+    std::vector<std::wstring> m_keyNamesUPS;// SCX_UnixProcessStatisticalInformation key names.
 
 public:
     void setUp(void)
     {
-        /* This method will be called once before each test function. */
-        pp = new TestableProcessProvider();
-        pp->TestDoInit();
-        pp->ForceSample(); // make sure we always have data to work on.
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_UnixProcess_Class_Provider>(CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
+        
+        m_keyNamesUP.push_back(L"CSCreationClassName");
+        m_keyNamesUP.push_back(L"CSName");
+        m_keyNamesUP.push_back(L"OSCreationClassName");
+        m_keyNamesUP.push_back(L"OSName");
+        m_keyNamesUP.push_back(L"CreationClassName");
+        m_keyNamesUP.push_back(L"Handle");
+
+        m_keyNamesUPS.push_back(L"Name");
+        m_keyNamesUPS.push_back(L"CSCreationClassName");
+        m_keyNamesUPS.push_back(L"CSName");
+        m_keyNamesUPS.push_back(L"OSCreationClassName");
+        m_keyNamesUPS.push_back(L"OSName");
+        m_keyNamesUPS.push_back(L"Handle");
+        m_keyNamesUPS.push_back(L"ProcessCreationClassName");
     }
 
     void tearDown(void)
     {
-        /* This method will be called once after each test function. */
-        pp->TestDoCleanup();
-        pp = 0;
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_UnixProcess_Class_Provider>(CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
-    void testDoEnumInstanceNames()
+    void TestUnixProcessEnumerateInstances()
     {
-        try {
-            SCXInstanceCollection instances;
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateInstances<mi::SCX_UnixProcess_Class_Provider>(
+            m_keyNamesUP, context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, context.Size() > 10);
 
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_UnixProcess");
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            pp->TestDoEnumInstanceNames(context, instances);
-
-            CPPUNIT_ASSERT(instances.Size() > 10);
-            CPPUNIT_ASSERT(6 == instances[0]->NumberOfKeys());
-            CPPUNIT_ASSERT(L"Handle" == instances[0]->GetKey(0)->GetName());
-
-        } catch (SCXAccessViolationException&) {
-            // Silently skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoEnumInstanceNames: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        }
+        ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-    void testDoEnumInstances()
+    void TestUnixProcessStatisticalInformationEnumerateInstances()
     {
-        try {
-            SCXInstanceCollection instances;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_UnixProcessStatisticalInformation");
-            SCXCallContext context(objectPath, eDirectSupport);
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestEnumerateInstances<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(
+            m_keyNamesUPS, context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, context.Size() > 10);
 
-            pp->TestDoEnumInstances(context, instances);
-
-            CPPUNIT_ASSERT(instances.Size() > 10);
-            CPPUNIT_ASSERT(7 == instances[0]->NumberOfKeys());
-
-        } catch (SCXAccessViolationException&) {
-            // Silently skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoEnumInstances: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        }
+        ValidateInstanceStatisticalInformation(context, CALL_LOCATION(errMsg));
     }
 
-    void testGetUnixProcessInstance()
+    void TestUnixProcessGetInstance()
     {
-        try {
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"CreationClassName");
-            keyNames.push_back(L"Handle");
-            keyNames.push_back(L"CSName");
-            keyNames.push_back(L"CSCreationClassName");
-            keyNames.push_back(L"OSName");
-            keyNames.push_back(L"OSCreationClassName");
-            CPPUNIT_ASSERT(pp->VerifyGetInstanceByCompleteKeySuccess(L"SCX_UnixProcess", keyNames));
-            CPPUNIT_ASSERT(pp->VerifyGetInstanceByPartialKeyFailure(L"SCX_UnixProcess", keyNames));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        }
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_UnixProcess_Class_Provider,
+            mi::SCX_UnixProcess_Class>(
+            context, m_keyNamesUP.size(), CALL_LOCATION(errMsg));
+
+        ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-    void testGetUnixProcessStatisticalInformationInstance()
+    void TestUnixProcessStatisticalInformationGetInstance()
     {
-        try {
-            std::vector<std::wstring> keyNames;
-            keyNames.push_back(L"Name");
-            keyNames.push_back(L"Handle");
-            keyNames.push_back(L"CSName");
-            keyNames.push_back(L"CSCreationClassName");
-            keyNames.push_back(L"OSName");
-            keyNames.push_back(L"OSCreationClassName");
-            keyNames.push_back(L"ProcessCreationClassName");
-            CPPUNIT_ASSERT(pp->VerifyGetInstanceByCompleteKeySuccess(L"SCX_UnixProcessStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-            CPPUNIT_ASSERT(pp->VerifyGetInstanceByPartialKeyFailure(L"SCX_UnixProcessStatisticalInformation", keyNames,
-                    TestableProvider::eKeysOnly));
-        } catch (SCXAccessViolationException&) {
-            // Skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        }
+        std::wostringstream errMsg;
+        TestableContext context;
+        StandardTestGetInstance<mi::SCX_UnixProcessStatisticalInformation_Class_Provider,
+            mi::SCX_UnixProcessStatisticalInformation_Class>(
+            context, m_keyNamesUPS.size(), CALL_LOCATION(errMsg));
+
+        ValidateInstanceStatisticalInformation(context, CALL_LOCATION(errMsg));
     }
 
-    void testDoGetInstance()
+    void TestUnixProcessGetThisInstance()
     {
-        try {
-            const SCXProperty* nameProperty = NULL;
+        std::wostringstream errMsg;
+        TestableContext context;
 
-            SCXInstance instance;
-            SCXInstance objectPath;
+        std::vector<std::wstring> keyValues;
+        keyValues.push_back(L"SCX_ComputerSystem");
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(L"SCX_OperatingSystem");
+        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(L"SCX_UnixProcess");
+        keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
 
-            BaseProvider::AddScopingOperatingSystemKeys(objectPath);
-            objectPath.AddKey(SCXProperty(SCXProperty(L"CreationClassName", L"SCX_UnixProcess")));
-            objectPath.AddKey(SCXProperty(SCXProperty(L"Handle", StrFrom(getpid()))));
-            objectPath.SetCimClassName(L"SCX_UnixProcess");
-
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            // Get the testrunner process instance
-            pp->TestDoGetInstance(context, instance);
-
-            CPPUNIT_ASSERT((nameProperty = instance.GetProperty(L"Name")) != NULL);
-
-            // And the name property should be "testrunner"
-            ostringstream msg;
-            msg << "nameProperty->GetStrValue: " << StrToMultibyte(nameProperty->GetStrValue()) << endl;
-            CPPUNIT_ASSERT_MESSAGE(msg.str().c_str(), nameProperty->GetStrValue() == L"testrunner");
-
-        } catch (SCXAccessViolationException&) {
-            // Silently skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoGetInstance: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        }
-    }
-
-    void testDoInvokeMethod ()
-    {
-        try {
-            SCXArgs args;
-            SCXArgs out;        // Not used
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_UnixProcess");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty resource(L"resource", L"CPUTime");
-
-            SCXProperty count(L"count", static_cast<unsigned short>(10));
-
-            args.AddProperty(resource);
-            args.AddProperty(count);
-
-            pp->TestDoInvokeMethod(context, L"TopResourceConsumers", args, out, result);
-
-            CPPUNIT_ASSERT(! result.GetStrValue().empty());
-
-            // We just happen to know that the first characters are a newline followed by "PID"
-            CPPUNIT_ASSERT(result.GetStrValue().substr(1, 3) == L"PID");
-
-            // Print out the top resource consumers. Saved for debug.
-            // std::wcout << result.GetStrValue() << std::endl;
-
-        } catch (SCXAccessViolationException&) {
-            // Silently skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoInvokeMethod: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        }
-    }
-
-    void DoInvokeMethodThrowsUnknownResourceException()
-    {
-        SCXArgs args;
-        SCXArgs out;        // Not used
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_UnixProcess");
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, (GetInstance<
+            mi::SCX_UnixProcess_Class_Provider, mi::SCX_UnixProcess_Class>(
+            m_keyNamesUP, keyValues, context, CALL_LOCATION(errMsg))));
         
-        SCXCallContext context(objectPath, eDirectSupport);
-        
-        SCXProperty resource(L"resource", L"InvalidResource");
-        SCXProperty count(L"count", static_cast<unsigned short>(10));
-        
-        args.AddProperty(resource);
-        args.AddProperty(count);
-        
-        CPPUNIT_ASSERT_THROW(pp->TestDoInvokeMethod(context, L"TopResourceConsumers", args, out, result), 
-                             ProcessProvider::UnknownResourceException);
+        // Yes, but is it us?
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"testrunner", context[0].GetProperty("Name",
+            CALL_LOCATION(errMsg)).GetValue_MIString(CALL_LOCATION(errMsg)));
+
+        ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-    void testGetParametersAsPropertyVector()
+    void TestUnixProcessStatisticalInformationGetThisInstance()
     {
-        try {
-            const SCXProperty* paramsProperty = NULL;
+        std::wostringstream errMsg;
+        TestableContext context;
 
-            ;
-            SCXInstance instance;
-            SCXInstance objectPath;
+        std::vector<std::wstring> keyValues;
+        keyValues.push_back(L"testrunner");// Looking for us.
+        keyValues.push_back(L"SCX_ComputerSystem");
+        keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(L"SCX_OperatingSystem");
+        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
+        keyValues.push_back(L"SCX_UnixProcessStatisticalInformation");
 
-            BaseProvider::AddScopingOperatingSystemKeys(objectPath);
-            objectPath.AddKey(SCXProperty(L"Handle", StrFrom(getpid())));
-            objectPath.AddKey(SCXProperty(L"CreationClassName", L"SCX_UnixProcess"));
-            objectPath.SetCimClassName(L"SCX_UnixProcess");
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, (GetInstance<
+            mi::SCX_UnixProcessStatisticalInformation_Class_Provider, mi::SCX_UnixProcessStatisticalInformation_Class>(
+            m_keyNamesUPS, keyValues, context, CALL_LOCATION(errMsg))));
 
-            SCXCallContext context(objectPath, eDirectSupport);
+        ValidateInstanceStatisticalInformation(context, CALL_LOCATION(errMsg));
+    }
 
-            // Get the testrunner process instance
-            pp->TestDoGetInstance(context, instance);
+    bool GetTopResourceConsumers(const char* resourceName, std::wostringstream &errMsg)
+    {
+        TestableContext context;
+        mi::SCX_UnixProcess_Class instanceName;
+        mi::SCX_UnixProcess_TopResourceConsumers_Class param;
+        param.resource_value(resourceName);
+        param.count_value(10);
 
-            CPPUNIT_ASSERT_NO_THROW(paramsProperty = instance.GetProperty(L"Parameters"));
-#if defined(linux) || defined(aix) || defined(hpux) || defined(sun)
-            CPPUNIT_ASSERT(NULL != paramsProperty);
+        mi::Module Module;
+        mi::SCX_UnixProcess_Class_Provider agent(&Module);
+        agent.Invoke_TopResourceConsumers(context, NULL, instanceName, param);
+        if (context.GetResult() == MI_RESULT_OK)
+        {
+            const std::vector<TestableInstance> &instances = context.GetInstances();
+            // We expect one instance to be returned.
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, instances.size());
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"PID", instances[0].GetProperty("MIReturn",
+                CALL_LOCATION(errMsg)).GetValue_MIString(CALL_LOCATION(errMsg)).substr(1, 3));
+            return true;
+        }
+        return false;
+    }
 
-            CPPUNIT_ASSERT_EQUAL(SCXProperty::SCXArrayType, paramsProperty->GetType());
-#else
-            CPPUNIT_ASSERT(NULL == paramsProperty);
-#endif
-        } catch (SCXAccessViolationException&) {
-            // Silently skip access violations because some properties
-            // require root access.
-            SCXUNIT_WARNING(L"Skipping test - need root access");
-            SCXUNIT_RESET_ASSERTION();
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testGetParametersAsPropertyVector: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_FAIL("Exception");
+    void TestUnixProcessInvokeTopResourceConsumers()
+    {
+        std::wostringstream errMsg;
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, GetTopResourceConsumers("CPUTime", CALL_LOCATION(errMsg)));
+    }
+
+    void TestUnixProcessInvokeTopResourceConsumersFail()
+    {
+        std::wostringstream errMsg;
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false,
+            GetTopResourceConsumers("InvalidResource", CALL_LOCATION(errMsg)));
+    }
+
+    void ValidateInstance(const TestableContext& context, std::wostringstream &errMsg)
+    {
+        for (size_t n = 0; n < context.Size(); n++)
+        {
+            const TestableInstance &instance = context[n];
+
+            std::wstring tmpExpectedProperties[] = {
+                                                    L"InstanceID",
+                                                    L"Caption",
+                                                    L"Description",
+                                                    L"ElementName",
+                                                    L"InstallDate",
+                                                    L"Name",
+                                                    L"OperationalStatus",
+                                                    L"StatusDescriptions",
+                                                    L"Status",
+                                                    L"HealthState",
+                                                    L"CommunicationStatus",
+                                                    L"DetailedStatus",
+                                                    L"OperatingStatus",
+                                                    L"PrimaryStatus",
+                                                    L"EnabledState",
+                                                    L"OtherEnabledState",
+                                                    L"RequestedState",
+                                                    L"EnabledDefault",
+                                                    L"TimeOfLastStateChange",
+                                                    L"AvailableRequestedStates",
+                                                    L"TransitioningToState",
+                                                    L"CSCreationClassName",
+                                                    L"CSName",
+                                                    L"OSCreationClassName",
+                                                    L"OSName",
+                                                    L"CreationClassName",
+                                                    L"Handle",
+                                                    L"Priority",
+                                                    L"ExecutionState",
+                                                    L"OtherExecutionDescription",
+                                                    L"CreationDate",
+                                                    L"TerminationDate",
+                                                    L"KernelModeTime",
+                                                    L"UserModeTime",
+                                                    L"WorkingSetSize",
+                                                    L"ParentProcessID",
+                                                    L"RealUserID",
+                                                    L"ProcessGroupID",
+                                                    L"ProcessSessionID",
+                                                    L"ProcessTTY",
+                                                    L"ModulePath",
+                                                    L"Parameters",
+                                                    L"ProcessNiceValue",
+                                                    L"ProcessWaitingForEvent"};
+
+            const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
+            VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
+        }
+    }
+
+    void ValidateInstanceStatisticalInformation(const TestableContext& context, std::wostringstream &errMsg)
+    {
+        for (size_t n = 0; n < context.Size(); n++)
+        {
+            const TestableInstance &instance = context[n];
+
+            std::wstring tmpExpectedProperties[] = {
+                                                    L"InstanceID",
+                                                    L"Caption",
+                                                    L"Description",
+                                                    L"ElementName",
+                                                    L"Name",
+                                                    L"CSCreationClassName",
+                                                    L"CSName",
+                                                    L"OSCreationClassName",
+                                                    L"OSName",
+                                                    L"Handle",
+                                                    L"ProcessCreationClassName",
+                                                    L"CPUTime",
+                                                    L"RealText",
+                                                    L"RealData",
+                                                    L"RealStack",
+                                                    L"VirtualText",
+                                                    L"VirtualData",
+                                                    L"VirtualStack",
+                                                    L"VirtualMemoryMappedFileSize",
+                                                    L"VirtualSharedMemory",
+                                                    L"CpuTimeDeadChildren",
+                                                    L"SystemTimeDeadChildren",
+                                                    L"BlockReadsPerSecond",
+                                                    L"BlockWritesPerSecond",
+                                                    L"BlockTransfersPerSecond",
+                                                    L"PercentUserTime",
+                                                    L"PercentPrivilegedTime",
+                                                    L"UsedMemory",
+                                                    L"PercentUsedMemory",
+                                                    L"PagesReadPerSec"};
+
+            const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
+            VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
         }
     }
 };

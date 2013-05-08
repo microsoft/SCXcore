@@ -85,7 +85,7 @@ public:
         std::wostringstream errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_OperatingSystem_Class_Provider>(
-            m_keyNames.size(), context, CALL_LOCATION(errMsg));
+            m_keyNames, context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL(1u, context.Size());
 
         ValidateInstance(context, CALL_LOCATION(errMsg));
@@ -111,34 +111,12 @@ public:
     {
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, context.Size());
         
-        // Get fully qualified host name.
-        // Some hpux may timeout because can't find server address.
-        // Some sun may return mix of upper-lower case in the provider, impossible to compare, for example sun10.SCX.com.
-#if !defined(sun) && !defined(hpux)
-        std::wstring fqHostName = GetFQHostName(CALL_LOCATION(errMsg));
-#endif
-        // Get distribution name.
-        std::wstring distributionName;
-#if defined(sun) || defined(aix) || defined(hpux)
-        struct utsname utsName;
-        CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, 0 <= uname(&utsName));
-        distributionName = SCXCoreLib::StrFromMultibyte(utsName.sysname);
-#elif defined(linux)
-#if defined(PF_DISTRO_SUSE)
-        distributionName =  L"SuSE Distribution";
-#elif defined(PF_DISTRO_REDHAT)
-        distributionName =  L"Red Hat Distribution";
-#elif defined(PF_DISTRO_ULINUX)
-        distributionName =  L"Linux Distribution";
-#endif // defined(PF_DISTRO_SUSE)
-#endif // defined(sun) || defined(aix) || defined(HPUX)
-
         const TestableInstance &instance = context[0];
-        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, distributionName, instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE,
+            GetDistributionName(CALL_LOCATION(errMsg)), instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"SCX_ComputerSystem", instance.GetKeyValue(1, CALL_LOCATION(errMsg)));
-#if !defined(sun) && !defined(hpux)
-        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, fqHostName, instance.GetKeyValue(2, CALL_LOCATION(errMsg)));
-#endif
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE,
+            GetFQHostName(CALL_LOCATION(errMsg)), instance.GetKeyValue(2, CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"SCX_OperatingSystem", instance.GetKeyValue(3, CALL_LOCATION(errMsg)));
 #if defined(linux)
         std::wstring tmpExpectedProperties[] = {L"Caption",
