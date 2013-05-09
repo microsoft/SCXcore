@@ -578,7 +578,7 @@ void SCX_OperatingSystem_Class_Provider::GetInstance(
     {
         SCXThreadLock lock(ThreadLockHandleGet(L"SCXCore::OSProvider::Lock"));
 
-        // Was have a nasty 4-part key (on Redhat, it looks like this):
+        // Was have a 4-part key (on Redhat, it looks like this):
         //   [Key] Name=Red Hat Distribution
         //   [Key] CSCreationClassName=SCX_ComputerSystem
         //   [Key] CSName=jeffcof64-rhel6-01.scx.com
