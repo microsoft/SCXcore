@@ -6,6 +6,7 @@ build_type="Release"
 enable_debug=""
 enable_purify_agent=""
 enable_purify_server=""
+enable_bullseye=""
 
 omi_configure_quals="--prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath"
 
@@ -35,6 +36,7 @@ do
           exit 1
       fi
       build_type="Bullseye"
+      enable_bullseye="--enable-bullseye"
     ;;
 
     --enable-purify-agent)
@@ -47,6 +49,7 @@ do
 
     --enable-local-omi)
       omi_configure_quals="--prefix=. --disable-libpath"
+      local_omi="1"
     ;;
 
     *)
@@ -84,8 +87,10 @@ EOF
     exit 0
 fi
 
-make -C $scxpal_dir/build cache BUILD_TYPE="$build_type"
-make cache BUILD_TYPE="$build_type"
+(cd $scxpal_dir/build/; chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye)
+cat <<EOF > config.mak
+LOCAL_OMI=$local_omi
+EOF
 
 # Fix permissions in case they aren't executable - and then configure OMI
 chmod ug+x ${scxomi_dir}/configure ${scxomi_dir}/buildtool

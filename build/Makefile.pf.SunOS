@@ -8,32 +8,6 @@
 # 
 #--------------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------------
-# Check architecture
-#--------------------------------------------------------------------------------
-
-UNAME_P=$(shell uname -p)
-ifeq ($(UNAME_P),sparc)
-	ARCH=sparc
-	PF_ARCH=sparc
-endif
-ifeq ($(UNAME_P),i386)
-	ARCH=ia32
-	PF_ARCH=x86
-endif
-
-#--------------------------------------------------------------------------------
-# Check versions
-#--------------------------------------------------------------------------------
-
-SUNOS_VERSION=$(shell uname -r)
-PF_PARTS=$(subst ., ,$(SUNOS_VERSION))
-
-# Typically 5
-PF_MAJOR=$(word 1,$(PF_PARTS))
-# Typically 8, 9 or 10
-PF_MINOR=$(word 2,$(PF_PARTS))
-
 # Solaris 5.11 compiler is a little different ...
 
 ifeq ($(PF_MAJOR),5)
@@ -138,11 +112,6 @@ PF_STAT_LIB_FILE_SUFFIX=a
 PF_DYN_LIB_FILE_SUFFIX=so
 PF_EXE_FILE_SUFFIX=
 PF_KIT_FILE_SUFFIX=tar
-
-#--------------------------------------------------------------------------------
-# Build width
-#--------------------------------------------------------------------------------
-PF_WIDTH=32
 
 #--------------------------------------------------------------------------------
 # Paths

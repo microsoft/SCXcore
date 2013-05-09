@@ -8,63 +8,11 @@
 # 
 #--------------------------------------------------------------------------------
 
-
-#--------------------------------------------------------------------------------
-# Check Major version
-#--------------------------------------------------------------------------------
-
-CHECK_SUSE=$(shell if [ -e /etc/SuSE-release ]; then echo 1; fi)
-CHECK_RHEL_OR_CENTOS=$(shell if [ -e /etc/redhat-release ]; then echo 1; fi)
-
-ifeq ($(CHECK_RHEL_OR_CENTOS), 1)
-	CHECK_CENTOS=$(shell grep -i "Red Hat" /etc/redhat-release || echo 1)
-	ifneq ($(CHECK_CENTOS), 1)
-		CHECK_RHEL=1
-	endif
-endif
-
-# scripts below extract version information from corresponding "release" file,
-# assuming version can be found as "<space><Major>[.<Minor>]";
-# if minor is not set, "0" is returned
-ifeq ($(CHECK_SUSE),1)
-	PF_DISTRO=SUSE
-	PF_MAJOR=$(shell head -n 1 /etc/SuSE-release | sed 's/.* \([0-9][0-9]*\)[ \.].*/\1/')
-	PF_MINOR=$(shell (head -n 1 /etc/SuSE-release | sed 's/.* [0-9][0-9]*[\.]\([0-9][0-9]*\).*/\1/') | grep -v '[^0-9]' || echo '0')
-endif
-
-ifeq ($(CHECK_RHEL),1)
-	PF_DISTRO=REDHAT
-	PF_MAJOR=$(shell head -n 1 /etc/redhat-release | sed 's/.* \([0-9][0-9]*\)[ \.].*/\1/')
-	PF_MINOR=$(shell (head -n 1 /etc/redhat-release | sed 's/.* [0-9][0-9]*[\.]\([0-9][0-9]*\).*/\1/') | grep -v '[^0-9]' || echo '0')
-endif
-
-
-# Handle universal agents
-
-ifneq ($(PF_DISTRO), REDHAT)
-ifneq ($(PF_DISTRO), SUSE)
-	PF_DISTRO=ULINUX
-	PF_DISTRO_ULINUX_D=$(shell [ -e /usr/bin/dpkg ] && echo 1)
-	ifneq ($(PF_DISTRO_ULINUX_D), 1)
-		PF_DISTRO_ULINUX_R=$(shell [ -e /usr/bin/rpmbuild ] && echo 1)
-	endif
-
+ifeq ($(PF_DISTRO), ULINUX)
 	# Reassign SCXOMI directories to any OMI output directory (generic non-SSL use)
 	SCXOMI_DEV_ROOT := $(SCXOMI_DIR)/output_openssl_1.0.0
 	SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include
 	SCXOMI_LIBS := $(SCXOMI_DEV_ROOT)/lib
-
-	# Set PF_MAJOR and PF_MINOR to fake values to pacify preprocessor
-	PF_MAJOR=1
-	PF_MINOR=0
-
-	ifneq ($(PF_DISTRO_ULINUX_D), 1)
-	ifneq ($(PF_DISTRO_ULINUX_R), 1)
-		@echo Cannot determine platform type
-		false
-	endif
-	endif
-endif
 endif
 
 # Catchall
@@ -76,44 +24,11 @@ ifeq (,$(PF_DISTRO))
 	$(warning "Unmatched version string")
 endif
 
-
-#--------------------------------------------------------------------------------
-# Check architecture
-#--------------------------------------------------------------------------------
-
-UNAME_P=$(shell uname -m)
-
-ifneq (,$(findstring 64,$(UNAME_P)))
-	PF_ARCH=x64
-	ARCH=x64
-else
-ifneq (,$(findstring 86,$(UNAME_P)))
-	PF_ARCH=x86
-	ARCH=ia32
-else
-	ifneq (,$(findstring athlon,$(UNAME_P)))
-		PF_ARCH=x86
-		ARCH=ia32
-	else
-		PF_ARCH=UNKNOWN
-	endif
-endif
-endif
-
 ifeq ($(PF_DISTRO)$(PF_MAJOR),REDHAT4)
 	include Makefile.gcc3
 else
 	include Makefile.gcc4
 endif		
-
-#--------------------------------------------------------------------------------
-# Build width
-#--------------------------------------------------------------------------------
-ifeq ($(PF_ARCH),x86)
-	PF_WIDTH=32
-else
-	PF_WIDTH=64
-endif
 
 #================================================================================
 # OpenSSL 

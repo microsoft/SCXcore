@@ -328,19 +328,12 @@ endif
 	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(TARGET_DIR)/scxcore-devel/include/testutils
 	# Create an OMI development area for use in running utilities
 	#   TODO - Is there an alias for mkdir?  Not $(MKDIR) or $(MAKEDIR), those didn't work
+ifeq ($(LOCAL_OMI),1)
 	$(RMDIR) -rf $(TARGET_DIR)/omi 
 	-mkdir -p $(TARGET_DIR)/omi/etc/omiregister/root-scx
 	$(COPY) -r $(SCXOMI_DIR)/etc $(TARGET_DIR)/omi
 	$(COPY) -r $(SCXOMI_DEV_ROOT)/* $(TARGET_DIR)/omi
 	$(COPY) -r $(SCXOMI_DIR)/share $(TARGET_DIR)/omi
-	#
-ifneq ($(PF_DISTRO),ULINUX)
-	# Copy OMI (non-ULINUX) bits here! - TODO
-	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/libs_version.txt)
-else
-	# Copy OMI (ULINUX) bits here! - TODO
-	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)/libs_version.txt)
-	$(call pf_fwrite,"Lib files build from version $(SCX_BUILDVERSION) $(SCX_BUILDVERSION_STATUS)", $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)/libs_version.txt)
 endif
 
 #================================================================================

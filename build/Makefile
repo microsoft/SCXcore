@@ -10,7 +10,6 @@
 PWD:=$(shell pwd)
 SCX_BRD=$(subst /build,,$(PWD))
 PF_POSIX=true
-UNAME=$(shell uname)
 
 # Get the root of the SCXPAL directory (and other easy locations)
 SCXPAL_DIR := $(shell cd ../../scxpal; pwd)
@@ -23,46 +22,14 @@ SCXOMI_LIBS := $(SCXOMI_DEV_ROOT)/lib
 # Copied from configure script.  When we eliminate 'make cache', this should be available from configure.
 OMI_CONFIGURE_QUALS := --prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath
 
-
-ifeq ($(UNAME),Linux)
-	PF=Linux
-	PF_LINUX=true
-endif 
-ifeq ($(UNAME),SunOS)
-	PF=SunOS
-	PF_SOLARIS=true
-endif
-ifeq ($(UNAME),HP-UX)
-	PF=HPUX
-	PF_HPUX=true
-endif
-ifeq ($(UNAME),AIX)
-	PF=AIX
-	PF_AIX=true
-endif
-ifeq ($(UNAME),Darwin)
-	PF=MacOS
-	PF_MACOS=true
-endif
-
-# Determine if we're building OM Core or the shared tree
-IS_SHARED_TREE=$(shell if [ -f $(SCX_BRD)/src ]; then echo 1; fi)
-
-BUILD_CONFIG_CACHE=$(SCX_BRD)/build/Makefile.config_cache
-
-ifeq ($(PF),MacOS)
-
-# Until we can build devel-deps on OS/X, don't bother trying
-all : installerPackage
-
-else
+include $(SCXPAL_DIR)/build/config.mak
+include $(SCX_BRD)/build/config.mak
 
 all : ccenable pal_all omi_all installerPackage devel-deps ccdisable
+installerPackage: pal_all omi_all
 
 pal_all :
 	$(MAKE) -C $(SCXPAL_DIR)/build all
-
-endif
 
 clean: clean-status doxygen_clean
 	-$(RMDIR) $(INTERMEDIATE_DIR)/include
@@ -79,9 +46,10 @@ clean: clean-status doxygen_clean
 # Clean the PAL as well as OM with distclean target
 distclean: clean
 	-$(MAKE) -C $(SCXPAL_DIR)/build clean
-#	-$(MAKE) -C $(SCXOMI_DIR) clean
 	-$(MAKE) -C $(SCXOMI_DIR) distclean
 	-$(RMDIR) $(SCXOMI_DIR)/output*
+	-$(RM) $(SCX_BRD)/build/config.mak
+	-$(RM) $(SCXPAL_DIR)/build/config.mak
 	-$(RM) $(SCXPAL_DIR)/build/Makefile.config_cache
 	-$(RM) $(SCX_BRD)/build/Makefile.config_cache
 	-$(RM) -rf $(SCX_BRD)/intermediate $(SCX_BRD)/target
@@ -108,15 +76,11 @@ endif # Labeled Build
 # Include the rest of the stuff we need
 
 include $(SCX_BRD)/build/Makefile.pal
--include $(BUILD_CONFIG_CACHE)
-include $(SCXPAL_DIR)/build/Makefile.config_cache
 include $(SCX_BRD)/build/Makefile.macros
 include $(SCX_BRD)/build/Makefile.pf.$(PF)
 include $(SCX_BRD)/build/Makefile.rules
-
 include $(SCX_BRD)/build/Makefile.components
 include $(SCX_BRD)/build/Makefile.kits
-
 include $(SCX_BRD)/build/Makefile.tests
 include $(SCX_BRD)/build/Makefile.stub
 
