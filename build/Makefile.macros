@@ -38,9 +38,6 @@ SCXPAL_INT_INCLUDE_DIR=$(SCXPAL_INTERMEDIATE_DIR)/include
 
 MOF_PATH=$(SCX_SRC_ROOT)/mof
 
-# We never build with SCX_STACK_ONLY on Ubuntu anymore ... (ULINUX agent)
-ISUBUNTU=
-
 #--------------------------------------------------------------------------------
 # Configuration cahce info, controlled from cmdline or Makefile.config_cache
 # 
@@ -49,21 +46,7 @@ BUILD_TYPE?=Release
 
 BUILD_PROFILING?=false
 
-ifeq ($(filter-out LinuxUBUNTU MacOS, $(PF)$(ISUBUNTU)),)
-	SCX_STACK_ONLY?=true
-else
-	SCX_STACK_ONLY?=false
-endif
-
 UNITTESTS_SUBSET?=
-
-#--------------------------------------------------------------------------------
-# Assemble info on which type of build we have 
-ifeq ($(PF),Linux)
-BUILD_CONFIGURATION=$(PF)_$(PF_DISTRO)_$(PF_MAJOR).$(PF_MINOR)_$(PF_ARCH)_$(PF_WIDTH)_$(BUILD_TYPE)
-else
-BUILD_CONFIGURATION=$(PF)_$(PF_MAJOR).$(PF_MINOR)_$(PF_ARCH)_$(PF_WIDTH)_$(BUILD_TYPE)
-endif
 
 # Root directory of the build process output.
 # Individual developers may redirect the output of their local build 
@@ -126,49 +109,6 @@ TESTPROVIDERMODULE_EXPOSED_SYMS= \
 # object files under intermediate directory 
 # src_to_obj(list_of_cppfiles)
 src_to_obj = $(patsubst $(SCX_BRD)%, $(INTERMEDIATE_DIR)%, $(patsubst %.s, %.$(PF_OBJ_FILE_SUFFIX), $(patsubst %.c, %.$(PF_OBJ_FILE_SUFFIX), $(patsubst %.cpp, %.$(PF_OBJ_FILE_SUFFIX), $(1)))))
-
-
-#================================================================================
-# Maintain Configuration Cache 
-#================================================================================
-
-cache_values:
-	@$(ECHO) " SCX_STACK_ONLY=$(SCX_STACK_ONLY)"
-	@$(ECHO) " BUILD_TYPE=$(BUILD_TYPE)"
-	@$(ECHO) " BUILD_PROFILING=$(BUILD_PROFILING)"
-	@$(ECHO) " UNITTESTS_SUBSET=$(UNITTESTS_SUBSET)"
-
-cache_help:
-	@$(ECHO) "Make System Configuration Cache"
-	@$(ECHO) "-------------------------------"
-	@$(ECHO) "To make the system remember configuration, run 'make cache <config>=<value>'"
-	@$(ECHO) "where <config> is one or more of the variables you want to set." 
-	@$(ECHO) "To reset all values to default, run 'make cache_reset'."
-	@$(ECHO) "where <config> is one or more of the variables you want to set." 
-	@$(ECHO) ""
-	@$(ECHO) "Cacheable values:"
-	@$(ECHO) " BUILD_TYPE=Debug/Release/Bullseye"
-	@$(ECHO) " BUILD_PROFILING=prof/gprof/purify/quantify/false"
-	@$(ECHO) " SCX_STACK_ONLY=true/false"
-	@$(ECHO) " UNITTESTS_SUBSET=\"<list of unit test cpp files run by cppunit>\""
-	@$(ECHO) ""
-	@$(ECHO) "Current configuration:"
-	@grep = $(BUILD_CONFIG_CACHE)
-
-cache_reset:
-	$(RM) $(BUILD_CONFIG_CACHE)
-
-cache:
-	@$(ECHO) "Configuring..." 
-	@$(call pf_fwrite,"# Build configuration cache - do not check in!",  $(BUILD_CONFIG_CACHE))
-	@$(call pf_fappend,"BUILD_TYPE=$(BUILD_TYPE)",                       $(BUILD_CONFIG_CACHE))
-	@$(call pf_fappend,"BUILD_PROFILING=$(BUILD_PROFILING)",             $(BUILD_CONFIG_CACHE))
-	@$(call pf_fappend,"SCX_STACK_ONLY=$(SCX_STACK_ONLY)",               $(BUILD_CONFIG_CACHE))
-	@$(call pf_fappend,"UNITTESTS_SUBSET=$(UNITTESTS_SUBSET)",           $(BUILD_CONFIG_CACHE))
-# Force re-linking of testrunner
-	@-$(RM) $(TARGET_DIR)/testrunner
-	@$(ECHO) "Re-configured, new cache values:"
-	@grep = $(BUILD_CONFIG_CACHE)
 
 #-------------------------------- End of File -----------------------------------
 

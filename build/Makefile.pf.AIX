@@ -8,9 +8,6 @@
 # 
 #--------------------------------------------------------------------------------
 
-ARCH=ppc
-PF_ARCH=ppc
-
 # Define flags. (These will be submitted to all commands that use the preprocesor)
 DEFINES+=-Daix -DPF_MAJOR=$(PF_MAJOR) -DPF_MINOR=$(PF_MINOR) 
 
@@ -98,21 +95,6 @@ PF_STAT_LIB_FILE_SUFFIX=a
 PF_DYN_LIB_FILE_SUFFIX=so
 PF_EXE_FILE_SUFFIX=
 PF_KIT_FILE_SUFFIX=tar
-
-#--------------------------------------------------------------------------------
-# Check versions
-#--------------------------------------------------------------------------------
-
-# Typically 5
-PF_MAJOR=$(shell uname -v)
-# Typically 3 for AIX 5.3
-PF_MINOR=$(shell uname -r)
-
-#--------------------------------------------------------------------------------
-# Build width
-#--------------------------------------------------------------------------------
-#64bit: PF_WIDTH=64
-PF_WIDTH=32
 
 #--------------------------------------------------------------------------------
 # Paths

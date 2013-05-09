@@ -69,11 +69,6 @@ ifeq ($(PF_DISTRO),REDHAT)
 	endif
 endif
 
-# -fstack-protector-all not supported on Mac OS/X 10.4 - remove
-ifeq ($(PF)-$(PF_MAJOR).$(PF_MINOR),MacOS-10.4)
-	CXX_OPTIMIZATION_FLAGS := $(CXX_OPTIMIZATION_FLAGS:-fstack-protector-all=)
-endif
-
 # CXX Debug flags for debug builds
 ifeq ($(BUILD_TYPE),Debug)
 	CXXFLAGS += -ggdb 

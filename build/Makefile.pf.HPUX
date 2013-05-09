@@ -8,19 +8,6 @@
 # 
 #--------------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------------
-# Check architecture
-#--------------------------------------------------------------------------------
-
-UNAME_M=$(shell uname -m)
-ifeq ($(UNAME_M),ia64)
-	ARCH=ia64
-	PF_ARCH=ia64
-else
-	ARCH=hppa
-	PF_ARCH=pa-risc
-endif
-
 # UNIX_STD affects the behaviour of certain C-lib functions.
 export UNIX_STD=2003
 
@@ -135,18 +122,6 @@ PF_EXE_FILE_SUFFIX=
 PF_KIT_FILE_SUFFIX=tar
 
 #--------------------------------------------------------------------------------
-# Check versions
-#--------------------------------------------------------------------------------
-
-HPUX_VERSION=$(shell uname -r)
-PF_PARTS=$(subst ., ,$(HPUX_VERSION))
-
-# Typically 11
-PF_MAJOR=$(word 2,$(PF_PARTS))
-# Typically 23 or 31 (for 11iv2 and 11iv3 respectively)
-PF_MINOR=$(word 3,$(PF_PARTS))
-
-#--------------------------------------------------------------------------------
 # Flags depending on PF_. Placed here since ifeq does not work with forward vars.
 #--------------------------------------------------------------------------------
 # Use new compiler fronend on PA-RISC (that makes it more like IA-64)
@@ -155,11 +130,6 @@ ifneq ($(PF_MINOR),23)
 	COMMONFLAGS += +hpxstd98
 endif
 endif
-
-#--------------------------------------------------------------------------------
-# Build width
-#--------------------------------------------------------------------------------
-PF_WIDTH=32
 
 #--------------------------------------------------------------------------------
 # Paths
