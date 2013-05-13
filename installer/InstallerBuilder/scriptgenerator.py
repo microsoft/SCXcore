@@ -648,7 +648,7 @@ class Script:
             if self.configuration['pfarch'] == "x86":
                 body += [
                     "    LIB_DIR=/lib",
-                    "    DIR_LIST=/lib/ /usr/lib/\""
+                    "    DIR_LIST=\"/lib/ /usr/lib/\""
                     ]
             else:
                 body += [
