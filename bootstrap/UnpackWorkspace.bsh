@@ -20,14 +20,16 @@ if [ "_${WorkSpaceName}" != "_" ] && [ -d ~/${WorkSpaceName} ]; then
     MovedWorkspaceDir="${HOME}/${WorkSpaceName}_${RANDOM}"
     mv ${HOME}/${WorkSpaceName} ${MovedWorkspaceDir} || exit 1
     if [ "_${MovedWorkspaceDir}" != "_" ] && [ -d ${MovedWorkspaceDir} ]; then
-        nohup rm -rf ${MovedWorkspaceDir} &
+        echo Not removing workspaces for now. This will be done by a cleanup script.
+#       nohup rm -rf ${MovedWorkspaceDir} &
     fi
 fi
 
 if [ "${CleanupMode}" = "CleanupMode" ]; then
     echo ${ScriptName} : Cleaning up workspace files 
     if [ "_${WorkSpaceName}" != "_" ] && [ -e ~/${WorkSpaceName}.tar.gz ]; then
-        nohup rm ~/${WorkSpaceName}.tar.gz &
+        echo Not removing workspaces for now. This will be done by a cleanup script.
+#       nohup rm ~/${WorkSpaceName}.tar.gz &
     fi
 else
     echo ${ScriptName} : Creating new workspace at ~/${WorkSpaceName}
