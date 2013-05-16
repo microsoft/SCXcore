@@ -220,7 +220,7 @@
     <Exec WorkingDirectory="$(SourceDir)"
           Command="&quot;c:\program files (x86)\Microsoft Visual Studio 10.0\common7\IDE\tf.exe&quot; label $(TheLabel) /recursive ." />
 
-    <Exec WorkingDirectory="$(SourceDir)\..\scxpal"
+    <Exec WorkingDirectory="$(SourceDir)\..\pal"
           Command="&quot;c:\program files (x86)\Microsoft Visual Studio 10.0\common7\IDE\tf.exe&quot; label $(TheLabel) /recursive ." />
 
     <Exec WorkingDirectory="$(SourceDir)\..\omi"

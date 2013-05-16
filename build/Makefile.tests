@@ -214,7 +214,7 @@ testrun : pal_test testrun_setup $(BUILD_TESTRUN_PACKAGE)
 
 pal_test :
 ifeq ($(PAL_UNITTEST_DISABLE),)
-	$(MAKE) -C ../../scxpal/build test
+	$(MAKE) -C ../../pal/build test
 endif
 
 test : testrun
