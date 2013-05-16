@@ -1,6 +1,6 @@
 #!/bin/bash
 
-scxpal_dir="../../scxpal"
+scxpal_dir="../../pal"
 scxomi_dir=`(cd ../../omi/distro; pwd -P)`
 build_type="Release"
 enable_debug=""
