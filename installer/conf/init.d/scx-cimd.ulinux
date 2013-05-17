@@ -45,6 +45,11 @@ RETVAL=0
 case "$1" in
      start)
         LD_LIBRARY_PATH=$SCX_HOME/lib; export LD_LIBRARY_PATH
+
+        # Create the scx-release file while we definitely have root privileges
+        # (The provider may not have privileges to create the file)
+        /opt/microsoft/scx/bin/tools/GetLinuxOS.sh
+
         case $INIT_STYLE in
             D) 
                 log_begin_msg "Starting $SCX_CIMD_NAME: "
