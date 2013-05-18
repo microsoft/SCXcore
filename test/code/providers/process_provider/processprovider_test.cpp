@@ -146,7 +146,7 @@ public:
         keyValues.push_back(L"SCX_UnixProcess");
         keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
 
-        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, (GetInstance<
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, MI_RESULT_OK, (GetInstance<
             mi::SCX_UnixProcess_Class_Provider, mi::SCX_UnixProcess_Class>(
             m_keyNamesUP, keyValues, context, CALL_LOCATION(errMsg))));
         
@@ -171,7 +171,7 @@ public:
         keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
         keyValues.push_back(L"SCX_UnixProcessStatisticalInformation");
 
-        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, (GetInstance<
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, MI_RESULT_OK, (GetInstance<
             mi::SCX_UnixProcessStatisticalInformation_Class_Provider, mi::SCX_UnixProcessStatisticalInformation_Class>(
             m_keyNamesUPS, keyValues, context, CALL_LOCATION(errMsg))));
 
