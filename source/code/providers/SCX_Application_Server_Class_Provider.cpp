@@ -1,126 +1,16 @@
 /* @migen@ */
 #include <MI.h>
-#include "SCX_Application_Server_Class_Provider.h"
-
+#include <string>
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxlog.h>
-
 #include "support/appserver/appserverenumeration.h"
+#include "support/appserver/appserverprovider.h"
 #include "support/scxcimutils.h"
 #include "support/startuplog.h"
-
-#include <string>
+#include "SCX_Application_Server_Class_Provider.h"
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
-
-namespace SCXCore
-{
-    /*----------------------------------------------------------------------------*/
-    /**
-       Class representing all external dependencies from the AppServer PAL.
-
-    */
-    class AppServerProviderPALDependencies
-    {
-    public:
-        virtual ~AppServerProviderPALDependencies() {};
-
-        virtual SCXCoreLib::SCXHandle<SCXSystemLib::AppServerEnumeration> CreateEnum()
-        {
-            return SCXHandle<AppServerEnumeration>(new AppServerEnumeration());
-        }
-    };
-
-    /*----------------------------------------------------------------------------*/
-    /**
-       Application Server provider
-
-       Provide Application Services capabilities for OMI
-    */
-    class ApplicationServerProvider
-    {
-    public:
-        ApplicationServerProvider()
-            : m_deps(NULL),
-              m_appservers(NULL)
-        { }
-        virtual ~ApplicationServerProvider() { }
-
-        virtual const std::wstring DumpString() const
-        {
-            return L"ApplicationServerProvider";
-        }
-
-        void Load()
-        {
-            SCXASSERT( ms_loadCount >= 0 );
-            if ( 1 == ++ms_loadCount )
-            {
-                m_log = SCXLogHandleFactory::GetLogHandle(L"scx.core.providers.appserverprovider");
-                LogStartup();
-                SCX_LOGTRACE(m_log, L"ApplicationServerProvider::Load()");
-
-                if ( NULL == m_deps )
-                {
-                    m_deps = new AppServerProviderPALDependencies();
-                }
-
-                m_appservers = m_deps->CreateEnum();
-                m_appservers->Init();
-            }
-        }
-
-        void Unload()
-        {
-            SCX_LOGTRACE(m_log, L"ApplicationServerProvider::Unload()");
-
-            SCXASSERT( ms_loadCount >= 1 );
-            if ( 0 == --ms_loadCount )
-            {
-                if (NULL != m_appservers)
-                {
-                    m_appservers->CleanUp();
-                    m_appservers = NULL;
-                }
-
-                m_deps = NULL;
-            }
-        }
-
-        void UpdateDependencies(SCXCoreLib::SCXHandle<AppServerProviderPALDependencies> deps)
-        {
-            m_deps = deps;
-        }
-
-        SCXCoreLib::SCXHandle<SCXSystemLib::AppServerEnumeration> GetAppServers()
-        {
-            return m_appservers;
-        }
-
-        SCXLogHandle& GetLogHandle()
-        {
-            return m_log;
-        }
-
-    private:
-        SCXCoreLib::SCXLogHandle m_log;
-        static int ms_loadCount;
-
-        SCXCoreLib::SCXHandle<AppServerProviderPALDependencies> m_deps;
-
-        //! PAL implementation retrieving appserver information for local host
-        SCXCoreLib::SCXHandle<SCXSystemLib::AppServerEnumeration> m_appservers;
-    };
-
-    //
-    // Application Server provider class implementation
-    //
-
-    // Only construct ApplicationServer class once
-    int SCXCore::ApplicationServerProvider::ms_loadCount = 0;
-    SCXCore::ApplicationServerProvider g_AppServerProvider;
-}
 
 MI_BEGIN_NAMESPACE
 
@@ -320,8 +210,11 @@ void SCX_Application_Server_Class_Provider::Invoke_SetDeepMonitoring(
         //   protocol      : string
         //
         // Validate that we have mandatory arguments
+        SCX_Application_Server_SetDeepMonitoring_Class inst;
         if ( !in.id_exists() || !in.deep_exists() )
         {
+            inst.MIReturn_value( false );
+            context.Post(inst);
             context.Post(MI_RESULT_INVALID_PARAMETER);
             return;
         }
@@ -348,8 +241,14 @@ void SCX_Application_Server_Class_Provider::Invoke_SetDeepMonitoring(
             appInst->SetIsDeepMonitored(deep, protocol);
             fDeepResult = true;
         }
-
-        SCX_Application_Server_SetDeepMonitoring_Class inst;
+        else
+        {
+            inst.MIReturn_value( fDeepResult );
+            context.Post(inst);
+            context.Post(MI_RESULT_NOT_FOUND);
+            return;
+        }
+        
         inst.MIReturn_value( fDeepResult );
         context.Post(inst);
         context.Post(MI_RESULT_OK);

@@ -20,898 +20,461 @@
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/stringaid.h>
 #include <testutils/scxunit.h>
-
-#include "source/code/providers/runas_provider/runasprovider.h"
-
+#include <testutils/providertestutils.h>
+#include "support/scxrunasconfigurator.h"
+#include "support/runasprovider.h"
 #include <list>
-#include <unistd.h>     // For getpid()
+#include <unistd.h>
+#include "SCX_OperatingSystem_Class_Provider.h"
 
-using namespace SCXCore;
 using namespace SCXCoreLib;
-using namespace SCXProviderLib;
 
-// if you want to see extra information from executed commands/scripts
-// set "c_EnableDebugOutput" to 1
+// If you want to see extra information from executed commands/scripts
+// set "c_EnableDebugOutput" to 1.
 const int c_EnableDebugOutput = 0;
-
-class TestableRunAsProvider : public RunAsProvider
-{
-public:
-    TestableRunAsProvider(SCXCoreLib::SCXHandle<RunAsConfigurator> configurator = 
-                SCXCoreLib::SCXHandle<RunAsConfigurator>(new RunAsConfigurator())) :
-        RunAsProvider(configurator)
-    {
-    }
-
-    void TestDoInit()
-    {
-        DoInit();
-    }
-
-    void TestDoEnumInstanceNames(const SCXProviderLib::SCXCallContext& callContext,
-                                 SCXProviderLib::SCXInstanceCollection &names)
-    {
-        DoEnumInstanceNames(callContext, names);
-    }
-
-    void TestDoEnumInstances(const SCXProviderLib::SCXCallContext& callContext,
-                             SCXProviderLib::SCXInstanceCollection &instances)
-    {
-        DoEnumInstances(callContext, instances);
-    }
-
-    void TestDoGetInstance(const SCXProviderLib::SCXCallContext& callContext,
-                           SCXProviderLib::SCXInstance& instance)
-    {
-        DoGetInstance(callContext, instance);
-    }
-
-    void TestDoInvokeMethod(const SCXProviderLib::SCXCallContext& callContext,
-                            const std::wstring& methodname, const SCXProviderLib::SCXArgs& args,
-                            SCXProviderLib::SCXArgs& outargs, SCXProviderLib::SCXProperty& result)
-    {
-        DoInvokeMethod(callContext, methodname, args, outargs, result);
-    }
-
-    void TestDoCleanup()
-    {
-        DoCleanup();
-    }
-};
-
-/*----------------------------------------------------------------------------*/
-/**
-   Class for parsing strings with generic configuration
-
-*/
-class ConfigurationStringParser : public ConfigurationParser
-{
-public:
-    ConfigurationStringParser(const std::wstring& configuration) :
-        m_Configuration(configuration)
-    {};
-
-    void Parse()
-    {
-        std::wistringstream stream(m_Configuration);
-        ParseStream(stream);
-    };
-private:
-    std::wstring m_Configuration;
-};
 
 class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE( SCXRunAsProviderTest );
-    CPPUNIT_TEST( testDoEnumInstanceNames );
-    CPPUNIT_TEST( testDoEnumInstances );
-    CPPUNIT_TEST( testDoGetInstance );
-    CPPUNIT_TEST( testDoInvokeMethodNoParams );
-    CPPUNIT_TEST( testDoInvokeMethodPartParams );
-    CPPUNIT_TEST( testDoInvokeMethodCommandOK );
-    CPPUNIT_TEST( testDoInvokeMethodCommandOKWithEmptyElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodCommandOKWithElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodCommandOKWithUppercaseElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodCommandOKWithInvalideElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodCommandFailed );
-    CPPUNIT_TEST( testDoInvokeMethodShellCommandOK );
-    CPPUNIT_TEST( testDoInvokeMethodShellCommandOKWithSudoElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodShellCommandOKWithEmptyElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodShellCommandOKWithInvalideElevationType );
-    CPPUNIT_TEST( testDoInvokeMethodScriptOK );
-    CPPUNIT_TEST( testDoInvokeMethodScriptOKWithSudoElevation );
-    CPPUNIT_TEST( testDoInvokeMethodScriptOKWithUpperCaseSudoElevation );
-    CPPUNIT_TEST( testDoInvokeMethodScriptOKWithEmptyElevation );
-    CPPUNIT_TEST( testDoInvokeMethodScriptFailed );
-    CPPUNIT_TEST( testDoInvokeMethodScriptNonSH );
-    CPPUNIT_TEST( testDoInvokeMethodScriptNoHashBang );
-    CPPUNIT_TEST( testChRoot );
-    CPPUNIT_TEST( testCWD );
+    CPPUNIT_TEST( TestDoInvokeMethodNoParams );
+    CPPUNIT_TEST( TestDoInvokeMethodPartParams );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandOK );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandOKWithEmptyElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandOKWithElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandOKWithUppercaseElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandOKWithInvalidElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodCommandFailed );
+    CPPUNIT_TEST( TestDoInvokeMethodShellCommandOK );
+    CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithSudoElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithEmptyElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithInvalidElevationType );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptOK );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithSudoElevation );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithEmptyElevation );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptFailed );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptNonSH );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptNoHashBang );
+    CPPUNIT_TEST( TestChRoot );
+    CPPUNIT_TEST( TestCWD );
 
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandOK, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandOKWithEmptyElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandOKWithElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandOKWithUppercaseElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandOKWithInvalideElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodCommandFailed, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodShellCommandOK, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodShellCommandOKWithSudoElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodShellCommandOKWithEmptyElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodShellCommandOKWithInvalideElevationType, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptOK, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptOKWithSudoElevation, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptOKWithUpperCaseSudoElevation, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptOKWithEmptyElevation, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptFailed, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptNonSH, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodScriptNoHashBang, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testChRoot, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testCWD, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOK, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOKWithEmptyElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOKWithElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOKWithUppercaseElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOKWithInvalidElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandFailed, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOK, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithSudoElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithEmptyElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithInvalidElevationType, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOK, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithSudoElevation, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithEmptyElevation, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptFailed, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptNonSH, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptNoHashBang, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestChRoot, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestCWD, SLOW);
     CPPUNIT_TEST_SUITE_END();
-
-private:
-    /* Add any data commonly used in several tests as members here. */
-    SCXCoreLib::SCXHandle<TestableRunAsProvider> pp;
 
 public:
     void setUp(void)
     {
-        // The default CWD may not exist so we use the current instead.
-        SCXCoreLib::SCXHandle<RunAsConfigurator> configurator(
-            new RunAsConfigurator(SCXCoreLib::SCXHandle<ConfigurationParser>(new ConfigurationStringParser(L"CWD = ./\n")), 
-            SCXCoreLib::SCXHandle<ConfigurationWriter>(0)) );
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
 
+        // The default CWD may not exist so we use the current instead.
+        SCXCoreLib::SCXHandle<SCXCore::RunAsConfigurator> configurator(new SCXCore::RunAsConfigurator());
+        configurator->SetCWD(SCXCoreLib::SCXFilePath(L"./"));
         if (0 == geteuid() && ! configurator->GetAllowRoot())
         {
             configurator->SetAllowRoot(true);
         }
-
-        pp = new TestableRunAsProvider(configurator);
-        pp->TestDoInit();
+        SCXCore::g_RunAsProvider.SetConfigurator(configurator);
     }
 
     void tearDown(void)
     {
-        /* This method will be called once after each test function. */
-        pp->TestDoCleanup();
-        pp = 0;
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
         system("rm -rf testChRoot > /dev/null 2>&1");
+        system("rm -rf testCWD > /dev/null 2>&1");
     }
 
-    void testDoEnumInstanceNames()
+    struct InvokeReturnData
     {
-        // unsupported method - should throw exception
-        SCXInstanceCollection instances;
-        
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-        SCXCallContext context(objectPath, eDirectSupport);
-        
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"unsupported\" exception expected", 
-            pp->TestDoEnumInstanceNames(context, instances), 
-            SCXCoreLib::SCXNotSupportedException);
+        MI_Sint32 returnCode;
+        std::wstring stdOut;
+        std::wstring stdErr;
+        InvokeReturnData(): returnCode(-55555555){}
+    };
 
-    }
-
-    void testDoEnumInstances()
+    void VerifyInvokeResult(TestableContext &context, MI_Result result, InvokeReturnData &returnData,
+        std::wostringstream &errMsg)
     {
-        // unsupported method - should throw exception
-        SCXInstanceCollection instances;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-        SCXCallContext context(objectPath, eDirectSupport);
-        
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"unsupported\" exception expected", 
-            pp->TestDoEnumInstances(context, instances),
-            SCXCoreLib::SCXNotSupportedException);
-    }
-
-
-    void testDoGetInstance()
-    {
-        // unsupported method - should throw exception
-        SCXProperty key(L"Handle", StrFrom(getpid()));
-        SCXInstance instance;
-        SCXInstance objectPath;
-
-        objectPath.AddProperty(key);
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        // Get the testrunner process instance
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"unsupported\" exception expected", 
-            pp->TestDoGetInstance(context, instance),
-            SCXCoreLib::SCXNotSupportedException);
-        
-    }
-
-    void testDoInvokeMethodNoParams ()
-    {
-        SCXArgs args;
-        SCXArgs out;        // Not used
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"SCXInternalErrorException\" exception expected", 
-            pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result),
-            SCXCoreLib::SCXInternalErrorException);
-
-        // Verify that throwing this exception also asserts.
-        SCXUNIT_ASSERTIONS_FAILED(1);
-    }
-    
-    void testDoInvokeMethodPartParams ()
-    {
-        SCXArgs args;
-        SCXArgs out;        // Not used
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"ls");
-
-        args.AddProperty(cmd);
-        
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"SCXInternalErrorException\" exception expected", 
-            pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result),
-            SCXCoreLib::SCXInternalErrorException);
-        
-        // Verify that throwing this exception also asserts.
-        SCXUNIT_ASSERTIONS_FAILED(1);
-    }
-
-
-    void testDoInvokeMethodCommandOK ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo Testing");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-            std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                (int)out.GetProperty(L"StdOut")->GetType(); 
-         }
-
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"Testing\n" );
-    }
-
-    void testDoInvokeMethodCommandOKWithEmptyElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo Testing");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        SCXProperty elevation(L"ElevationType", L"");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-             std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                 (int)out.GetProperty(L"StdOut")->GetType();
-        }
-
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"Testing\n" );
-
-    }
-    
-    void testDoInvokeMethodCommandOKWithElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo Testing");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        SCXProperty elevation(L"ElevationType", L"sudo");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-            std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                (int)out.GetProperty(L"StdOut")->GetType();
-        }
-
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"Testing\n" );
-    }
-
-    void testDoInvokeMethodCommandOKWithUppercaseElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo Testing");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        SCXProperty elevation(L"ElevationType", L"SUdo");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-            std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                (int)out.GetProperty(L"StdOut")->GetType();
-        }
-
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"Testing\n" );
-    }
-
-    void testDoInvokeMethodCommandOKWithInvalideElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo Testing");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        SCXProperty elevation(L"ElevationType", L"aaaaaa");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-
-         CPPUNIT_ASSERT_THROW_MESSAGE( "\"SCXInternalErrorException\" exception expected",
-            pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result),
-            SCXCoreLib::SCXInternalErrorException);
-
-        // Verify that throwing this exception also asserts.
-        SCXUNIT_ASSERTIONS_FAILED(1);
-    }
-
-    void testDoInvokeMethodCommandFailed ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"/non-existing-directory/non-existing-command");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-            std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                out.GetProperty(L"ReturnCode")->GetIntValue();
-        }
-
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT( out.GetProperty(L"ReturnCode")->GetIntValue() != 0);
-
-    }
-
-    void testDoInvokeMethodShellCommandOK ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo 'a\nb\nc' | grep b");
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteShellCommand", args, out, result);
-
-        CPPUNIT_ASSERT_EQUAL(std::string("b\n"),
-            StrToMultibyte(out.GetProperty(L"StdOut")->GetStrValue()) );
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty() );
-        CPPUNIT_ASSERT_EQUAL( 0, out.GetProperty(L"ReturnCode")->GetIntValue() );
-
-    }
-
-    void testDoInvokeMethodShellCommandOKWithSudoElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo 'a\nb\nc' | grep b");
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-        SCXProperty elevation(L"ElevationType", L"sudo");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-           
-
-        pp->TestDoInvokeMethod(context, L"ExecuteShellCommand", args, out, result);
-
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"b\n" );
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-    }
-
-
-    void testDoInvokeMethodShellCommandOKWithEmptyElevationType ()
-    {
-        try {
-            SCXArgs args;
-            SCXArgs out;
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty cmd(L"Command", L"echo 'a\nb\nc' | grep b");
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-            SCXProperty elevation(L"ElevationType", L"");
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-            args.AddProperty(elevation);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteShellCommand", args, out, result);
-
-            CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"b\n" );
-            CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue().empty());
-            CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoInvokeMethod: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        }
-    }
-
-    void testDoInvokeMethodShellCommandOKWithInvalideElevationType ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Command", L"echo \"a\nb\nc\" | grep b");
-
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        SCXProperty elevation(L"ElevationType", L"aaaaa");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(elevation);
-        
-        CPPUNIT_ASSERT_THROW_MESSAGE( "\"SCXInternalErrorException\" exception expected",
-            pp->TestDoInvokeMethod(context, L"ExecuteShellCommand", args, out, result),
-            SCXCoreLib::SCXInternalErrorException);
-
-        // Verify that throwing this exception also asserts.
-        SCXUNIT_ASSERTIONS_FAILED(1);
-    }
-
-    void testDoInvokeMethodScriptOK ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Script", 
-             L"#!/bin/sh\n"
-             L"# write something to stdout stream\n"
-             L"echo \"$3-$2-$1\"\n"
-             L"# and now create stderr output\n"
-             L"echo \"-$2-\">&2\n"
-             L"exit 0\n" );
-        SCXProperty arguments(L"Arguments", L"unit test run");
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(arguments);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-             std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                 (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                 out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                 out.GetProperty(L"ReturnCode")->GetIntValue();
-        } 
-
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-        CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-        CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-        CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"run-test-unit\n" );
-        CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue() == L"-test-\n" );
-    }
-
-    void testDoInvokeMethodScriptOKWithSudoElevation ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Script",
-             L"#!/bin/sh\n"
-             L"# write something to stdout stream\n"
-             L"echo \"$3-$2-$1\"\n"
-             L"# and now create stderr output\n"
-             L"echo \"-$2-\">&2\n"
-             L"exit 0\n" );
-        SCXProperty arguments(L"Arguments", L"unit test run");
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-        SCXProperty elevation(L"ElevationType", L"sudo");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(arguments);
-        args.AddProperty(elevation);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-             std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                 (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                 out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                 out.GetProperty(L"ReturnCode")->GetIntValue();
-         }
-
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-         CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-         CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"run-test-unit\n" );
-         CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue() == L"-test-\n" );
-    }
-
-    void testDoInvokeMethodScriptOKWithUpperCaseSudoElevation ()
-    {
-        SCXArgs args;
-        SCXArgs out;
-        SCXProperty result;
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-        SCXCallContext context(objectPath, eDirectSupport);
-
-        SCXProperty cmd(L"Script",
-             L"#!/bin/sh\n"
-             L"# write something to stdout stream\n"
-             L"echo \"$3-$2-$1\"\n"
-             L"# and now create stderr output\n"
-             L"echo \"-$2-\">&2\n"
-             L"exit 0\n" );
-        SCXProperty arguments(L"Arguments", L"unit test run");
-        SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-        SCXProperty elevation(L"ElevationType", L"SUDO");
-
-        args.AddProperty(cmd);
-        args.AddProperty(timeout);
-        args.AddProperty(arguments);
-        args.AddProperty(elevation);
-
-        pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-        // Print out results. Saved for debug.
-        if ( c_EnableDebugOutput ) {
-             std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                 (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                 out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                 out.GetProperty(L"ReturnCode")->GetIntValue();
-         }
-
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-         CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-         CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"run-test-unit\n" );
-         CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue() == L"-test-\n" );
-    }
-
-    void testDoInvokeMethodScriptOKWithEmptyElevation ()
-    {
-         SCXArgs args;
-         SCXArgs out;
-         SCXProperty result;
-         SCXInstance objectPath;
-         objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-         SCXCallContext context(objectPath, eDirectSupport);
-
-         SCXProperty cmd(L"Script",
-              L"#!/bin/sh\n"
-              L"# write something to stdout stream\n"
-              L"echo \"$3-$2-$1\"\n"
-              L"# and now create stderr output\n"
-              L"echo \"-$2-\">&2\n"
-              L"exit 0\n" );
-         SCXProperty arguments(L"Arguments", L"unit test run");
-         SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-         SCXProperty elevation(L"ElevationType", L"");
-
-         args.AddProperty(cmd);
-         args.AddProperty(timeout);
-         args.AddProperty(arguments);
-         args.AddProperty(elevation);
-
-         pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-         // Print out results. Saved for debug.
-         if ( c_EnableDebugOutput ) {
-              std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                  (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                  out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                  out.GetProperty(L"ReturnCode")->GetIntValue();
-         }
-
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-         CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-         CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-         CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"run-test-unit\n" );
-         CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue() == L"-test-\n" );
-    }
-
-    void testDoInvokeMethodScriptFailed ()
-    {
-        try {
-            SCXArgs args;
-            SCXArgs out;
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty cmd(L"Script", 
-                L"#!/bin/sh\n"
-                L"no_exisiting_command_echo \"$3-$2-$1\"\n"
-                L"# generate error code we can check later\n"
-                L"exit 7\n" );
-            SCXProperty arguments(L"Arguments", L"unit test run");
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-            args.AddProperty(arguments);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-            // Print out results. Saved for debug.
-            if ( c_EnableDebugOutput ) {
-                std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                    (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                    out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                    out.GetProperty(L"ReturnCode")->GetIntValue();
-            }
-
-            CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue().empty());
-            CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-            CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 7);
-
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoInvokeMethod: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        } 
-    }
-
-    void testDoInvokeMethodScriptNonSH ()
-    {
-        try {
-            SCXArgs args;
-            SCXArgs out;
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            /* 
-               Try to find bash.
-             */
-            std::list<std::wstring> bashPaths;
-            bashPaths.push_back(L"/bin/bash");
-            bashPaths.push_back(L"/usr/bin/bash");
-            bashPaths.push_back(L"/usr/local/bin/bash");
-            std::wstring bash = L"";
-            for (std::list<std::wstring>::const_iterator iter = bashPaths.begin();
-                 iter != bashPaths.end();
-                 ++iter)
-            {
-                if (SCXFile::Exists(*iter))
-                {
-                    bash = *iter;
-                    bash.append(L"\n");
-                }
-            }
-
-            CPPUNIT_ASSERT(L"" != bash);
-
-
-            // This script will return what shell it is run in.
-            SCXProperty cmd(L"Script", 
-                            std::wstring(L"#!")
-                            .append(bash).append(L"echo $BASH\n" ));
-
-            SCXProperty arguments(L"Arguments", L"");
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-            args.AddProperty(arguments);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-            CPPUNIT_ASSERT(bash == out.GetProperty(L"StdOut")->GetStrValue());
-            CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoInvokeMethodScriptNonSH: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        } 
-    }
-
-    void testDoInvokeMethodScriptNoHashBang ()
-    {
-        try {
-            SCXArgs args;
-            SCXArgs out;
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty cmd(L"Script", 
-                L"# write something to stdout stream\n"
-                L"echo \"$3-$2-$1\"\n"
-                L"# and now create stderr output\n"
-                L"echo \"-$2-\">&2\n"
-                L"exit 0\n" );
-            SCXProperty arguments(L"Arguments", L"unit test run");
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-            args.AddProperty(arguments);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteScript", args, out, result);
-
-            // Print out results. Saved for debug.
-            if ( c_EnableDebugOutput ) {
-                std::wcout << std::endl << out.GetProperty(L"StdOut")->GetStrValue() << std::endl <<
-                    (int)out.GetProperty(L"StdOut")->GetType() << std::endl <<
-                    out.GetProperty(L"StdErr")->GetStrValue() << std::endl << L"error code: " <<
-                    out.GetProperty(L"ReturnCode")->GetIntValue();
-            }
-
-            CPPUNIT_ASSERT( !out.GetProperty(L"StdOut")->GetStrValue().empty());
-            CPPUNIT_ASSERT( !out.GetProperty(L"StdErr")->GetStrValue().empty());
-            CPPUNIT_ASSERT_EQUAL( out.GetProperty(L"ReturnCode")->GetIntValue(), 0);
-            CPPUNIT_ASSERT( out.GetProperty(L"StdOut")->GetStrValue() == L"run-test-unit\n" );
-            CPPUNIT_ASSERT( out.GetProperty(L"StdErr")->GetStrValue() == L"-test-\n" );
-
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testDoInvokeMethodScriptNoHashBang: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
-        } 
-    }
-
-    void testChRoot()
-    {
-        // I want to create my own RunAsProvider.
-        pp->TestDoCleanup();
-        pp = 0;
-        SCXCoreLib::SCXHandle<RunAsConfigurator> configParser(
-            new RunAsConfigurator(
-                SCXCoreLib::SCXHandle<ConfigurationParser>(new ConfigurationStringParser(L"ChRootPath = ./testChRoot\nCWD = ./\n")),
-                SCXCoreLib::SCXHandle<ConfigurationWriter>(0) ) );
-        configParser->Parse();
-        if (0 == geteuid() && ! configParser->GetAllowRoot())
+        if (c_EnableDebugOutput)
         {
-            configParser->SetAllowRoot(true);
+            context.Print();
         }
-        pp = new TestableRunAsProvider(configParser);
-        pp->TestDoInit();
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, result, context.GetResult());
+        if (context.GetResult() == MI_RESULT_OK)
+        {
+            // We expect one instance to be returned.
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, context.Size());
+            bool miRet = context[0].GetProperty("MIReturn",
+                CALL_LOCATION(errMsg)).GetValue_MIBoolean(CALL_LOCATION(errMsg));
+            returnData.returnCode = context[0].GetProperty(L"ReturnCode", CALL_LOCATION(errMsg)).
+                GetValue_MISint32(CALL_LOCATION(errMsg));
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, miRet, (returnData.returnCode == 0));
+            
+            returnData.stdOut = context[0].GetProperty(L"StdOut", CALL_LOCATION(errMsg)).
+                GetValue_MIString(CALL_LOCATION(errMsg));
+            returnData.stdErr = context[0].GetProperty(L"StdErr", CALL_LOCATION(errMsg)).
+                GetValue_MIString(CALL_LOCATION(errMsg));
+                
+            // Some common sense basic tests.
+            if (!miRet)
+            {
+                CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, returnData.stdOut.empty());
+                CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, returnData.stdErr.empty());
+            }
+        }
+    }
+    
+    void ExecuteCommand(mi::SCX_OperatingSystem_ExecuteCommand_Class &param, MI_Result result, InvokeReturnData &returnData,
+        std::wostringstream &errMsg)
+    {
+        TestableContext context;
+        mi::SCX_OperatingSystem_Class instanceName;
+        mi::Module Module;
+        mi::SCX_OperatingSystem_Class_Provider agent(&Module);
+        agent.Invoke_ExecuteCommand(context, NULL, instanceName, param);
+        VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
+    }
 
+    void ExecuteShellCommand(mi::SCX_OperatingSystem_ExecuteShellCommand_Class &param, MI_Result result,
+        InvokeReturnData &returnData, std::wostringstream &errMsg)
+    {
+        TestableContext context;
+        mi::SCX_OperatingSystem_Class instanceName;
+        mi::Module Module;
+        mi::SCX_OperatingSystem_Class_Provider agent(&Module);
+        agent.Invoke_ExecuteShellCommand(context, NULL, instanceName, param);
+        VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
+    }
+
+    void ExecuteScript(mi::SCX_OperatingSystem_ExecuteScript_Class &param, MI_Result result, InvokeReturnData &returnData,
+        std::wostringstream &errMsg)
+    {
+        TestableContext context;
+        mi::SCX_OperatingSystem_Class instanceName;
+        mi::Module Module;
+        mi::SCX_OperatingSystem_Class_Provider agent(&Module);
+        agent.Invoke_ExecuteScript(context, NULL, instanceName, param);
+        VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
+    }
+
+    void TestDoInvokeMethodNoParams()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
+        // Failure expected, nothing to be tested after this.
+    }
+    
+    void TestDoInvokeMethodPartParams()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("ls");
+        // Don't specify timeout in parameter list.
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
+        // Failure expected, nothing to be tested after this.
+    }
+    
+    void TestDoInvokeMethodCommandOK()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("echo Testing");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"Testing\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodCommandOKWithEmptyElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("echo Testing");
+        param.timeout_value(100);
+        param.ElevationType_value("");
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"Testing\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodCommandOKWithElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("echo Testing");
+        param.timeout_value(100);
+        param.ElevationType_value("sudo");
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"Testing\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodCommandOKWithUppercaseElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("echo Testing");
+        param.timeout_value(100);
+        param.ElevationType_value("SUdo");
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"Testing\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodCommandOKWithInvalidElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("echo Testing");
+        param.timeout_value(100);
+        param.ElevationType_value("aaaaaa");
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
+        // Failure expected, nothing to be tested after this.
+    }
+
+    void TestDoInvokeMethodCommandFailed()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("/non-existing-directory/non-existing-command");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, 0 != returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, returnData.stdOut.empty());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, returnData.stdErr.empty());
+    }
+
+    void TestDoInvokeMethodShellCommandOK()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
+        param.Command_value("echo 'a\nb\nc' | grep b");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"b\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodShellCommandOKWithSudoElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
+        param.Command_value("echo 'a\nb\nc' | grep b");
+        param.timeout_value(100);
+        param.ElevationType_value("sudo");
+        InvokeReturnData returnData;
+        ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"b\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodShellCommandOKWithEmptyElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
+        param.Command_value("echo 'a\nb\nc' | grep b");
+        param.timeout_value(100);
+        param.ElevationType_value("");
+        InvokeReturnData returnData;
+        ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"b\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodShellCommandOKWithInvalidElevationType()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
+        param.Command_value("echo 'a\nb\nc' | grep b");
+        param.timeout_value(100);
+        param.ElevationType_value("aaaaaa");
+        InvokeReturnData returnData;
+        ExecuteShellCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
+        // Failure expected, nothing to be tested after this.
+    }
+
+    const char* GetScript()
+    {
+        return
+            "#!/bin/sh\n"
+            "# write something to stdout stream\n"
+            "echo \"$3-$2-$1\"\n"
+            "# and now create stderr output\n"
+            "echo \"-$2-\">&2\n"
+            "exit 0\n";
+    }
+
+    void TestDoInvokeMethodScriptOK()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(GetScript());
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptOKWithSudoElevation()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(GetScript());
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        param.ElevationType_value("sudo");
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(GetScript());
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        param.ElevationType_value("SUDO");
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptOKWithEmptyElevation()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(GetScript());
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        param.ElevationType_value("");
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptFailed()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value("#!/bin/sh\n"
+            "no_exisiting_command_echo \"$3-$2-$1\"\n"
+            "# generate error code we can check later\n"
+            "exit 7\n");
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 7, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, returnData.stdOut.empty());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, returnData.stdErr.empty());
+    }
+
+    void TestDoInvokeMethodScriptNonSH()
+    {
+        std::wostringstream errMsg;
+
+        // Try to find bash.
+        std::list<std::wstring> bashPaths;
+        bashPaths.push_back(L"/bin/bash");
+        bashPaths.push_back(L"/usr/bin/bash");
+        bashPaths.push_back(L"/usr/local/bin/bash");
+        std::wstring bash = L"";
+        for (std::list<std::wstring>::const_iterator iter = bashPaths.begin();
+             iter != bashPaths.end();
+             ++iter)
+        {
+            if (SCXFile::Exists(*iter))
+            {
+                bash = *iter;
+                bash.append(L"\n");
+            }
+        }
+
+        CPPUNIT_ASSERT(L"" != bash);
+
+        // This script will return what shell it is run in.
+        std::string script = SCXCoreLib::StrToMultibyte(std::wstring(L"#!").append(bash).append(L"echo $BASH\n"));
+
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(script.c_str());
+        param.Arguments_value("");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, bash.c_str(), returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptNoHashBang()
+    {
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(
+            "# write something to stdout stream\n"
+            "echo \"$3-$2-$1\"\n"
+            "# and now create stderr output\n"
+            "echo \"-$2-\">&2\n"
+            "exit 0\n");
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestChRoot()
+    {
         system("rm -rf testChRoot > /dev/null 2>&1");
-
-        // Create an environment to chroot to.
         SCXDirectory::CreateDirectory(L"testChRoot/");
 
         // Write our script out
@@ -963,99 +526,51 @@ public:
             CPPUNIT_FAIL(os.str().c_str());
         }
 
-        try {
-            SCXArgs args;
-            SCXArgs out;        // Not used
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty cmd(L"Command", L"/bin/touch /ExecuteCommandWasHere");
-
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-            
-            if (out.GetProperty(L"ReturnCode")->GetIntValue() != 0)
-            {
-                // Probably failed to chroot because of permissions.
-                if (out.GetProperty(L"StdErr")->GetStrValue().find(L"Failed to chroot") == 0)
-                {
-                    SCXUNIT_WARNING(out.GetProperty(L"StdErr")->GetStrValue());
-                }
-                else
-                {
-                    std::wcout << std::endl << out.GetProperty(L"StdErr")->GetStrValue() << std::endl;
-                    CPPUNIT_FAIL("Unexpected error in chroot");
-                }
-                return;
-            }
-
-            CPPUNIT_ASSERT( SCXFile::Exists(L"testChRoot/ExecuteCommandWasHere") );
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testChRoot: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
+        SCXCoreLib::SCXHandle<SCXCore::RunAsConfigurator> configurator(new SCXCore::RunAsConfigurator());
+        configurator->SetChRootPath(SCXCoreLib::SCXFilePath(L"./testChRoot"));
+        configurator->SetCWD(SCXCoreLib::SCXFilePath(L"./"));
+        if (0 == geteuid() && ! configurator->GetAllowRoot())
+        {
+            configurator->SetAllowRoot(true);
         }
+        SCXCore::g_RunAsProvider.SetConfigurator(configurator);
+
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("/bin/touch /ExecuteCommandWasHere");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT( SCXFile::Exists(L"testChRoot/ExecuteCommandWasHere") );
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
     }
 
-    void testCWD()
+    void TestCWD()
     {
-        // I want to create my own RunAsProvider.
-        pp->TestDoCleanup();
-        pp = 0;
-        SCXCoreLib::SCXHandle<RunAsConfigurator> configParser(
-            new RunAsConfigurator(
-                SCXCoreLib::SCXHandle<ConfigurationParser>(new ConfigurationStringParser(L"CWD = ./testCWD/\n")), 
-                SCXCoreLib::SCXHandle<ConfigurationWriter>(0) ) );
-        configParser->Parse();
-        if (0 == geteuid() && ! configParser->GetAllowRoot())
-        {
-            configParser->SetAllowRoot(true);
-        }
-        pp = new TestableRunAsProvider(configParser);
-        pp->TestDoInit();
-
         system("rm -rf testCWD > /dev/null 2>&1");
         SCXDirectory::CreateDirectory(L"testCWD/");
 
-        try {
-            SCXArgs args;
-            SCXArgs out;        // Not used
-            SCXProperty result;
-            SCXInstance objectPath;
-            objectPath.SetCimClassName(L"SCX_OperatingSystem");
-
-            SCXCallContext context(objectPath, eDirectSupport);
-
-            SCXProperty cmd(L"Command", L"/bin/touch ./ExecuteCommandWasHere");
-
-            SCXProperty timeout(L"timeout", static_cast<unsigned int>(100));
-
-            args.AddProperty(cmd);
-            args.AddProperty(timeout);
-
-            pp->TestDoInvokeMethod(context, L"ExecuteCommand", args, out, result);
-            
-            if (out.GetProperty(L"ReturnCode")->GetIntValue() != 0)
-            {
-                std::wcout << std::endl << out.GetProperty(L"StdErr")->GetStrValue() << std::endl;
-                CPPUNIT_FAIL("Unexpected error in chdir");
-            }
-
-            CPPUNIT_ASSERT( SCXFile::Exists(L"testCWD/ExecuteCommandWasHere") );
-        } catch (SCXException& e) {
-            std::wcout << L"\nException in testCWD: " << e.What()
-                       << L" @ " << e.Where() << std::endl;
-            CPPUNIT_ASSERT(!"Exception");
+        SCXCoreLib::SCXHandle<SCXCore::RunAsConfigurator> configurator(new SCXCore::RunAsConfigurator());
+        configurator->SetCWD(SCXCoreLib::SCXFilePath(L"./testCWD/"));
+        if (0 == geteuid() && ! configurator->GetAllowRoot())
+        {
+            configurator->SetAllowRoot(true);
         }
-        system("rm -rf testCWD > /dev/null 2>&1");
-    }
+        SCXCore::g_RunAsProvider.SetConfigurator(configurator);
+
+        std::wostringstream errMsg;
+        mi::SCX_OperatingSystem_ExecuteCommand_Class param;
+        param.Command_value("/bin/touch ./ExecuteCommandWasHere");
+        param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT( SCXFile::Exists(L"testCWD/ExecuteCommandWasHere") );
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
+    }    
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( SCXRunAsProviderTest );

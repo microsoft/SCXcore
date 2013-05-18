@@ -98,7 +98,7 @@ public:
         std::vector<std::wstring> keyValues;
         keyValues.push_back(L"Memory");
         TestableContext context;
-        CPPUNIT_ASSERT((GetInstance<mi::SCX_MemoryStatisticalInformation_Class_Provider,
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, (GetInstance<mi::SCX_MemoryStatisticalInformation_Class_Provider,
             mi::SCX_MemoryStatisticalInformation_Class>(m_keyNames, keyValues, context, CALL_LOCATION(errMsg))));
         ValidateInstance(context, CALL_LOCATION(errMsg));
     }

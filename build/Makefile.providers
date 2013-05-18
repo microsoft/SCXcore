@@ -22,6 +22,7 @@ STATIC_METAPROVIDERLIB_SRCFILES = \
 STATIC_APPSERVERLIB_SRCFILES = \
 	$(APPSERVER_SUPPORT_DIR)/appserverenumeration.cpp \
 	$(APPSERVER_SUPPORT_DIR)/appserverinstance.cpp \
+	$(APPSERVER_SUPPORT_DIR)/appserverprovider.cpp \
 	$(APPSERVER_SUPPORT_DIR)/jbossappserverinstance.cpp \
 	$(APPSERVER_SUPPORT_DIR)/tomcatappserverinstance.cpp \
 	$(APPSERVER_SUPPORT_DIR)/weblogicappserverinstance.cpp \
@@ -78,6 +79,7 @@ STATIC_NETWORKPROVIDERLIB_SRCFILES = \
 STATIC_OSPROVIDERLIB_SRCFILES = \
 	$(PROVIDER_SUPPORT_DIR)/scxrunasconfigurator.cpp \
 	$(PROVIDER_DIR)/support/osprovider.cpp \
+	$(PROVIDER_DIR)/support/runasprovider.cpp \
 	$(PROVIDER_DIR)/SCX_OperatingSystem_Class_Provider.cpp
 
 #--------------------------------------------------------------------------------
