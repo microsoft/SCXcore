@@ -20,7 +20,7 @@ SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include
 SCXOMI_LIBS := $(SCXOMI_DEV_ROOT)/lib
 
 # Copied from configure script.  When we eliminate 'make cache', this should be available from configure.
-OMI_CONFIGURE_QUALS := --prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath
+OMI_CONFIGURE_QUALS := --prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath --enable-dir-creation
 
 include $(SCXPAL_DIR)/build/config.mak
 include $(SCX_BRD)/build/config.mak
