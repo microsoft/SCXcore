@@ -19,11 +19,12 @@ SCXOMI_DEV_ROOT := $(SCXOMI_DIR)/output
 SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include
 SCXOMI_LIBS := $(SCXOMI_DEV_ROOT)/lib
 
-# Copied from configure script.  When we eliminate 'make cache', this should be available from configure.
-OMI_CONFIGURE_QUALS := --prefix=/opt/microsoft/scx --localstatedir=/var/opt/microsoft/scx --sysconfdir=/etc/opt/microsoft/scx/conf --certsdir=/etc/opt/microsoft/scx/ssl --disable-libpath --enable-dir-creation
-
 include $(SCXPAL_DIR)/build/config.mak
 include $(SCX_BRD)/build/config.mak
+
+ifndef OMI_CONFIGURE_QUALS
+$(error "OMI_CONFIGURE_QUALS is not set.  Please re-run configure")
+endif
 
 all : ccenable pal_all omi_all installerPackage devel-deps ccdisable
 installerPackage: pal_all omi_all

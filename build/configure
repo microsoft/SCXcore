@@ -98,10 +98,14 @@ EOF
 fi
 
 (cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye)
+
+omi_configure_quals="--enable-dir-creation ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
+
 cat <<EOF > config.mak
 LOCAL_OMI=$local_omi
+OMI_CONFIGURE_QUALS="$omi_configure_quals"
 EOF
 
 # Fix permissions in case they aren't executable - and then configure OMI
 chmod ug+x ${scxomi_dir}/configure ${scxomi_dir}/buildtool
-(cd ${scxomi_dir} && ./configure --enable-dir-creation ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals})
+(cd ${scxomi_dir} && ./configure ${omi_configure_quals})
