@@ -12,6 +12,7 @@
 */
 /*----------------------------------------------------------------------------*/
 
+#include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxcmn.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <testutils/scxunit.h>
@@ -25,17 +26,13 @@
 
 #include <support/logfileprovider.h>
 #include <support/logfileutils.h>
+#include <testutils/providertestutils.h>
+#include "SCX_LogFile_Class_Provider.h"
 
 // dynamic_cast fix - wi 11220
 #ifdef dynamic_cast
 #undef dynamic_cast
 #endif
-
-// ========================== UGLY HACK UGLY HACK UGLY HACK ==========================
-// We have added NO_OMI_COMPATIBLE_TEST.  This test is only partially ported for use with
-// OMI.  Obviously, more changes will be coming.  When this test is fully converted, all
-// of the "#ifdef NO_OMI_COMPATIBLE_TEST" constructs should be removed.
-// ========================== UGLY HACK UGLY HACK UGLY HACK ==========================
 
 using namespace SCXCore;
 using namespace SCXCoreLib;
@@ -48,25 +45,6 @@ public:
     {
         m_pLogFileReader = pLogFileReader;
     }
-
-#ifdef NO_OMI_COMPATIBLE_TEST
-    void TestDoInit()
-    {
-        DoInit();
-    }
-
-    void TestDoInvokeMethod(const SCXProviderLib::SCXCallContext& callContext,
-                            const std::wstring& methodname, const SCXProviderLib::SCXArgs& args,
-                            SCXProviderLib::SCXArgs& outargs, SCXProviderLib::SCXProperty& result)
-    {
-        DoInvokeMethod(callContext, methodname, args, outargs, result);
-    }
-
-    void TestDoCleanup()
-    {
-        DoCleanup();
-    }
-#endif
 
     void TestSetPersistMedia(SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> persistMedia) 
     {
@@ -112,7 +90,7 @@ class LogFileProviderTest : public CPPUNIT_NS::TestFixture
 
 private:
     SCXHandle<SCXPersistMedia> m_pmedia;
-    SCXCoreLib::SCXHandle<TestableLogfileProvider> lp;
+    SCXCoreLib::SCXHandle<TestableLogfileProvider> m_logFileProv;
     SCXCoreLib::SCXHandle<LogFileReader> m_pReader;
 
 public:
@@ -132,20 +110,19 @@ public:
             new LogFileReader::LogFilePositionRecord(testlogfilename, testQID2, m_pmedia) );
         r2->UnPersist();
 
-        lp = new TestableLogfileProvider(m_pReader);
-        lp->TestSetPersistMedia(m_pmedia);
-#ifdef NO_OMI_COMPATIBLE_TEST
-        lp->TestDoInit();
-#endif
+        m_logFileProv = new TestableLogfileProvider(m_pReader);
+        m_logFileProv->TestSetPersistMedia(m_pmedia);
+
+        std::wostringstream errMsg;
+        SetUpAgent<mi::SCX_LogFile_Class_Provider>(CALL_LOCATION(errMsg));
     }
 
     void tearDown(void)
     {
-#ifdef NO_OMI_COMPATIBLE_TEST
-        lp->TestDoCleanup();
-#endif
-        lp = 0;
+        std::wostringstream errMsg;
+        TearDownAgent<mi::SCX_LogFile_Class_Provider>(CALL_LOCATION(errMsg));
 
+        m_logFileProv = 0;
         SCXHandle<LogFileReader::LogFilePositionRecord> r(
             new LogFileReader::LogFilePositionRecord(testlogfilename, testQID, m_pmedia) );
         r->UnPersist();
@@ -157,7 +134,7 @@ public:
 
     void callDumpStringForCoverage()
     {
-        CPPUNIT_ASSERT(lp->DumpString().find(L"LogFileProvider") != std::wstring::npos);
+        CPPUNIT_ASSERT(m_logFileProv->DumpString().find(L"LogFileProvider") != std::wstring::npos);
     }
 
     void testLogFilePositionRecordCreateNewRecord()
@@ -513,13 +490,28 @@ public:
         CPPUNIT_ASSERT(firstRow == line);
     }
 
+    std::string DumpProperty_MIStringA(const TestableInstance::PropertyInfo &property, std::wostringstream &errMsg)
+    {
+        std::wstringstream ret;
+        if (property.exists)
+        {
+            std::vector<std::wstring> rows = property.GetValue_MIStringA(CALL_LOCATION(errMsg));
+            ret << L" Size: " << rows.size() << std::endl;
+            size_t i;
+            for(i = 0; i < rows.size(); i++)
+            {
+               ret << L"  " << i << L": " << rows[i] << std::endl;
+            }
+        }
+        else
+        {
+            ret << L" Property not set" << std::endl;
+        }
+        return SCXCoreLib::StrToMultibyte(ret.str());
+    }
+
     void testDoInvokeMethod ()
     {
-#ifdef NO_OMI_COMPATIBLE_TEST
-        // We REALLY REALLY REALLY want to bring this test back.  It has historically
-        // been insanely useful in verifying correct behavior.  But this is very tied
-        // to the old Pegasus design and will take some rework to make happen (sigh).
-
         // This test is a little convoluted, but it's a very useful test, so it remains.
         //
         // First, to make this fly:
@@ -546,181 +538,164 @@ public:
         // returned, and that as log files grow, additional lines are returned.
         // Finally, it tests for proper handling of invalid regular expressions.
 
-        const std::wstring methodName = L"GetMatchedRows";
         const std::wstring invalidRegexpStr = L"InvalidRegexp;0";
         const std::wstring OKRegexpStr = L"1;";
         const std::wstring moreRowsStr = L"MoreRowsAvailable;true";
 
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_LogFile");
-        SCXCallContext context(objectPath, eDirectSupport);
-        SCXArgs args;
-
-        SCXProperty filenameprop(L"filename", testlogfilename);
-        args.AddProperty(filenameprop);
-
-        std::vector<SCXProperty> regexps;
-        // Add an invalid regular expression
-        SCXProperty regexp1prop(L"regexp1", L"[a");
-        regexps.push_back(regexp1prop);
-        SCXProperty regexp2prop(L"regexp2", L".*");
-        regexps.push_back(regexp2prop);
-        SCXProperty regexpsprop(L"regexps", regexps);
-        args.AddProperty(regexpsprop);
-
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            SCXInstance objectPath2;
-            objectPath2.SetCimClassName(L"SCX_LogFileRecord");
-            SCXCallContext context2(objectPath2, eDirectSupport);
-
-            // Call with wrong class
-            CPPUNIT_ASSERT_THROW(lp->TestDoInvokeMethod(context2, methodName, args, outargs, result), SCXNotSupportedException);
+        std::wostringstream errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack("[a");// Invalid regular expression.
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
         
-            // Call with wrong method name
-            CPPUNIT_ASSERT_THROW(lp->TestDoInvokeMethod(context, L"UnknownMethod", args, outargs, result), SCXProvCapNotRegistered);
+        // Call with missing filename.
+        mi::SCX_LogFile_GetMatchedRows_Class paramNoFilename;
+        paramNoFilename.regexps_value(regexps);
+        paramNoFilename.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, paramNoFilename);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_INVALID_PARAMETER, context.GetResult());
+        
+        // Call with missing regular expression.
+        mi::SCX_LogFile_GetMatchedRows_Class paramNoRegEx;
+        paramNoRegEx.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        paramNoRegEx.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, paramNoRegEx);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_INVALID_PARAMETER, context.GetResult());
+        
+        // Call with missing qid.
+        mi::SCX_LogFile_GetMatchedRows_Class paramNoQid;
+        paramNoQid.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        paramNoQid.regexps_value(regexps);
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, paramNoQid);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_INVALID_PARAMETER, context.GetResult());
 
-            // Call with missing arguments
-            SCXUNIT_RESET_ASSERTION();
-            CPPUNIT_ASSERT_THROW(lp->TestDoInvokeMethod(context, methodName, args, outargs, result), SCXInternalErrorException);
-            SCXUNIT_ASSERTIONS_FAILED(1);
-        }
-
-        SCXProperty qidprop(L"qid", testQID);
-        args.AddProperty(qidprop);
-
-        // Create a log file with one row in it
+        // Create a log file with one row in it.
         SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
-        
         *stream << L"This is the first row." << std::endl;
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
+        mi::SCX_LogFile_GetMatchedRows_Class param;
+        param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        param.regexps_value(regexps);
+        param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should return only one status row.
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(invalidRegexpStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
 
-            // First call should only return 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
+        mi::SCX_LogFile_GetMatchedRows_Class param2;
+        param2.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        param2.regexps_value(regexps);
+        param2.qid_value(SCXCoreLib::StrToMultibyte(testQID2).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param2);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call with new QID should return only one status row.
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+            "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+            1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(invalidRegexpStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
 
-            CPPUNIT_ASSERT_EQUAL(1, (int) outargs.NumberOfProperties());
-            CPPUNIT_ASSERT_EQUAL(1, (int) outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == invalidRegexpStr);
-        }
-
-        SCXArgs args2;
-        args2.AddProperty(filenameprop);
-        args2.AddProperty(regexpsprop);
-        SCXProperty qid2prop(L"qid", testQID2);
-        args2.AddProperty(qid2prop);
-
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            // First call with new QID should only return 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args2, outargs, result);
-
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-
-            // Build an output stream in case of problems ...
-            std::ostringstream msg;
-            msg << " Size: " << outargs.GetProperty(0)->GetVectorValue().size() << std::endl;
-            for (unsigned int i = 0; i < outargs.GetProperty(0)->GetVectorValue().size(); i++)
-                msg << i << ": " << SCXCoreLib::StrToMultibyte(outargs.GetProperty(0)->GetVectorValue()[i].GetStrValue()) << std::endl;
-
-            CPPUNIT_ASSERT_MESSAGE(msg.str().c_str(), 1 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == invalidRegexpStr);
-        }
-
-        // Add another row to the log file
+        // Add another row to the log file.
         const std::wstring secondRow(L"This is the second row.");
         *stream << secondRow << std::endl;
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get 1 new row and one status row.
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(invalidRegexpStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(OKRegexpStr, secondRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[1]);
 
-            // Should get 1 new row + 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
-
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-            CPPUNIT_ASSERT(2 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == invalidRegexpStr);
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[1].GetStrValue() == StrAppend(OKRegexpStr, secondRow));
-        }
-
-        // Add yet another row to the log file
+        // Add yet another row to the log file.
         const std::wstring thirdRow(L"This is the third row.");
         *stream << thirdRow << std::endl;
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param2);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Using new QID should get two new rows and one status row.
+        CPPUNIT_ASSERT_EQUAL(3u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(invalidRegexpStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(OKRegexpStr, secondRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[1]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(OKRegexpStr, thirdRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[2]);
 
-            // Using new QID - should get 2 new rows + 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args2, outargs, result);    
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get one new row and one status row.
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(invalidRegexpStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(OKRegexpStr, thirdRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[1]);
 
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-            CPPUNIT_ASSERT(3 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == invalidRegexpStr);
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[1].GetStrValue() == StrAppend(OKRegexpStr, secondRow));
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[2].GetStrValue() == StrAppend(OKRegexpStr, thirdRow));
-        }
-
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            // Should get 1 new row + 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
-
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-            CPPUNIT_ASSERT(2 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == invalidRegexpStr);
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[1].GetStrValue() == StrAppend(OKRegexpStr, thirdRow));
-        }
-
-        // Add another 800 rows to the log file
+        // Add another 800 rows to the log file.
         for (int i=0; i<800; i++)
         {
             *stream << L"This is another row." << std::endl;
         }
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
+        size_t rowCnt = 0;
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        rowCnt = context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg)).size();
+        // Should get first 500 rows and two status rows.
+        CPPUNIT_ASSERT_EQUAL(502u, rowCnt);
+        CPPUNIT_ASSERT_EQUAL(moreRowsStr,
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[rowCnt - 1]);
 
-            // Should get the first 500 rows + 2 status rows
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        rowCnt = context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg)).size();
+        // Should get next 300 rows and one status row.
+        CPPUNIT_ASSERT_EQUAL(301u, rowCnt);
+        CPPUNIT_ASSERT(moreRowsStr !=
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[rowCnt - 1]);
 
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-            CPPUNIT_ASSERT(502 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == moreRowsStr);
-        }
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            // Should get the next 300 rows + 1 status row
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
-
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-            CPPUNIT_ASSERT(301 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() != moreRowsStr);
-        }
-
-        SCXArgs args3;
-        args3.AddProperty(filenameprop);
-        std::vector<SCXProperty> regexps2;
-        SCXProperty regexp3prop(L"regexp3", L"warning");
-        regexps2.push_back(regexp3prop);
-        SCXProperty regexp4prop(L"regexp4", L"error");
-        regexps2.push_back(regexp4prop);
-        SCXProperty regexps2prop(L"regexps", regexps2);
-        args3.AddProperty(regexps2prop);
-        args3.AddProperty(qidprop);
+        mi::StringA regexps2;
+        regexps2.PushBack("warning");
+        regexps2.PushBack("error");
+        mi::SCX_LogFile_GetMatchedRows_Class param3;
+        param3.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        param3.regexps_value(regexps2);
+        param3.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
 
         const std::wstring normalRow = L"Just a normal row with no problem";
         const std::wstring warningRow = L"A row with a warning in it";
@@ -739,64 +714,46 @@ public:
                 << warningRow << std::endl
                 << normalRow << std::endl;
 
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            // Should match 4 rows and no status rows
-            lp->TestDoInvokeMethod(context, methodName, args3, outargs, result);    
-
-            CPPUNIT_ASSERT(1 == outargs.NumberOfProperties());
-
-            // Build an output stream in case of problems ...
-            std::ostringstream msg;
-            msg << " Size: " << outargs.GetProperty(0)->GetVectorValue().size() << std::endl;
-            for (unsigned int i = 0; i < outargs.GetProperty(0)->GetVectorValue().size(); i++)
-                msg << i << ": " << SCXCoreLib::StrToMultibyte(outargs.GetProperty(0)->GetVectorValue()[i].GetStrValue()) << std::endl;
-
-            CPPUNIT_ASSERT_MESSAGE(msg.str().c_str(), 4 == outargs.GetProperty(0)->GetVectorValue().size());
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[0].GetStrValue() == StrAppend(L"0;", warningRow));
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[1].GetStrValue() == StrAppend(L"1;", errorRow));
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[2].GetStrValue() == StrAppend(L"0 1;", errandwarnRow));
-            CPPUNIT_ASSERT(outargs.GetProperty(0)->GetVectorValue()[3].GetStrValue() == StrAppend(L"0;", warningRow));
-        }
-#endif
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param3);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should match 4 rows and no status row.
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+            "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+            4u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(StrAppend(L"0;", warningRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(L"1;", errorRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[1]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(L"0 1;", errandwarnRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[2]);
+        CPPUNIT_ASSERT_EQUAL(StrAppend(L"0;", warningRow),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[3]);
     }
 
     void testDoInvokeMethodWithNonexistantLogfile()
     {
-#ifdef NO_OMI_COMPATIBLE_TEST
-        const std::wstring methodName = L"GetMatchedRows";
-        const std::wstring OKRegexpStr = L"1;";
+        std::wostringstream errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::SCX_LogFile_GetMatchedRows_Class param;
+        param.filename_value(".wyzzy.nosuchfile");
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        param.regexps_value(regexps);
+        param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
 
-        SCXInstance objectPath;
-        objectPath.SetCimClassName(L"SCX_LogFile");
-        SCXCallContext context(objectPath, eDirectSupport);
-        SCXArgs args;
-
-        SCXProperty filenameprop(L"filename", testlogfilename + L".wyzzy.nosuchfile");
-        args.AddProperty(filenameprop);
-
-        std::vector<SCXProperty> regexps;
-        SCXProperty regexp1prop(L"regexp1", L".*");
-        regexps.push_back(regexp1prop);
-        SCXProperty regexpsprop(L"regexps", regexps);
-        args.AddProperty(regexpsprop);
-
-        SCXProperty qidprop(L"qid", testQID);
-        args.AddProperty(qidprop);
-
-        {
-            SCXArgs outargs;
-            SCXProperty result;
-
-            // This call should return no status rows since the logfile doesn't exist
-            lp->TestDoInvokeMethod(context, methodName, args, outargs, result); 
-
-            CPPUNIT_ASSERT_EQUAL(1, (int) outargs.NumberOfProperties());
-            CPPUNIT_ASSERT_EQUAL(0, (int) outargs.GetProperty(0)->GetVectorValue().size());
-        }
-#endif
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // No status rows since the log file doesn't exist.
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
     }
 };
 
