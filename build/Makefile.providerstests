@@ -83,11 +83,4 @@ $(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.$(
 $(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
 $(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
 
-ifeq (1,0)
-
-POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
-	$(SCX_UNITTEST_ROOT)/providers/logfile_provider/logfileprovider_test.cpp
-
-endif # ifeq (1,0)
-
 #-------------------------------- End of File -----------------------------------
