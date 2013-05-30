@@ -103,7 +103,7 @@ omi_configure_quals="--enable-dir-creation ${enable_debug} ${enable_purify_agent
 
 cat <<EOF > config.mak
 LOCAL_OMI=$local_omi
-OMI_CONFIGURE_QUALS="$omi_configure_quals"
+OMI_CONFIGURE_QUALS=$omi_configure_quals
 EOF
 
 # Fix permissions in case they aren't executable - and then configure OMI
