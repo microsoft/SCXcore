@@ -304,12 +304,6 @@ else
 
 endif
 
-omi_clean:
-	# What to do here to clean up OMI build? - TODO
-
-get_platform_string:
-	@$(call pf_fwrite,"$(BUILD_CONFIGURATION)", $(SCX_BRD)/build/platform_string.txt)
-
 # Used to generate compontents necessary for other projects to compile with the 
 # core components
 devel-deps: $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) omi
@@ -326,9 +320,9 @@ endif
 	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
 	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(TARGET_DIR)/scxcore-devel/lib
 	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(TARGET_DIR)/scxcore-devel/include/testutils
+ifeq ($(LOCAL_OMI),1)
 	# Create an OMI development area for use in running utilities
 	#   TODO - Is there an alias for mkdir?  Not $(MKDIR) or $(MAKEDIR), those didn't work
-ifeq ($(LOCAL_OMI),1)
 	$(RMDIR) -rf $(TARGET_DIR)/omi 
 	-mkdir -p $(TARGET_DIR)/omi/etc/omiregister/root-scx
 	$(COPY) -r $(SCXOMI_DIR)/etc $(TARGET_DIR)/omi

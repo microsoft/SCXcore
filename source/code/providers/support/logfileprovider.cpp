@@ -152,7 +152,7 @@ namespace SCXCore {
         char *testrunFlag = getenv("SCX_TESTRUN_ACTIVE");
         if (NULL != testrunFlag)
         {
-            programName = L"scxlogfilereader -t -p";
+            programName = L"testfiles/scxlogfilereader-test -t -p";
         }
         else
         {

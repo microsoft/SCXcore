@@ -12,21 +12,27 @@
 */
 /*----------------------------------------------------------------------------*/
 
-#include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxcmn.h>
-#include <cppunit/extensions/HelperMacros.h>
-#include <testutils/scxunit.h>
+
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/scxfile.h>
-#include <sys/wait.h>
-#if defined(aix)
-#include <unistd.h>
-#endif
+#include <scxcorelib/stringaid.h>
 #include "source/code/scxcorelib/util/persist/scxfilepersistmedia.h"
 
 #include <support/logfileprovider.h>
 #include <support/logfileutils.h>
+
+#include <cppunit/extensions/HelperMacros.h>
+#include <testutils/scxunit.h>
 #include <testutils/providertestutils.h>
+#include <testutils/scxtestutils.h>
+
+#include <stdio.h>  // For fopen() in test testLocale8859_1
+#include <sys/wait.h>
+#if defined(aix)
+#include <unistd.h>
+#endif
+
 #include "SCX_LogFile_Class_Provider.h"
 
 // dynamic_cast fix - wi 11220
@@ -58,6 +64,7 @@ private:
     SCXCoreLib::SCXHandle<LogFileReader> m_pLogFileReader;
 };
 
+const std::wstring testlocalefilename = L"./testfiles/scxlogfilereader-locale";
 const std::wstring testlogfilename = L"./logfileproviderTest.log";
 const std::wstring testQID = L"TestQID";
 const std::wstring testQID2 = L"AnotherTestQID";
@@ -81,11 +88,13 @@ class LogFileProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testLogFileStreamPositionerFileDisappearsAndReappears );
     CPPUNIT_TEST( testDoInvokeMethod );
     CPPUNIT_TEST( testDoInvokeMethodWithNonexistantLogfile );
+    CPPUNIT_TEST( testLocale8859_1 );
 
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordPersistable, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordUnpersist, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethod, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodWithNonexistantLogfile, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testLocale8859_1, SLOW);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -115,6 +124,9 @@ public:
 
         std::wostringstream errMsg;
         SetUpAgent<mi::SCX_LogFile_Class_Provider>(CALL_LOCATION(errMsg));
+
+        // Delete the locale file if it exists
+        SCXCoreLib::SelfDeletingFilePath localeFile( testlocalefilename );
     }
 
     void tearDown(void)
@@ -130,6 +142,9 @@ public:
         SCXHandle<LogFileReader::LogFilePositionRecord> r2( 
             new LogFileReader::LogFilePositionRecord(testlogfilename, testQID2, m_pmedia) );
         r2->UnPersist();
+
+        // Delete the locale file if it exists
+        SCXCoreLib::SelfDeletingFilePath localeFile( testlocalefilename );
     }
 
     void callDumpStringForCoverage()
@@ -754,6 +769,144 @@ public:
         // No status rows since the log file doesn't exist.
         CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
             GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+    }
+
+    void testLocale8859_1()
+    {
+        const std::wstring regexpStr = L"0;";
+#if defined(sun)
+        const char *localeString = "en_US.ISO8859-1";
+#else
+        const char *localeString = "en_US.iso88591";
+#endif
+
+        // See if we have the locale that we need
+        try {
+            std::locale newLocale(localeString);
+        }
+        catch (...)
+        {
+            std::wstring warnText;
+            warnText = L"Unable to run LogFileProviderTest::testLocale8859_1 since locale "
+                + SCXCoreLib::StrFromUTF8(localeString) + L" is not installed";
+            SCXUNIT_WARNING(warnText);
+            return;
+        }
+
+        // Tell scxlogfilereader to deal with en_US.iso88591 locale
+        {
+            std::fstream localeFile( SCXCoreLib::StrToMultibyte(testlocalefilename).c_str(), std::fstream::out );
+            localeFile << localeString;
+        }
+
+        std::wostringstream errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+
+        // Create a log file with one row in it.
+        SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
+        *stream << L"This is the first row." << std::endl;
+
+        {
+            mi::SCX_LogFile_GetMatchedRows_Class param;
+            param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+            param.regexps_value(regexps);
+            param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+            agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        }
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should not return any rows of data (no state file)
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Verify a second row just to insure the state file exists and everything is working
+        std::wstring second_row(L"This is the second row.");
+        *stream << second_row << std::endl;
+        stream->close();  // Don't need this stream anymore
+
+        context.Reset();
+        {
+            mi::SCX_LogFile_GetMatchedRows_Class param;
+            param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+            param.regexps_value(regexps);
+            param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+            agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        }
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Second call should return the second row of data
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL(SCXCoreLib::StrAppend(regexpStr, second_row),
+            context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg))[0]);
+
+        // Append a utf8859-1 line to the file
+        //
+        // It's a little tricky to do this for two reasons:
+        //
+        // 1. The compiler doesn't like some of the bytes.  So build a string
+        //    using '~' as iso8859-1 bytes, and then substitute them after we
+        //    have remainder of string constructed.
+        //
+        //    The actual string we want to test against is:
+        //      "16.04.2013 14.20.08.766  INFO  TransactionInterceptor.invoke() - Betriebsbezeichnung 'Ges.f.Betoninstandsetzung u. Straßenunterhaltung GmbH & Co. KG' ist ungültig (name1)"
+        //
+        // 2. We specifically want to test with an en_US.iso88591 format file.
+        //    Thus, we can't use wide streams (or SCX functions).  So we use
+        //    8-bit (not wstring) characters and use stdio.
+
+        std::string iso8859_1_Row("16.04.2013 14.20.08.766  INFO  TransactionInterceptor.invoke() - Betriebsbezeichnung 'Ges.f.Betoninstandsetzung u. Stra~enunterhaltung GmbH & Co. KG' ist ung~ltig (name1)");
+        CPPUNIT_ASSERT_EQUAL('~', iso8859_1_Row[119]);
+        iso8859_1_Row[119] = (char) 0xDF; // ß
+        CPPUNIT_ASSERT_EQUAL('~', iso8859_1_Row[157]);
+        iso8859_1_Row[157] = (char) 0xFC; // ü
+
+        std::string addl_Row("This is a fourth row of data");
+
+        // Write out the file using stdio
+        FILE *f = fopen( SCXCoreLib::StrToMultibyte(testlogfilename).c_str(), "a" );
+        CPPUNIT_ASSERT( f != NULL );
+        CPPUNIT_ASSERT_EQUAL( 1u, fwrite(iso8859_1_Row.c_str(), iso8859_1_Row.size(), 1u, f) );
+        CPPUNIT_ASSERT_EQUAL( 1u, fwrite("\n", 1u, 1u, f) ); // Write a \n at the end of our file
+        CPPUNIT_ASSERT_EQUAL( 1u, fwrite(addl_Row.c_str(), addl_Row.size(), 1u, f) );
+        CPPUNIT_ASSERT_EQUAL( 1u, fwrite("\n", 1u, 1u, f) ); // Write a \n at the end of our file
+        CPPUNIT_ASSERT_EQUAL( 0, fclose(f) );
+
+        context.Reset();
+        {
+            mi::SCX_LogFile_GetMatchedRows_Class param;
+            param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+            param.regexps_value(regexps);
+            param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+            agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+            // context.Print();
+        }
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // This call should return the iso8859-1 data we just wrote, but in UTF-8 format (and not garbled)
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        std::vector<std::wstring> rows = context[0].GetProperty("rows", CALL_LOCATION(errMsg)).GetValue_MIStringA(CALL_LOCATION(errMsg));
+        // Note that OMI always returns data in UTF-8 format.  So convert our 8859-1 line to UTF-8 (as a wstring).
+        // Note that StrFromMultibyte is locale-sensitive.  So set our locale and then convert using that.
+        const char *sLoc = setlocale(LC_CTYPE, localeString);
+
+        std::wstring wide_utf32_Row( SCXCoreLib::StrFromMultibyte(iso8859_1_Row, false) );
+
+        // Reset locale. 
+        setlocale(LC_CTYPE, sLoc);
+
+        // Compare the lines we got back with the lines we expect
+        CPPUNIT_ASSERT_EQUAL(SCXCoreLib::StrAppend(regexpStr, wide_utf32_Row), rows[0]);
+        CPPUNIT_ASSERT_EQUAL(SCXCoreLib::StrAppend(regexpStr, SCXCoreLib::StrFromMultibyte(addl_Row)), rows[1]);
     }
 };
 

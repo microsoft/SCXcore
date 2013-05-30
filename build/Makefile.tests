@@ -177,9 +177,11 @@ testrun_copy : $(TARGET_DIR)/closefiledescriptors
 	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/report.xsl $(TARGET_DIR)
 	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/createEnv.sh $(TARGET_DIR)/testfiles/
 	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/testrun_wrapper $(TARGET_DIR)/testfiles/
+	$(COPY) $(SCX_UNITTEST_ROOT)/providers/logfile_provider/scxlogfilereader-test $(TARGET_DIR)/testfiles/
 	chmod u+w $(TARGET_DIR)/report.xsl
 	chmod u+wx $(TARGET_DIR)/testfiles/createEnv.sh
 	chmod u+wx $(TARGET_DIR)/testfiles/testrun_wrapper
+	chmod u+wx $(TARGET_DIR)/testfiles/scxlogfilereader-test
 	$(COPY) $(TARGET_DIR)/closefiledescriptors $(TARGET_DIR)/testfiles/
 	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(TARGET_DIR)
 

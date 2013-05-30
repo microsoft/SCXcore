@@ -15,8 +15,10 @@
 
 #include <scxcorelib/scxcmn.h>
 
-#include <fstream>
 #include <errno.h>
+#include <fstream>
+#include <iostream>
+#include <locale>
 
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/scxlog.h>
@@ -237,6 +239,20 @@ namespace SCXCore {
     {
         m_Record = new LogFilePositionRecord(logfile, qid, persistMedia);
         m_Stream = SCXFile::OpenWFstream(logfile, std::ios_base::in);
+
+        // Set the locale on the stream to the system locale (based on environment variables)
+        // Note: This overrides SCXLocale settings (which is used for everything else)
+        //
+        // If we get an exception, just let it fly (hopefully things will still work okay)
+        // This is better than dying because some bizarre locale is set
+
+        try {
+            std::locale newLocale("");
+            m_Stream->imbue(newLocale);
+        }
+        catch (...)
+        {
+        }
 
         // On all platforms (even Linux), tellg() can return -1 (see test case testTellgBehavior() in unit test).
         // To try and protect against that, we position to EOF and save the position, and we'll use that position
