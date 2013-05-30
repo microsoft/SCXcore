@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Copyright (c) Microsoft Corporation.  All rights reserved.
+#
+# Test hook for scxlogfilereader program.  The purpose of this script is to
+# set the locale (controllable on a per-test basis) for scxlogfilereader
+# prior to running scxlogfilereader.
+#
+# This is done by creating file testfiles/scxlogfilereader-locale.  If this
+# file exists, it should contain the locale that is desired to be used.
+#
+# Sparc9 seems to require LC_ALL to be set rather than LANG; just do that for
+# all platforms (harmless elsewhere).
+
+LOCALE_FILE="testfiles/scxlogfilereader-locale"
+if [ -f $LOCALE_FILE ]; then
+    LC_ALL="`cat $LOCALE_FILE`"
+    export LC_ALL
+fi
+exec scxlogfilereader "$@"
