@@ -993,8 +993,9 @@ class Script:
     # Checks for additional dependencies that package format can not handle natively
     #
     def CheckAdditionalDeps(self):
+        body = []
         if self.configuration['pf'] == "SunOS" and self.configuration['pfarch'] == "sparc":
-            body = [
+            body = body + [
                 'if [ `uname -p` != \"sparc\" ]; then',
                 '  echo \"This package only supports sparc architecture.\"',
                 '  exit 1',
@@ -1003,33 +1004,61 @@ class Script:
             if self.configuration["pfmajor"] == 5 and self.configuration["pfminor"] == 9:
                 # We need 112960-48 for bug ID 4974005 (PAM memory leak)
                 body = body + [
-                    self.CallSubFunction(self.VerifyPatchInstalled(), '112960 48'),
-                    'return 0'
+                    self.CallSubFunction(self.VerifyPatchInstalled(), '112960 48')
                     ]
             elif self.configuration["pfmajor"] == 5 and self.configuration["pfminor"] == 10:
                 body = body + [
-                    self.CallSubFunction(self.VerifyPatchInstalled(), '117463 05'),
-                    'return 0'
+                    self.CallSubFunction(self.VerifyPatchInstalled(), '117463 05')
                     ]
         elif self.configuration['pf'] == "SunOS" and self.configuration['pfarch'] == "x86" and self.configuration["pfminor"] < 11:
-            body = [
+            body = body + [
                 'if [ `uname -p` != \"i386\" ]; then',
                 '  echo \"This package only supports x86 architecture.\"',
                 '  exit 1',
                 'fi',
-                self.CallSubFunction(self.VerifyPatchInstalled(), '117464 04'),
-                'return 0'
+                self.CallSubFunction(self.VerifyPatchInstalled(), '117464 04')
                 ]
         elif self.configuration['pf'] == "SunOS" and self.configuration['pfarch'] == "x86" and self.configuration["pfminor"] >= 11:
-            body = [
+            body = body + [
                 'if [ `uname -p` != \"i386\" ]; then',
                 '  echo \"This package only supports x86 architecture.\"',
                 '  exit 1',
-                'fi',
-                'return 0'
+                'fi'
                 ]
-        else:
-            body = ['return 0']
+
+        if self.configuration['pf'] == "SunOS" and self.configuration["pfminor"] >= 11:
+            # In Solaris 11, we need to check IPS dependencies.
+            body = body + [
+                'pkg list system/core-os > /dev/null 2>&1',
+                'if [ $? -ne 0 ]; then',
+                '  echo \"Dependency missing: IPS package system/core-os is not installed.\"',
+                '  exit 1',
+                'fi',
+                'pkg list system/library > /dev/null 2>&1',
+                'if [ $? -ne 0 ]; then',
+                '  echo \"Dependency missing: IPS package system/library is not installed.\"',
+                '  exit 1',
+                'fi',
+                'pkg list system/library/c++-runtime > /dev/null 2>&1',
+                'if [ $? -ne 0 ]; then',
+                '  echo \"Dependency missing: IPS package system/library/c++-runtime is not installed.\"',
+                '  exit 1',
+                'fi',
+                'pkg list system/library/math > /dev/null 2>&1',
+                'if [ $? -ne 0 ]; then',
+                '  echo \"Dependency missing: IPS package system/library/math is not installed.\"',
+                '  exit 1',
+                'fi',
+                'pkg list library/security/openssl > /dev/null 2>&1',
+                'if [ $? -ne 0 ]; then',
+                '  echo \"Dependency missing: IPS package library/security/openssl is not installed.\"',
+                '  exit 1',
+                'fi'
+                ]
+
+        body = body + [
+            'return 0'
+            ]
 
         return SHFunction('check_additional_deps', body)
 

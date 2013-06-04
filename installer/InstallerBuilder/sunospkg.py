@@ -212,7 +212,7 @@ class SunOSPKGFile(Installer):
 
             # We need openssl
             depfile.write("P SMCosslg\topenssl\n")
-        else:
+        elif self.configuration['pfminor'] == 10:
             # We need some core os packages
             depfile.write("P SUNWcsr\tCore Solaris, (Root)\n") # This includes PAM
             depfile.write("P SUNWcslr\tCore Solaris Libraries (Root)\n")
@@ -222,6 +222,10 @@ class SunOSPKGFile(Installer):
             
             # We need openssl
             depfile.write("P SUNWopenssl-libraries\tOpenSSL Libraries (Usr)\n")
+        #elif self.configuration['pfminor'] == 11:
+            # Solaris 11 uses a new package manager (Image Packaging System), and all of our dependencies 
+            # are installed in it.  For now, do our dependency checks in the preinstall script, but in the
+            # long term, we will create an IPS package for Solaris 11 that references IPS dependencies.
 
     ##
     # Actually creates the finished package file.
