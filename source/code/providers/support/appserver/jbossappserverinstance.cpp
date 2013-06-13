@@ -5,7 +5,7 @@
 /**
     \file
 
-    \brief       PAL representation of a JBOss application server
+    \brief       PAL representation of a JBoss application server
 
     \date        11-05-18 12:00:00
 */
@@ -14,10 +14,14 @@
 #include <scxcorelib/scxcmn.h>
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
+#include <scxcorelib/scxprocess.h>
 #include <scxcorelib/scxfilepath.h>
+#include <scxcorelib/scxregex.h>
 #include <util/XElement.h>
 
 #include "appserverconstants.h"
@@ -80,9 +84,21 @@ namespace SCXSystemLib
         return SCXFile::OpenFstream(filename, ios::in);
     }
 
+    /**
+       Returns a command to run
+
+       \param[in] filename Name of file to use
+    */
+    wstring JBossAppServerInstancePALDependencies::GetJboss7Command(SCXCoreLib::SCXFilePath filepath)
+    {
+        SCXCoreLib::SCXFilePath filename(filepath);
+        filename.Append(L"standalone.sh --version");
+        return filename.Get();
+    }
+    
     /*----------------------------------------------------------------------------*/
     /**
-        Constructor
+       Constructor
 
        \param[in]  id            Identifier for the appserver (= install path for the appserver)
        \param[in]  config        Configuration name used
@@ -95,10 +111,22 @@ namespace SCXSystemLib
         AppServerInstance(id, APP_SERVER_TYPE_JBOSS), 
         m_config(config), m_portsBinding(portsBinding), m_deps(deps)
     {
+        bool fJboss7check = false;
+        SCXRegex re(L"/standalone/configuration");
+        vector<wstring> v_config;
         // If no config is given, use default
         if (L"" == config)
         {
             m_config = L"default";
+        }
+        //In the case of JBoss AS 7 the configuration files
+        //include the diskPath and also a properties file
+        //This logging.properties is not necesary
+        //From docs.jboss.org "In the future file may go away"
+        else if(re.ReturnMatch(config,v_config,0 ))
+        {
+            fJboss7check = true;
+            m_config = (v_config[0]);
         }
 
         SCXFilePath installPath;
@@ -106,8 +134,11 @@ namespace SCXSystemLib
         installPath.SetDirectory(id);
 
         m_basePath = installPath.Get();
-
-        installPath.AppendDirectory(L"server");
+        
+        if(!fJboss7check)
+        {
+            installPath.AppendDirectory(L"server");
+        }
         installPath.AppendDirectory(m_config);
 
         SetId(installPath.Get());
@@ -132,7 +163,6 @@ namespace SCXSystemLib
     {
         SCX_LOGTRACE(m_log, wstring(L"JBossAppServerInstance cache constructor - ").append(GetId()));
     }
-
 
     /*----------------------------------------------------------------------------*/
     /**
@@ -765,14 +795,137 @@ namespace SCXSystemLib
             SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss5Ports() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
         }
     }
-
     /*----------------------------------------------------------------------------*/
     /**
-        Update version
+       Update ports for JBoss 7
 
-        Load XML file <DiskPath>/jar-versions.xml
-        Get node /jar-versions/jar where name property is jboss.jar
-        Read specVersion property for that node
+       Load XML file <disk_path>/standalone/standalone.xml
+       No need for bindings file, All located in standalone.xml
+        
+       In Standalon.xml navigate to socket-binding group and check for port-offset
+       attribute. if not found set to 0. Get list of all socket-binding group's children
+       and traverse to retrieve http and https. If modifications are to be made in the future
+       for inclusion of osgi applications, traverse same file.
+        
+        
+    */
+    void JBossAppServerInstance::UpdateJBoss7Ports()
+    {
+        const string cServerNodeName("server");
+        const string cSocketBindingGroupNodeName("socket-binding-group");
+        const string cPortOffsetAttributeName("port-offset");
+        const string cSocketBindingNodeName("socket-binding");
+        const string cNameAttributeName("name");
+        const string cHttpName("http");
+        const string cHttpsName("https");
+        const string cPortAttributeName("port");
+
+        string xmlcontent;
+        SCXFilePath filename(m_basePath);
+    
+        filename.Append(L"standalone/configuration/standalone.xml");
+      
+        try {
+            SCXHandle<istream> mystream = m_deps->OpenXmlPortsFile(filename.Get());
+            GetStringFromStream(mystream, xmlcontent);
+
+            XElementPtr topNode;
+            XElement::Load(xmlcontent, topNode);
+            if (topNode->GetName() == cServerNodeName)
+            {
+                XElementPtr socketBindingGroupNode;
+                if(topNode->GetChild(cSocketBindingGroupNodeName, socketBindingGroupNode))
+                {
+                    bool httpPortFound = false;
+                    bool httpsPortFound = false;
+                    bool portsFound = false;
+                    bool portOffsetFound = false;
+                    unsigned int baseHttpPort = 0;
+                    unsigned int baseHttpsPort = 0;
+                    unsigned int portOffset = 0;
+                    string HttpPort;
+                    string HttpsPort;
+                    string offset;
+             
+                    //chek if port-offset attribute, if not then value is preset to 0
+                    if(socketBindingGroupNode->GetAttributeValue(cPortOffsetAttributeName,offset))
+                    {
+                        //There are two ways to set port-offset, one with port-offset="100",
+                        //and the second with port-offset="${jboss.socket.binding.port-offset:100}";
+                        //check if it includes jboss.socket.bind.port-offset beginning and parse accordingly
+                        wstring wPortOffset = SCXCoreLib::StrFromUTF8(offset);
+                        std::vector<std::wstring> v_offset;
+                        SCXRegex re(L"([0-9]*)");
+                        if(re.ReturnMatch(wPortOffset,v_offset,0))
+                        {
+                            wPortOffset = v_offset[1];
+                        }
+                        TryReadInteger(portOffset, portOffsetFound, wPortOffset, L"Failed to Parse port offset");
+                    }
+                    //XMl Document Example for Standalone.xml
+                    //<socket-binding-group name="standard sockets>
+                    //  <socket-binding name="http" port="8080"/>
+                    //  <socket-binding name="https" port="8443"/>
+                    //  <socket-binding name="....." port="...."/>
+                    //</socket-binding group>
+                    XElementList socketBindings;
+                    socketBindingGroupNode->GetChildren(socketBindings);
+            
+                    for(size_t idx = 0; !portsFound && idx <socketBindings.size();++idx)
+                    {
+                        string name;
+                        if(socketBindings[idx]->GetName() == cSocketBindingNodeName &&
+                           socketBindings[idx]->GetAttributeValue(cNameAttributeName, name))
+                        {
+                            if(cHttpName == name &&
+                               socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpPort))
+                            {
+                                wstring wHttpPort;
+                                wHttpPort = SCXCoreLib::StrFromUTF8(HttpPort);
+                                TryReadInteger(baseHttpPort, httpPortFound, wHttpPort, L"Failed to parse HTTP port");
+                            }
+                            else if(cHttpsName == name &&
+                                    socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpsPort))
+                            {
+                                wstring wHttpsPort;
+                                wHttpsPort = SCXCoreLib::StrFromUTF8(HttpsPort);
+                                TryReadInteger(baseHttpsPort, httpsPortFound, wHttpsPort, L"Failed to parse HTTPS port");
+                            }
+
+                            if(httpPortFound && httpsPortFound) portsFound = true;
+                        }
+                    }
+                    if(httpPortFound)
+                    {
+                        m_httpPort = StrFrom(baseHttpPort + portOffset);
+                    }
+                    if(httpsPortFound)
+                    {
+                        m_httpsPort = StrFrom(baseHttpsPort + portOffset);
+                    }
+                }
+            }
+        }
+        catch (SCXFilePathNotFoundException&)
+        {
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+        }
+        catch (SCXUnauthorizedFileSystemAccessException&)
+        {
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+        }
+        catch (XmlException&)
+        {
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
+        }
+    }
+    /*----------------------------------------------------------------------------*/
+    /**
+       Update version
+
+       Load XML file <DiskPath>/jar-versions.xml
+       Get node /jar-versions/jar where name property is jboss.jar
+       Read specVersion property for that node
     */
     void JBossAppServerInstance::UpdateVersion()
     {
@@ -781,9 +934,13 @@ namespace SCXSystemLib
         const string cNameAttributeName("name");
         const string cJbossJarName("jboss.jar");
         const string cSpecVersionAttributeName("specVersion");
+        
+        bool fJboss7Check = false;
 
         string xmlcontent;
         SCXFilePath filename(m_basePath);
+        SCXFilePath filename2(m_basePath);
+
         filename.Append(L"jar-versions.xml");
 
         try {
@@ -816,7 +973,7 @@ namespace SCXSystemLib
         }
         catch (SCXFilePathNotFoundException&)
         {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+            fJboss7Check = true;
         }
         catch (SCXUnauthorizedFileSystemAccessException&)
         {
@@ -826,11 +983,55 @@ namespace SCXSystemLib
         {
             SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
         }
-    }
+        
+        if(fJboss7Check)
+        {
+            try {
+            
+                filename2.Append(L"bin/");
+                 
+                std::istringstream in;
+                std::ostringstream out;
+                std::ostringstream err;
+                 
+                wstring cli = m_deps->GetJboss7Command(filename2);
 
+                if(cli.length())
+                {
+                    int exitStatus = SCXCoreLib::SCXProcess::Run(cli,in,out,err,10000);
+            
+                    if(exitStatus != 0 || err.str().length())
+                    {
+                        wstring werr = SCXCoreLib::StrFromUTF8(err.str());
+                        SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - error in command line: ").append(werr));
+                    }
+                    else
+                    {
+                        wstring commandOutput = SCXCoreLib::StrFromUTF8(out.str());
+                        vector<wstring> v_version;
+                         
+                        SCXRegex re(L"JBoss (Application Server|AS) ([^ ?]*)");
+                        if(re.ReturnMatch(commandOutput,v_version,0))
+                        {
+                            SetVersion(v_version[2]);
+                        }
+                    }
+                }
+            }
+            catch (SCXFilePathNotFoundException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(filename2));
+            }
+            catch (SCXUnauthorizedFileSystemAccessException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename2));
+            }
+        }
+    }
+    
     /*----------------------------------------------------------------------------*/
     /**
-        Update values
+       Update values
 
     */
     void JBossAppServerInstance::Update()
@@ -841,7 +1042,11 @@ namespace SCXSystemLib
 
         if (m_majorVersion.length() > 0)
         {
-            if (StrToLong(m_majorVersion) >= 5)  // JBoss is version 5 or higher
+            if(StrToLong(m_majorVersion) >= 7)
+            {
+                UpdateJBoss7Ports();      //JBoss is version 7 or higher
+            }
+            else if (StrToLong(m_majorVersion) >= 5)  //JBoss is version 5 or 6
             {
                 UpdateJBoss5Ports();
             }
@@ -854,7 +1059,7 @@ namespace SCXSystemLib
 
     /*----------------------------------------------------------------------------*/
     /**
-        Read all lines from a stream and save in a string
+       Read all lines from a stream and save in a string
 
        \param[in]  mystream   Stream to read from
        \param[out] content    String to return content in

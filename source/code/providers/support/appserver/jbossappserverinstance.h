@@ -32,6 +32,7 @@ namespace SCXSystemLib
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlServiceFile(std::wstring filename);
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlServerFile(std::wstring filename);
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlBindingFile(std::wstring filename);
+        virtual std::wstring GetJboss7Command(SCXCoreLib::SCXFilePath filename);
         virtual ~JBossAppServerInstancePALDependencies() {};
     };
 
@@ -67,6 +68,7 @@ namespace SCXSystemLib
         void UpdateJBoss4PortsFromServerConfiguration();
         void UpdateJBoss4Ports();
         void UpdateJBoss5Ports();
+        void UpdateJBoss7Ports();
         void GetStringFromStream(SCXCoreLib::SCXHandle<std::istream> mystream, std::string& content);
         void TryReadInteger(unsigned int& result, bool& found, const std::wstring& value, const std::wstring& errorText);
 
