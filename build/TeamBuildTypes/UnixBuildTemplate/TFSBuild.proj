@@ -196,8 +196,8 @@
     <Exec Command="$(Regsvrloc) /s $(SshComTemp)\sshcom.dll" ContinueOnError="true" />
 
     <!-- lets run this script (owned by dev) to determine if there is enough space on the box before starting the build process -->
-    <Exec WorkingDirectory="$(WorkspaceFolder)\..\tools\build"
-          Command="$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\workspace_clean.sh $(UnixBuildServer)"/>
+    <Exec WorkingDirectory="$(WorkspaceFolder)\bootstrap"
+          Command="$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\RunRemoteBashScript.ps1 $(UnixBuildServer) $(WorkspaceFolder)\..\tools\build\workspace_clean.sh"/>
 
     <!-- Set up the workspace on the unix machine, then we will have scripts over there to run
       and will not have to push them every time. -->
