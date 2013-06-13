@@ -11,6 +11,7 @@
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfilesystem.h>
 #include <testutils/scxunit.h>
+#include <scxcorelib/scxprocess.h>
 
 #include <jbossappserverinstance.h>
 
@@ -27,13 +28,26 @@ class JBossAppServerInstanceTestPALDependencies : public JBossAppServerInstanceP
 public:
     JBossAppServerInstanceTestPALDependencies() : 
         m_xmlVersionFilename(L""), m_xmlPortsFilename(L""), m_httpBindingProperty(false), 
-        m_includeJbossJar(true), m_version5(true), m_httpBinding(true), m_httpsBinding(true),
+        m_includeJbossJar(true), m_version5(true),m_hasJboss7File(true), m_hasBadJboss7File(false), m_version7(false), m_httpBinding(true), m_httpsBinding(true),
         m_noPortsFile(false), m_noVersionFile(false), m_noServiceFile(false), m_noServerFile(false), 
         m_noBindingFile(false), m_emptyPortsFile(false), m_emptyVersionFile(false), m_emptyServiceFile(false), 
         m_emptyServerFile(false), m_emptyBindingFile(false), m_badPortsXml(false), m_badVersionXml(false), 
         m_badHttpPortValue(false), m_badPortOffsetValue(false), m_serviceBinding(true),
+        m_noPortOffsetValue(false), m_badPortOffsetValueWithSocket(false),
         m_portBindingName("${jboss.service.binding.set:ports-default}")
     {}
+
+    // Should there be an Port Offset Value attribute in socket-binding-group tag(JBoss 7)
+    void SetNoPortOffsetValue(bool noPortOffsetValue)
+    {
+        m_noPortOffsetValue = noPortOffsetValue;
+    }
+
+    // Should there be an invalid Port Offset Value attribute in socket-binding-group for secondary option i.e using jboss.socket (JBoss 7)
+    void SetBadPortOffsetValueWithSocket(bool badPortOffsetValueWithSocket)
+    {
+        m_badPortOffsetValueWithSocket = badPortOffsetValueWithSocket;
+    }
 
     // Should the XML contain a serviceBindingManager tag
     void SetServiceBinding(bool serviceBinding)
@@ -69,6 +83,24 @@ public:
     void SetVersion5(bool version5)
     {
         m_version5 = version5;
+    }
+
+    //should this File execute the standalone.sh script
+    void SetHasJboss7File(bool hasJboss7File)
+    {
+        m_hasJboss7File = hasJboss7File;
+    }
+
+    // Should we use XML from JBoss 7 or JBoss 4 or 5
+    void SetVersion7(bool version7)
+    {
+        m_version7 = version7;
+    }
+
+    //Should the Run command return something without the versoin
+    void SetHasBadJboss7VersionFile(bool hasBadJboss7VersionFile)
+    {
+        m_hasBadJboss7File = hasBadJboss7VersionFile;
     }
 
     // Should the we throw an exception when opening the ports file
@@ -198,6 +230,24 @@ public:
         return xmlcontent;
     }
 
+    virtual wstring GetJboss7Command(SCXCoreLib::SCXFilePath filepath)
+    {
+        wstring cli;
+        if(m_hasBadJboss7File)
+        {
+            cli = L"./testfiles/Jboss7VersionCheck.sh --version -b";
+        }
+        else if(m_hasJboss7File)
+        {
+            cli = L"./testfiles/Jboss7VersionCheck.sh --version";
+        }
+        else
+        {
+            cli = L"";
+        }
+        return cli;
+    }
+
     virtual SCXHandle<std::istream> OpenXmlPortsFile(wstring filename)
     {
         m_xmlPortsFilename = filename;
@@ -213,7 +263,51 @@ public:
         {
             return xmlcontent;
         }
+        
+        if(!m_version5 && m_version7)
+        {
+            *xmlcontent << " <server xmlns=\"urn:jboss:domain:1.0\">"<<endl;
+          
+            if(m_noPortOffsetValue)
+            {
+                *xmlcontent << "   <socket-binding-group name=\"standard-sockets\" default-interface=\"public\">"<<endl;
+            }
+            else if(m_badPortOffsetValue)
+            {
+                *xmlcontent <<"  <socket-binding-group name=\"standard-sockets\" default-interface=\"public\" port-offset=\"xyz\">"<<endl;
+            }
+            else if(m_badPortOffsetValueWithSocket)
+            {
+                *xmlcontent <<"  <socket-binding-group name=\"standard-sockets\" default-interface=\"public\" port-offset=\"${jboss.socket.binding.port-offset:xyz}\">"<<endl;
+            }
+            else
+            {
+                *xmlcontent <<"  <socket-binding-group name=\"standard-sockets\" default-interface=\"public\">"<<endl;
+            }
 
+            if(m_badHttpPortValue)
+            {
+                *xmlcontent <<"     <socket-binding name=\"http\" port=\"xyz\"/>"<<endl; 
+            }
+            else
+            {  
+                *xmlcontent <<"     <socket-binding name=\"http\" port=\"8080\"/>"<<endl;
+            }
+
+            *xmlcontent <<"     <socket-binding name=\"https\" port=\"8443\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"jmx-connector-registry\" port=\"1090\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"jmx-connector-server\" port=\"1091\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"jndi\" port=\"1099\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"osgi-http\" port=\"8090\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"remoting\" port=\"4447\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"txn-recovery-environment\" port=\"4712\"/>"<<endl;
+            *xmlcontent <<"     <socket-binding name=\"txn-status-manager\" port=\"4713\"/>"<<endl;
+            *xmlcontent <<"   </socket-binding-group>"<<endl;
+            *xmlcontent <<"  </server>"<<endl;
+
+            return xmlcontent;
+        }
+        
         *xmlcontent << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
         *xmlcontent << "<deployment kalle=\"urn:jboss:bean-deployer:2.0\">" << endl;
         *xmlcontent << "  <bean name=\"ServiceBindingManager\" class=\"org.jboss.services.binding.ServiceBindingManager\">" << endl;
@@ -310,7 +404,7 @@ public:
             *xmlcontent << "</deployment>" << endl;
         }
 
-        return xmlcontent;
+        return xmlcontent;    
     }
 
     virtual SCXHandle<std::istream> OpenXmlServiceFile(wstring filename)
@@ -406,7 +500,7 @@ public:
         return xmlcontent;
     }
 
-    virtual SCXHandle<std::istream> OpenXmlBindingFile(wstring filename)
+  virtual SCXHandle<std::istream> OpenXmlBindingFile(wstring filename)
     {
         m_xmlBindingFilename = filename;
 
@@ -457,7 +551,7 @@ public:
 
         return xmlcontent;
     }
-
+    
     // Set the Port Binding configuration string
     void SetPortBindingName(string portBindingName)
     {
@@ -472,6 +566,9 @@ public:
     bool m_httpBindingProperty;
     bool m_includeJbossJar;
     bool m_version5;
+    bool m_hasJboss7File;
+    bool m_hasBadJboss7File;
+    bool m_version7;
     bool m_httpBinding;
     bool m_httpsBinding;
     bool m_noPortsFile;
@@ -489,6 +586,9 @@ public:
     bool m_badHttpPortValue;
     bool m_badPortOffsetValue;
     bool m_serviceBinding;
+    bool m_noPortOffsetValue;
+    bool m_badPortOffsetValueWithSocket;
+  
     string m_portBindingName;
 };
 
@@ -521,7 +621,11 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testPort_XMLSetTo_Port01_CommandLineSetTo_Junk );
     CPPUNIT_TEST( testPort_XMLSetTo_Junk_NoCommandLineBinding );
     CPPUNIT_TEST( testPort_XMLSetTo_Ports01 );
-
+    CPPUNIT_TEST( testJBoss7WithBadVersionFile );
+    CPPUNIT_TEST( testJBoss7WithBadHttpProperty );
+    CPPUNIT_TEST( testJBoss7WithBadPortOffsetValue );
+    CPPUNIT_TEST( testJBoss7WithBadPortOffsetValueSocketBindingValue );
+  
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -532,6 +636,123 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
 
     void tearDown(void)
     {
+    }
+
+    // Test with command running a parse on a bad script
+    void testJBoss7WithBadVersionFile()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+        deps->SetHasBadJboss7VersionFile(true);
+        deps->SetBadHttpPortValue(true);
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/logging.properties", L"", deps) );
+ 
+        asInstance->Update();
+
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"", asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"", asInstance->GetMajorVersion());
+        // Doesnt know Jboss 7, therefore cannot get standalone
+        CPPUNIT_ASSERT_EQUAL(L"", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"", asInstance->GetHttpsPort());
+        // Will be empty because cannot get version
+        CPPUNIT_ASSERT_EQUAL(L"", deps->m_xmlPortsFilename);
+    }
+    
+    // Test with XML containing bad HTTP port attribute
+    void testJBoss7WithBadHttpProperty()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+        
+        deps->SetBadHttpPortValue(true);
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/logging.properties", L"", deps) );
+ 
+        asInstance->Update();
+          
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.0.0.Final",asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7",asInstance->GetMajorVersion());
+        // Http Ports will contain nonsense and return 0
+        CPPUNIT_ASSERT_EQUAL(L"", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
+
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/standalone.xml", deps->m_xmlPortsFilename);
+    }
+
+    // Test with XML containing bad port-offset attribute
+    void testJBoss7WithBadPortOffsetValue()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+        
+        deps->SetBadPortOffsetValue(true);
+          
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/logging.properties", L"", deps) );
+ 
+        asInstance->Update();
+             
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.0.0.Final",asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7",asInstance->GetMajorVersion());
+        // port offset will contain junk and return 0
+        CPPUNIT_ASSERT_EQUAL(L"8080", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
+        
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/standalone.xml", deps->m_xmlPortsFilename);
+    }
+
+    // Test with XML containing bad port-offset attribute in binding socket
+    void testJBoss7WithBadPortOffsetValueSocketBindingValue()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+
+        deps->SetBadPortOffsetValueWithSocket(true);
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/logging.properties", L"", deps) );
+ 
+        asInstance->Update();
+             
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.0.0.Final",asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7",asInstance->GetMajorVersion());
+        // port offset will contain junk and return 0
+        CPPUNIT_ASSERT_EQUAL(L"8080", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
+        
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/standalone.xml", deps->m_xmlPortsFilename);
     }
 
     // Test with XML not containing the HTTPBinding property, but which do contain the HTTP section
@@ -909,6 +1130,7 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
         SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
 
         deps->SetNoVersionFile(true);
+        deps->SetHasJboss7File(false);
 
         SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"myconfig", L"ports-01", deps) );
 

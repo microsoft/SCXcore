@@ -143,6 +143,7 @@ namespace SCXSystemLib
         string config;
         string configFromDashC;
         string configFromJBossProperty;
+        string configFromJBossAS7Property;
         string ports;
         
         
@@ -156,9 +157,21 @@ namespace SCXSystemLib
                gotInstPath=true;
            }
         }
+        
+        //If still do not have JBoss instance check if JBoss AS 7 Instance
+        if(!gotInstPath)
+        {
+            string arg2 = ParseOutCommandLineArg(params,"-Djboss.home.dir",true,true);
+            instDir = StrFromUTF8(arg2);
+            if(instDir.length() > 0)
+            {
+                gotInstPath = true;
+            }
+        }
 
         configFromDashC = ParseOutCommandLineArg(params, "-c",false,true);
         configFromJBossProperty = ParseOutCommandLineArg(params, "-Djboss.server.name",true,false);
+        configFromJBossAS7Property = ParseOutCommandLineArg(params, "-Dlogging.configuration",true,false);
         if ( configFromDashC.length() != 0 )
         {
             config = configFromDashC;
@@ -167,17 +180,21 @@ namespace SCXSystemLib
         {
             config = configFromJBossProperty;
         }
+        else if ( configFromJBossAS7Property.length() != 0 )
+        {
+            config = configFromJBossAS7Property;
+        }
         else // ( configFromDashC.length() == 0 ) && ( configFromJBossProperty.length() == 0 )
         {
             config = "default";
         }
-
-        ports = ParseOutCommandLineArg(params, "-Djboss.service.binding.set",true,false);
-
+        
+        ports =  ParseOutCommandLineArg(params, "-Djboss.service.binding.set",true,false);
+        
         if(gotInstPath)
         {
             SCXCoreLib::SCXHandle<JBossAppServerInstance> inst ( 
-                       new JBossAppServerInstance(instDir,StrFromUTF8(config),StrFromUTF8(ports)) );
+                new JBossAppServerInstance(instDir,StrFromUTF8(config),StrFromUTF8(ports)) );
             inst->Update();
             
             SCX_LOGTRACE(m_log, L"Found a running app server process");
@@ -342,11 +359,11 @@ namespace SCXSystemLib
           {
 
              // Loop through each 'java' process and check for 'JBoss' argument on the commandline
-             if(CheckProcessCmdLineArgExists(params,"org.jboss.Main"))
+             if(CheckProcessCmdLineArgExists(params,"org.jboss.Main") ||
+                CheckProcessCmdLineArgExists(params,"org.jboss.as.standalone"))
              {
                 CreateJBossInstance(&ASInstances, params);
              }
-             
              // Loop through each 'java' process and check for Tomcat i.e. 'Catalina' argument on the commandline
              if(CheckProcessCmdLineArgExists(params,"org.apache.catalina.startup.Bootstrap"))
              {
@@ -578,7 +595,7 @@ namespace SCXSystemLib
                  * Some parameters are in the form key=value while some are "key value" 
                  * If the parameter length is the same size as the key then the value is 
                  * in the next arg.
-                 */
+                */
                 returnTheNextArgAsValue = true;
             }
             else
@@ -636,6 +653,5 @@ namespace SCXSystemLib
         } 
         return result;
     }   
-
 }
 /*----------------------------E-N-D---O-F---F-I-L-E---------------------------*/
