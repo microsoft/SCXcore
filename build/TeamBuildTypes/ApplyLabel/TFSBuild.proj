@@ -226,6 +226,9 @@
     <Exec WorkingDirectory="$(SourceDir)\..\omi"
           Command="&quot;c:\program files (x86)\Microsoft Visual Studio 10.0\common7\IDE\tf.exe&quot; label $(TheLabel) /recursive ." />
 
+    <Exec WorkingDirectory="$(SourceDir)\..\tools"
+          Command="&quot;c:\program files (x86)\Microsoft Visual Studio 10.0\common7\IDE\tf.exe&quot; label $(TheLabel) /recursive ." />
+
     <!-- Copy currentlabel.txt to \\scx-drop-01\Builds\InfraTest\BuildFromLabel so subsequent builds can pick it up. -->
     <Copy
       SourceFiles="$(SourceDir)/build/currentlabel.txt"
