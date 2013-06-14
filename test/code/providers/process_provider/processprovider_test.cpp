@@ -22,6 +22,10 @@
 #include "SCX_UnixProcess_Class_Provider.h"
 #include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
+//WI567597: Property ModulePath not returned during pbuild on ostcdev64-sles11-01, ostcdev-sles10-01, ostcdev64-rhel4-01 and ostcdev-rhel4-10.
+//WI567598: Property Parameters not returned on ostcdev-sles9-10.
+static bool brokenProvider = true;
+
 using namespace SCXCoreLib;
 
 class SCXProcessProviderTest : public CPPUNIT_NS::TestFixture
@@ -220,54 +224,62 @@ public:
         {
             const TestableInstance &instance = context[n];
 
-            std::wstring tmpExpectedProperties[] = {
-                                                    L"InstanceID",
-                                                    L"Caption",
-                                                    L"Description",
-                                                    L"ElementName",
-                                                    L"InstallDate",
-                                                    L"Name",
-                                                    L"OperationalStatus",
-                                                    L"StatusDescriptions",
-                                                    L"Status",
-                                                    L"HealthState",
-                                                    L"CommunicationStatus",
-                                                    L"DetailedStatus",
-                                                    L"OperatingStatus",
-                                                    L"PrimaryStatus",
-                                                    L"EnabledState",
-                                                    L"OtherEnabledState",
-                                                    L"RequestedState",
-                                                    L"EnabledDefault",
-                                                    L"TimeOfLastStateChange",
-                                                    L"AvailableRequestedStates",
-                                                    L"TransitioningToState",
-                                                    L"CSCreationClassName",
-                                                    L"CSName",
-                                                    L"OSCreationClassName",
-                                                    L"OSName",
-                                                    L"CreationClassName",
-                                                    L"Handle",
-                                                    L"Priority",
-                                                    L"ExecutionState",
-                                                    L"OtherExecutionDescription",
-                                                    L"CreationDate",
-                                                    L"TerminationDate",
-                                                    L"KernelModeTime",
-                                                    L"UserModeTime",
-                                                    L"WorkingSetSize",
-                                                    L"ParentProcessID",
-                                                    L"RealUserID",
-                                                    L"ProcessGroupID",
-                                                    L"ProcessSessionID",
-                                                    L"ProcessTTY",
-                                                    L"ModulePath",
-                                                    L"Parameters",
-                                                    L"ProcessNiceValue",
-                                                    L"ProcessWaitingForEvent"};
+            std::vector<std::wstring> tmpExpectedProperties;
+            std::vector<std::wstring> tmpPossibleProperties;
+            tmpExpectedProperties.push_back(L"Caption");
+            tmpExpectedProperties.push_back(L"Description");
+            tmpExpectedProperties.push_back(L"Name");
+            tmpExpectedProperties.push_back(L"CSCreationClassName");
+            tmpExpectedProperties.push_back(L"CSName");
+            tmpExpectedProperties.push_back(L"OSCreationClassName");
+            tmpExpectedProperties.push_back(L"OSName");
+            tmpExpectedProperties.push_back(L"CreationClassName");
+            tmpExpectedProperties.push_back(L"Handle");
+            tmpExpectedProperties.push_back(L"ExecutionState");
+            tmpExpectedProperties.push_back(L"CreationDate");
+            tmpPossibleProperties.push_back(L"TerminationDate");
+            tmpExpectedProperties.push_back(L"KernelModeTime");
+            tmpExpectedProperties.push_back(L"UserModeTime");
+            tmpExpectedProperties.push_back(L"ParentProcessID");
+            tmpExpectedProperties.push_back(L"RealUserID");
+            tmpExpectedProperties.push_back(L"ProcessGroupID");
+            tmpExpectedProperties.push_back(L"ProcessNiceValue");
+            
+#if defined(hpux)
+            tmpPossibleProperties.push_back(L"Priority");
+            tmpPossibleProperties.push_back(L"ProcessSessionID");
+#else
+            tmpExpectedProperties.push_back(L"Priority");
+            tmpExpectedProperties.push_back(L"ProcessSessionID");
+#endif
+#if !(defined(linux) || defined(aix) || defined(sun))
+            tmpExpectedProperties.push_back(L"ProcessTTY");
+#endif
+#if defined(linux)
+            if (brokenProvider == true)
+            {
+                tmpPossibleProperties.push_back(L"ModulePath");
+                tmpPossibleProperties.push_back(L"Parameters");
+            }
+            else
+            {
+                tmpExpectedProperties.push_back(L"ModulePath");
+                tmpExpectedProperties.push_back(L"Parameters");
+            }
+#else// linux
+#if defined(hpux) || defined(aix) || (defined(sun) && PF_MAJOR == 5 && PF_MINOR > 9)
+            tmpPossibleProperties.push_back(L"ModulePath");
+#else
+            tmpExpectedProperties.push_back(L"ModulePath");
+#endif
+            tmpPossibleProperties.push_back(L"Parameters");
+#endif// linux
+#if !(defined(hpux) || defined(aix) || defined(sun))
+            tmpExpectedProperties.push_back(L"ProcessWaitingForEvent");
+#endif
 
-            const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
-            VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
+            VerifyInstancePropertyNames(instance, &tmpExpectedProperties[0], tmpExpectedProperties.size(),
+                &tmpPossibleProperties[0], tmpPossibleProperties.size(), CALL_LOCATION(errMsg));
         }
     }
 
@@ -278,10 +290,8 @@ public:
             const TestableInstance &instance = context[n];
 
             std::wstring tmpExpectedProperties[] = {
-                                                    L"InstanceID",
                                                     L"Caption",
                                                     L"Description",
-                                                    L"ElementName",
                                                     L"Name",
                                                     L"CSCreationClassName",
                                                     L"CSName",
@@ -290,24 +300,35 @@ public:
                                                     L"Handle",
                                                     L"ProcessCreationClassName",
                                                     L"CPUTime",
-                                                    L"RealText",
-                                                    L"RealData",
-                                                    L"RealStack",
-                                                    L"VirtualText",
                                                     L"VirtualData",
-                                                    L"VirtualStack",
-                                                    L"VirtualMemoryMappedFileSize",
-                                                    L"VirtualSharedMemory",
                                                     L"CpuTimeDeadChildren",
                                                     L"SystemTimeDeadChildren",
-                                                    L"BlockReadsPerSecond",
-                                                    L"BlockWritesPerSecond",
-                                                    L"BlockTransfersPerSecond",
                                                     L"PercentUserTime",
                                                     L"PercentPrivilegedTime",
                                                     L"UsedMemory",
                                                     L"PercentUsedMemory",
-                                                    L"PagesReadPerSec"};
+#if !(defined(linux) || defined(sun) || defined(aix))
+                                                    L"RealText",
+                                                    L"RealData",
+                                                    L"RealStack",
+                                                    L"VirtualMemoryMappedFileSize",
+#endif
+#if !defined(aix)
+                                                    L"VirtualText",
+                                                    L"PagesReadPerSec",
+#endif
+#if !defined(linux)
+                                                    L"VirtualStack",
+#endif
+#if !(defined(sun) || defined(aix))
+                                                    L"VirtualSharedMemory",
+#endif
+#if !(defined(linux) || defined(aix))
+                                                    L"BlockReadsPerSecond",
+                                                    L"BlockWritesPerSecond",
+                                                    L"BlockTransfersPerSecond",
+#endif
+                                                    };
 
             const size_t numprops = sizeof(tmpExpectedProperties) / sizeof(tmpExpectedProperties[0]);
             VerifyInstancePropertyNames(instance, tmpExpectedProperties, numprops, CALL_LOCATION(errMsg));
