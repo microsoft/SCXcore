@@ -118,7 +118,7 @@ $ans
 
 WriteToLog "Unpacking workspace files on unix host"
 
-$retval = $scxssh.ShellCommand3("${QualifiedWorkspaceCleanupScriptName} && chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
+$retval = $scxssh.ShellCommand3("~/${QualifiedWorkspaceCleanupScriptName} && chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
 $ans = $scxssh.GetResponse() # get output from last ShellCommand/ExecuteCommand
 $ans
 
