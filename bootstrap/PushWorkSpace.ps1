@@ -59,6 +59,7 @@ WriteToLog "Creating workspace archive"
 
 $ArchiveName = "${WorkSpaceName}.tar.gz"
 $WorkspaceArchive = "${BuildDir}\BuildType\${ArchiveName}"
+
 if (Test-Path $WorkspaceArchive -pathtype leaf) {
     echo "Deleting old archive $WorkspaceArchive"
     del $WorkspaceArchive
@@ -68,6 +69,16 @@ if (Test-Path $WorkspaceArchive -pathtype leaf) {
 $PackWorkspaceCmd = "${BuildDir}\Sources\scxcore\build\Tools\7zip\7z.exe -r -ttar a ${WorkspaceArchive} ${BuildDir}\Sources\* -xr!Target\*"
 WriteToLog $PackWorkspaceCmd
 $ans = Invoke-Expression $PackWorkspaceCmd
+WriteToLog "$ans"
+$retval = $lastexitcode
+
+# Push clean up workspace files.
+WriteToLog "Pushing workspaceClean.sh"
+
+$QualifiedWorkspaceCleanupScriptName = "${WorkSpaceName}.workspace_clean.sh"
+$PushWorkspaceCleanUpCmd = "$TransferExec -q -C -l $BuildUser -pw $BuildUserPW ${BuildDir}\Sources\tools\build\workspace_clean.sh $BuildHost`:${QualifiedWorkspaceCleanupScriptName}"
+WriteToLog $PushWorkspaceCleanUpCmd
+$ans = Invoke-Expression "echo Y | $PushWorkspaceCleanUpCmd"
 WriteToLog "$ans"
 $retval = $lastexitcode
 
@@ -107,7 +118,7 @@ $ans
 
 WriteToLog "Unpacking workspace files on unix host"
 
-$retval = $scxssh.ShellCommand3("chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
+$retval = $scxssh.ShellCommand3("${QualifiedWorkspaceCleanupScriptName} && chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
 $ans = $scxssh.GetResponse() # get output from last ShellCommand/ExecuteCommand
 $ans
 
