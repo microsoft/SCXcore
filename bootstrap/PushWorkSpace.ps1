@@ -72,15 +72,6 @@ $ans = Invoke-Expression $PackWorkspaceCmd
 WriteToLog "$ans"
 $retval = $lastexitcode
 
-# Push clean up workspace files.
-WriteToLog "Pushing workspaceClean.sh"
-
-$QualifiedWorkspaceCleanupScriptName = "${WorkSpaceName}.workspace_clean.sh"
-$PushWorkspaceCleanUpCmd = "$TransferExec -q -C -l $BuildUser -pw $BuildUserPW ${BuildDir}\Sources\tools\build\workspace_clean.sh $BuildHost`:${QualifiedWorkspaceCleanupScriptName}"
-WriteToLog $PushWorkspaceCleanUpCmd
-$ans = Invoke-Expression "echo Y | $PushWorkspaceCleanUpCmd"
-WriteToLog "$ans"
-$retval = $lastexitcode
 
 # Push the tarball to the unix build host
 
@@ -118,7 +109,7 @@ $ans
 
 WriteToLog "Unpacking workspace files on unix host"
 
-$retval = $scxssh.ShellCommand3("chmod +x ~/${QualifiedWorkspaceCleanupScriptName} && ~/${QualifiedWorkspaceCleanupScriptName} && chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
+$retval = $scxssh.ShellCommand3("chmod +x ~/${QualifiedUnpackScriptName} && ~/${QualifiedUnpackScriptName} ${WorkSpaceName}")
 $ans = $scxssh.GetResponse() # get output from last ShellCommand/ExecuteCommand
 $ans
 
