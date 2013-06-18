@@ -195,6 +195,8 @@
           SourceFiles="%(SshComFiles.Identity)" DestinationFolder="$(SshComTemp)" ContinueOnError="true" />
     <Exec Command="$(Regsvrloc) /s $(SshComTemp)\sshcom.dll" ContinueOnError="true" />
 
+    <Exec WorkingDirectory="$(WorkspaceFolder)\bootstrap"
+          Command="$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\CleanWorkspace.ps1 $(UnixBuildServer) $(UnixWorkSpaceName) $(BuildDirectory)"/>
    
     <!-- Set up the workspace on the unix machine, then we will have scripts over there to run
       and will not have to push them every time. -->
