@@ -275,7 +275,7 @@ public:
             tmpPossibleProperties.push_back(L"Parameters");
 #endif// linux
 #if !(defined(hpux) || defined(aix) || defined(sun))
-            tmpExpectedProperties.push_back(L"ProcessWaitingForEvent");
+            tmpPossibleProperties.push_back(L"ProcessWaitingForEvent");
 #endif
 
             VerifyInstancePropertyNames(instance, &tmpExpectedProperties[0], tmpExpectedProperties.size(),
