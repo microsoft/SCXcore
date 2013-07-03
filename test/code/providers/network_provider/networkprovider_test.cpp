@@ -94,9 +94,13 @@ public:
         m_keyNamesLANE.push_back(L"CreationClassName");
 
         std::wostringstream errMsg;
-        SetUpAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(CALL_LOCATION(errMsg));
-        SetUpAgent<mi::SCX_IPProtocolEndpoint_Class_Provider>(CALL_LOCATION(errMsg));
-        SetUpAgent<mi::SCX_LANEndpoint_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        SetUpAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
+        SetUpAgent<mi::SCX_IPProtocolEndpoint_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
+        SetUpAgent<mi::SCX_LANEndpoint_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
 
         vector< SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> > originalInstances;
         const unsigned allProperties = static_cast<unsigned> (-1);
@@ -122,9 +126,13 @@ public:
     void tearDown(void)
     {
         std::wostringstream errMsg;
-        TearDownAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(CALL_LOCATION(errMsg));
-        TearDownAgent<mi::SCX_IPProtocolEndpoint_Class_Provider>(CALL_LOCATION(errMsg));
-        TearDownAgent<mi::SCX_LANEndpoint_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        TearDownAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
+        TearDownAgent<mi::SCX_IPProtocolEndpoint_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
+        TearDownAgent<mi::SCX_LANEndpoint_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
     }
 
     void TestVerifyKeyCompletePartialEthernetPortStatistics()

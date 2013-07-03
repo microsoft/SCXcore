@@ -102,13 +102,17 @@ public:
         std::wostringstream errMsg;
         SCXCore::g_AppServerProvider.UpdateDependencies(SCXCoreLib::SCXHandle<AppServerProviderPALDependencies>(
             new AppServerProviderTestPALDependencies()));
-        SetUpAgent<mi::SCX_Application_Server_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        SetUpAgent<mi::SCX_Application_Server_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
     }
 
     void tearDown(void)
     {
         std::wostringstream errMsg;
-        TearDownAgent<mi::SCX_Application_Server_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        TearDownAgent<mi::SCX_Application_Server_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
     }
 
     void callDumpStringForCoverage()

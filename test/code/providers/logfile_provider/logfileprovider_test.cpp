@@ -123,7 +123,9 @@ public:
         m_logFileProv->TestSetPersistMedia(m_pmedia);
 
         std::wostringstream errMsg;
-        SetUpAgent<mi::SCX_LogFile_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        SetUpAgent<mi::SCX_LogFile_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
 
         // Delete the locale file if it exists
         SCXCoreLib::SelfDeletingFilePath localeFile( testlocalefilename );
@@ -132,7 +134,9 @@ public:
     void tearDown(void)
     {
         std::wostringstream errMsg;
-        TearDownAgent<mi::SCX_LogFile_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        TearDownAgent<mi::SCX_LogFile_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
 
         m_logFileProv = 0;
         SCXHandle<LogFileReader::LogFilePositionRecord> r(
