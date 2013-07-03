@@ -57,13 +57,17 @@ public:
     void setUp(void)
     {
         std::wostringstream errMsg;
-        SetUpAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        SetUpAgent<mi::SCX_OperatingSystem_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
     }
 
     void tearDown(void)
     {
         std::wostringstream errMsg;
-        TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(CALL_LOCATION(errMsg));
+        TestableContext context;
+        TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(context, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
     }
 
     void callDumpStringForCoverage()
