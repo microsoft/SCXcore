@@ -307,9 +307,11 @@ namespace SCXSystemLib
     wstring AppServerEnumeration::GetWeblogicHome(vector<string> params)
     {
         string wlPlatformHome;
+        string wlPlatformHome12c;
         wstring PlatformHome;
         
         wlPlatformHome = ParseOutCommandLineArg(params, "-Dplatform.home",true,true);
+        wlPlatformHome12c = ParseOutCommandLineArg(params, "-Dbea.home", true, true);
         if ( !wlPlatformHome.empty() )
         {
              // Commandline entry for "-Dplatform.home" looks like this
@@ -320,6 +322,13 @@ namespace SCXSystemLib
              // trailing '/', we need to strip it off.
              PlatformHome = StrFromUTF8(GetParentDirectory(wlPlatformHome));
              SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic");
+        }
+        else if( !wlPlatformHome12c.empty() )
+        {
+            //Commandline entry for "-Dbea.home" looks like this
+            //"-Dbea.home=/root/Oracle/Middleware"
+            PlatformHome = StrFromUTF8(wlPlatformHome12c);
+            SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic");
         }
         else
         {

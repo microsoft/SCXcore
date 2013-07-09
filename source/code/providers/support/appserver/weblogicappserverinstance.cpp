@@ -112,17 +112,20 @@ namespace SCXSystemLib {
                   }
                   else if (minor < WEBLOGIC_VERSION_MINOR)
                   {
-                       returnValue = WEBLOGIC_BRANDED_VERSION_10;
+                      returnValue = WEBLOGIC_BRANDED_VERSION_10;
                   }
                   else //if (minor > WEBLOGIC_VERSION_MINOR)
                   {
-                       returnValue = WEBLOGIC_BRANDED_VERSION_11;
+                      returnValue = WEBLOGIC_BRANDED_VERSION_11;
                   }
                   
                   break;
-              default:
-                  returnValue = WEBLOGIC_BRANDED_VERSION_11;
-              }
+                case 12:
+                    returnValue = parts[0];
+                    break;
+                default:
+                    returnValue = WEBLOGIC_BRANDED_VERSION_11;
+            }
         }
 
         return returnValue;
