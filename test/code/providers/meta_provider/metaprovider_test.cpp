@@ -43,7 +43,7 @@ class SCXMetaProviderTest : public CPPUNIT_NS::TestFixture
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_Agent_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -51,7 +51,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_Agent_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -150,7 +150,7 @@ public:
 
     void VerifyKeyCompletePartial()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         std::vector<std::wstring> keyNames;
         keyNames.push_back(L"Name");
         StandardTestVerifyGetInstanceKeys<mi::SCX_Agent_Class_Provider,

@@ -122,7 +122,7 @@ public:
         m_logFileProv = new TestableLogfileProvider(m_pReader);
         m_logFileProv->TestSetPersistMedia(m_pmedia);
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_LogFile_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -133,7 +133,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_LogFile_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -509,7 +509,7 @@ public:
         CPPUNIT_ASSERT(firstRow == line);
     }
 
-    std::string DumpProperty_MIStringA(const TestableInstance::PropertyInfo &property, std::wostringstream &errMsg)
+    std::string DumpProperty_MIStringA(const TestableInstance::PropertyInfo &property, std::wstring errMsg)
     {
         std::wstringstream ret;
         if (property.exists)
@@ -561,7 +561,7 @@ public:
         const std::wstring OKRegexpStr = L"1;";
         const std::wstring moreRowsStr = L"MoreRowsAvailable;true";
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         mi::SCX_LogFile_Class instanceName;
         mi::StringA regexps;
@@ -754,7 +754,7 @@ public:
 
     void testDoInvokeMethodWithNonexistantLogfile()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         mi::SCX_LogFile_Class instanceName;
         mi::SCX_LogFile_GetMatchedRows_Class param;
@@ -803,7 +803,7 @@ public:
             localeFile << localeString;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         mi::SCX_LogFile_Class instanceName;
         mi::StringA regexps;

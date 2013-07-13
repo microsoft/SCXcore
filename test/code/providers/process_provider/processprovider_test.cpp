@@ -66,7 +66,7 @@ private:
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_UnixProcess_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -91,7 +91,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_UnixProcess_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -101,7 +101,7 @@ public:
 
     void TestUnixProcessEnumerateInstances()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_UnixProcess_Class_Provider>(
             m_keyNamesUP, context, CALL_LOCATION(errMsg));
@@ -112,7 +112,7 @@ public:
 
     void TestUnixProcessStatisticalInformationEnumerateInstances()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(
             m_keyNamesUPS, context, CALL_LOCATION(errMsg));
@@ -123,7 +123,7 @@ public:
 
     void TestUnixProcessGetInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_UnixProcess_Class_Provider,
             mi::SCX_UnixProcess_Class>(
@@ -134,7 +134,7 @@ public:
 
     void TestUnixProcessStatisticalInformationGetInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_UnixProcessStatisticalInformation_Class_Provider,
             mi::SCX_UnixProcessStatisticalInformation_Class>(
@@ -145,7 +145,7 @@ public:
 
     void TestUnixProcessGetThisInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keyValues;
@@ -169,7 +169,7 @@ public:
 
     void TestUnixProcessStatisticalInformationGetThisInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keyValues;
@@ -188,7 +188,7 @@ public:
         ValidateInstanceStatisticalInformation(context, CALL_LOCATION(errMsg));
     }
 
-    bool GetTopResourceConsumers(const char* resourceName, std::wostringstream &errMsg)
+    bool GetTopResourceConsumers(const char* resourceName, std::wstring errMsg)
     {
         TestableContext context;
         mi::SCX_UnixProcess_Class instanceName;
@@ -213,18 +213,18 @@ public:
 
     void TestUnixProcessInvokeTopResourceConsumers()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, GetTopResourceConsumers("CPUTime", CALL_LOCATION(errMsg)));
     }
 
     void TestUnixProcessInvokeTopResourceConsumersFail()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false,
             GetTopResourceConsumers("InvalidResource", CALL_LOCATION(errMsg)));
     }
 
-    void ValidateInstance(const TestableContext& context, std::wostringstream &errMsg)
+    void ValidateInstance(const TestableContext& context, std::wstring errMsg)
     {
         for (size_t n = 0; n < context.Size(); n++)
         {
@@ -289,7 +289,7 @@ public:
         }
     }
 
-    void ValidateInstanceStatisticalInformation(const TestableContext& context, std::wostringstream &errMsg)
+    void ValidateInstanceStatisticalInformation(const TestableContext& context, std::wstring errMsg)
     {
         for (size_t n = 0; n < context.Size(); n++)
         {

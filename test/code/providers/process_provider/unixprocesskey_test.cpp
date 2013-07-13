@@ -53,7 +53,7 @@ private:
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_UnixProcess_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -78,7 +78,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_UnixProcess_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -88,7 +88,7 @@ public:
 
     void TestUnixProcessEnumerateKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_UnixProcess_Class_Provider>(
             m_keyNamesUP, context, CALL_LOCATION(errMsg));
@@ -96,7 +96,7 @@ public:
 
     void TestUnixProcessStatisticalInformationEnumerateKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(
             m_keyNamesUPS, context, CALL_LOCATION(errMsg));
@@ -104,7 +104,7 @@ public:
 
     void TestUnixProcessCheckKeyValues()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keysSame;// Unused.
@@ -127,7 +127,7 @@ public:
 
     void TestUnixProcessStatisticalInformationCheckKeyValues()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keysSame;// Unused.
@@ -150,14 +150,14 @@ public:
 
     void TestVerifyKeyCompletePartialUnixProcess()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_UnixProcess_Class_Provider,
                 mi::SCX_UnixProcess_Class>(m_keyNamesUP, CALL_LOCATION(errMsg));
     }
 
     void TestVerifyKeyCompletePartialUnixProcessStatisticalInformation()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_UnixProcessStatisticalInformation_Class_Provider,
                 mi::SCX_UnixProcessStatisticalInformation_Class>(m_keyNamesUPS, CALL_LOCATION(errMsg));
     }
