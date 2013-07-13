@@ -46,7 +46,7 @@ class SCXDiskProviderTest : public CPPUNIT_NS::TestFixture
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -60,7 +60,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -109,10 +109,10 @@ public:
     //! \param  T               type of instance to be removed
     //! \param  TInstanceName   type of the parameter with which the remover is called.
     //! \param  TParam          type of the parameter object containing name with which the remover is called.
-    //! \param[in]  errMsg      Stream containing error messages.
+    //! \param[in]  errMsg      String containing error messages.
     //! \returns                returns true if removal was sucessfull.
     template<class T, class TInstanceName, class TParam> bool InvokeRemoveDisk(const std::wstring& d,
-        std::wostringstream &errMsg)
+        std::wstring errMsg)
     {
         TestableContext context;
         TInstanceName instanceName;
@@ -132,13 +132,13 @@ public:
         return false;
     }
 
-    bool InvokeRemoveDiskDrive(const std::wstring& d, std::wostringstream &errMsg)
+    bool InvokeRemoveDiskDrive(const std::wstring& d, std::wstring errMsg)
     {
         return InvokeRemoveDisk<mi::SCX_DiskDrive_Class_Provider, mi::SCX_DiskDrive_Class,
             mi::SCX_DiskDrive_RemoveByName_Class>(d, CALL_LOCATION(errMsg));
     }
     
-    bool InvokeRemoveFileSystem(const std::wstring& d, std::wostringstream &errMsg)
+    bool InvokeRemoveFileSystem(const std::wstring& d, std::wstring errMsg)
     {
         return InvokeRemoveDisk<mi::SCX_FileSystem_Class_Provider, mi::SCX_FileSystem_Class,
             mi::SCX_FileSystem_RemoveByName_Class>(d, CALL_LOCATION(errMsg));
@@ -146,7 +146,7 @@ public:
 
     void TestCountsAndEnumerations()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::TestCountsAndEnumerations"))
         {
             return;
@@ -170,7 +170,7 @@ public:
 
     void TestEnumInstanceNamesSanity()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::TestEnumInstanceNamesSanity"))
         {
             return;
@@ -199,14 +199,14 @@ public:
 
     void RemoveTotalInstanceShouldFail()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         CPPUNIT_ASSERT( ! InvokeRemoveDiskDrive(L"_Total", CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT( ! InvokeRemoveFileSystem(L"_Total", CALL_LOCATION(errMsg)));
     }
 
     void RemoveDiskDriveAlsoRemovesStatisticalInstance(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         if ( ! MeetsPrerequisites(L"SCXDiskProviderTest::RemoveDiskDriveAlsoRemovesStatisticalInstance"))
         {
@@ -230,7 +230,7 @@ public:
 
     void RemoveFileSystemAlsoRemovesStatisticalInstance(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         TestableContext fs, fss;
         EnumInstances<mi::SCX_FileSystem_Class_Provider>(fs, CALL_LOCATION(errMsg));

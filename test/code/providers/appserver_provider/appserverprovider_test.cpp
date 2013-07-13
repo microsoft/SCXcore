@@ -99,7 +99,7 @@ public:
     {
         m_keyNames.push_back(L"Name");
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         SCXCore::g_AppServerProvider.UpdateDependencies(SCXCoreLib::SCXHandle<AppServerProviderPALDependencies>(
             new AppServerProviderTestPALDependencies()));
         TestableContext context;
@@ -109,7 +109,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_Application_Server_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -122,7 +122,7 @@ public:
 
     void TestDoEnumInstances()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         StandardTestEnumerateInstances<mi::SCX_Application_Server_Class_Provider>(
@@ -133,7 +133,7 @@ public:
         ValidateInstance1(context[1], CALL_LOCATION(errMsg));
     }
 
-    void ValidateInstance0(const TestableInstance& instance, std::wostringstream &errMsg)
+    void ValidateInstance0(const TestableInstance& instance, std::wstring errMsg)
     {
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"/opt/jboss-5.1.0.GA/",
             instance.GetKey(L"Name", CALL_LOCATION(errMsg)));
@@ -172,7 +172,7 @@ public:
             L"Server", CALL_LOCATION(errMsg)).GetValue_MIString(CALL_LOCATION(errMsg)));
     }
 
-    void ValidateInstance1(const TestableInstance& instance, std::wostringstream &errMsg)
+    void ValidateInstance1(const TestableInstance& instance, std::wstring errMsg)
     {
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"AppSrv01-Node01Cell-Node01-server1",
             instance.GetKey(L"Name", CALL_LOCATION(errMsg)));
@@ -213,7 +213,7 @@ public:
 
     void TestDoGetInstanceGood()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         std::vector<std::wstring> keyValues0;
         keyValues0.push_back(L"/opt/jboss-5.1.0.GA/");
@@ -232,7 +232,7 @@ public:
 
     void TestDoGetInstanceNotFound()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         std::vector<std::wstring> keyValues;
         keyValues.push_back(L"dummy");
@@ -244,7 +244,7 @@ public:
 
     void TestEnumerateKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_Application_Server_Class_Provider>(
             m_keyNames, context, CALL_LOCATION(errMsg));
@@ -257,13 +257,13 @@ public:
 
     void TestVerifyKeyCompletePartial()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_Application_Server_Class_Provider,
                 mi::SCX_Application_Server_Class>(m_keyNames, CALL_LOCATION(errMsg));
     }
 
     void InvokeSetDeepMonitoring(mi::SCX_Application_Server_SetDeepMonitoring_Class &param, MI_Result result,
-        std::wostringstream &errMsg)
+        std::wstring errMsg)
     {
         TestableContext context;
         mi::SCX_Application_Server_Class instanceName;
@@ -287,7 +287,7 @@ public:
 
     void TestDoInvokeMethodNoAppServer()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_Application_Server_SetDeepMonitoring_Class param;
         param.id_value("dummy");
         param.deep_value(true);
@@ -296,7 +296,7 @@ public:
 
     void TestDoInvokeMethodMissingArg()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         // Test for failure if id argument is missing.
         mi::SCX_Application_Server_SetDeepMonitoring_Class param0;
@@ -312,7 +312,7 @@ public:
 
     void TestDoInvokeMethodGood()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_Application_Server_SetDeepMonitoring_Class param;
         param.id_value("/opt/jboss-5.1.0.GA/");
         param.deep_value(true);

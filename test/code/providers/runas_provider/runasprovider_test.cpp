@@ -82,7 +82,7 @@ class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_OperatingSystem_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -99,7 +99,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -116,7 +116,7 @@ public:
     };
 
     void VerifyInvokeResult(TestableContext &context, MI_Result result, InvokeReturnData &returnData,
-        std::wostringstream &errMsg)
+        std::wstring errMsg)
     {
         if (c_EnableDebugOutput)
         {
@@ -148,7 +148,7 @@ public:
     }
     
     void ExecuteCommand(mi::SCX_OperatingSystem_ExecuteCommand_Class &param, MI_Result result, InvokeReturnData &returnData,
-        std::wostringstream &errMsg)
+        std::wstring errMsg)
     {
         TestableContext context;
         mi::SCX_OperatingSystem_Class instanceName;
@@ -159,7 +159,7 @@ public:
     }
 
     void ExecuteShellCommand(mi::SCX_OperatingSystem_ExecuteShellCommand_Class &param, MI_Result result,
-        InvokeReturnData &returnData, std::wostringstream &errMsg)
+        InvokeReturnData &returnData, std::wstring errMsg)
     {
         TestableContext context;
         mi::SCX_OperatingSystem_Class instanceName;
@@ -170,7 +170,7 @@ public:
     }
 
     void ExecuteScript(mi::SCX_OperatingSystem_ExecuteScript_Class &param, MI_Result result, InvokeReturnData &returnData,
-        std::wostringstream &errMsg)
+        std::wstring errMsg)
     {
         TestableContext context;
         mi::SCX_OperatingSystem_Class instanceName;
@@ -182,7 +182,7 @@ public:
 
     void TestDoInvokeMethodNoParams()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
@@ -191,7 +191,7 @@ public:
     
     void TestDoInvokeMethodPartParams()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("ls");
         // Don't specify timeout in parameter list.
@@ -202,7 +202,7 @@ public:
     
     void TestDoInvokeMethodCommandOK()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
         param.timeout_value(100);
@@ -215,7 +215,7 @@ public:
 
     void TestDoInvokeMethodCommandOKWithEmptyElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
         param.timeout_value(100);
@@ -229,7 +229,7 @@ public:
 
     void TestDoInvokeMethodCommandOKWithElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
         param.timeout_value(100);
@@ -243,7 +243,7 @@ public:
 
     void TestDoInvokeMethodCommandOKWithUppercaseElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
         param.timeout_value(100);
@@ -257,7 +257,7 @@ public:
 
     void TestDoInvokeMethodCommandOKWithInvalidElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
         param.timeout_value(100);
@@ -269,7 +269,7 @@ public:
 
     void TestDoInvokeMethodCommandFailed()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/non-existing-directory/non-existing-command");
         param.timeout_value(100);
@@ -282,7 +282,7 @@ public:
 
     void TestDoInvokeMethodShellCommandOK()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
         param.timeout_value(100);
@@ -295,7 +295,7 @@ public:
 
     void TestDoInvokeMethodShellCommandOKWithSudoElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
         param.timeout_value(100);
@@ -309,7 +309,7 @@ public:
 
     void TestDoInvokeMethodShellCommandOKWithEmptyElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
         param.timeout_value(100);
@@ -323,7 +323,7 @@ public:
 
     void TestDoInvokeMethodShellCommandOKWithInvalidElevationType()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
         param.timeout_value(100);
@@ -346,7 +346,7 @@ public:
 
     void TestDoInvokeMethodScriptOK()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
@@ -360,7 +360,7 @@ public:
 
     void TestDoInvokeMethodScriptOKWithSudoElevation()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
@@ -375,7 +375,7 @@ public:
 
     void TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
@@ -390,7 +390,7 @@ public:
 
     void TestDoInvokeMethodScriptOKWithEmptyElevation()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
@@ -405,7 +405,7 @@ public:
 
     void TestDoInvokeMethodScriptFailed()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value("#!/bin/sh\n"
             "no_exisiting_command_echo \"$3-$2-$1\"\n"
@@ -422,7 +422,7 @@ public:
 
     void TestDoInvokeMethodScriptNonSH()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
 
         // Try to find bash.
         std::list<std::wstring> bashPaths;
@@ -459,7 +459,7 @@ public:
 
     void TestDoInvokeMethodScriptNoHashBang()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(
             "# write something to stdout stream\n"
@@ -539,7 +539,7 @@ public:
         }
         SCXCore::g_RunAsProvider.SetConfigurator(configurator);
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/bin/touch /ExecuteCommandWasHere");
         param.timeout_value(100);
@@ -564,7 +564,7 @@ public:
         }
         SCXCore::g_RunAsProvider.SetConfigurator(configurator);
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/bin/touch ./ExecuteCommandWasHere");
         param.timeout_value(100);

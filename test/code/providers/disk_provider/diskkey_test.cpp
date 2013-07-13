@@ -81,7 +81,7 @@ private:
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -109,7 +109,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -132,7 +132,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_DiskDrive_Class_Provider>(
             m_keyNamesDD, context, CALL_LOCATION(errMsg));
@@ -140,7 +140,7 @@ public:
 
     void TestFileSystemEnumerateKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_FileSystem_Class_Provider>(
             m_keyNamesFS, context, CALL_LOCATION(errMsg));
@@ -153,7 +153,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(
             m_keyNamesDDS, context, CALL_LOCATION(errMsg));
@@ -161,7 +161,7 @@ public:
 
     void TestFileSystemStatisticalInformationEnumerateKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(
             m_keyNamesFSS, context, CALL_LOCATION(errMsg));
@@ -178,7 +178,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keysSame;// Unused.
@@ -197,7 +197,7 @@ public:
 
     void TestFileSystemCheckKeyValues()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
 
         std::vector<std::wstring> keysSame;// Unused.
@@ -225,7 +225,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_DiskDrive_Class_Provider, mi::SCX_DiskDrive_Class>(
             context, m_keyNamesDD.size(), CALL_LOCATION(errMsg));
@@ -233,7 +233,7 @@ public:
 
     void TestFileSystemGetInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_FileSystem_Class_Provider, mi::SCX_FileSystem_Class>(
             context, m_keyNamesFS.size(), CALL_LOCATION(errMsg));
@@ -246,7 +246,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_DiskDriveStatisticalInformation_Class_Provider,
             mi::SCX_DiskDriveStatisticalInformation_Class>(
@@ -255,7 +255,7 @@ public:
 
     void TestFileSystemStatisticalInformationGetInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_FileSystemStatisticalInformation_Class_Provider,
             mi::SCX_FileSystemStatisticalInformation_Class>(
@@ -264,7 +264,7 @@ public:
 
     void TestVerifyKeyCompletePartialFileSystemStatisticalInformation()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystemStatisticalInformation_Class_Provider,
                 mi::SCX_FileSystemStatisticalInformation_Class>(m_keyNamesFSS, CALL_LOCATION(errMsg));
     }
@@ -276,7 +276,7 @@ public:
             return;
         }
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDriveStatisticalInformation_Class_Provider,
                 mi::SCX_DiskDriveStatisticalInformation_Class>(m_keyNamesDDS, CALL_LOCATION(errMsg));
     }
@@ -292,14 +292,14 @@ public:
             return;
         }
  
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_DiskDrive_Class_Provider,
                 mi::SCX_DiskDrive_Class>(m_keyNamesDD, CALL_LOCATION(errMsg));
     }
 
     void TestVerifyKeyCompletePartialFileSystem()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_FileSystem_Class_Provider,
                 mi::SCX_FileSystem_Class>(m_keyNamesFS, CALL_LOCATION(errMsg));
     }

@@ -93,7 +93,7 @@ public:
         m_keyNamesLANE.push_back(L"SystemName");
         m_keyNamesLANE.push_back(L"CreationClassName");
 
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -125,7 +125,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_EthernetPortStatistics_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -137,28 +137,28 @@ public:
 
     void TestVerifyKeyCompletePartialEthernetPortStatistics()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_EthernetPortStatistics_Class_Provider,
                 mi::SCX_EthernetPortStatistics_Class>(m_keyNamesEPS, CALL_LOCATION(errMsg));
     }
 
     void TestVerifyKeyCompletePartialIPProtocolEndpoint()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_IPProtocolEndpoint_Class_Provider,
                 mi::SCX_IPProtocolEndpoint_Class>(m_keyNamesIPPE, CALL_LOCATION(errMsg));
     }
 
     void TestVerifyKeyCompletePartialLANEndpoint()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_LANEndpoint_Class_Provider,
                 mi::SCX_LANEndpoint_Class>(m_keyNamesLANE, CALL_LOCATION(errMsg));
     }
 
     void TestEnumLANEndpointInstances(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_LANEndpoint_Class_Provider>(
             m_keyNamesLANE, context, CALL_LOCATION(errMsg));
@@ -176,7 +176,7 @@ public:
 
     void TestEnumIPProtocolEndpointInstances(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_IPProtocolEndpoint_Class_Provider>(
             m_keyNamesIPPE, context, CALL_LOCATION(errMsg));
@@ -198,7 +198,7 @@ public:
 
     void TestEnumEthernetPortStatisticsInstances(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_EthernetPortStatistics_Class_Provider>(
             m_keyNamesEPS, context, CALL_LOCATION(errMsg));

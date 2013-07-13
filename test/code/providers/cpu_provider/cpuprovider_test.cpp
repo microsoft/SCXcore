@@ -39,7 +39,7 @@ private:
 public:
     void setUp(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         SetUpAgent<mi::SCX_ProcessorStatisticalInformation_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, true, context.WasRefuseUnloadCalled() );
@@ -48,7 +48,7 @@ public:
 
     void tearDown(void)
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         TearDownAgent<mi::SCX_ProcessorStatisticalInformation_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
@@ -56,7 +56,7 @@ public:
 
     void TestEnumerateInstancesKeysOnly()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateKeysOnly<mi::SCX_ProcessorStatisticalInformation_Class_Provider>(
             m_keyNames, context, CALL_LOCATION(errMsg));
@@ -64,7 +64,7 @@ public:
 
     void TestEnumerateInstances()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestEnumerateInstances<mi::SCX_ProcessorStatisticalInformation_Class_Provider>(
             m_keyNames, context, CALL_LOCATION(errMsg));
@@ -73,21 +73,21 @@ public:
 
     void TestVerifyKeyCompletePartial()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         StandardTestVerifyGetInstanceKeys<mi::SCX_ProcessorStatisticalInformation_Class_Provider,
                 mi::SCX_ProcessorStatisticalInformation_Class>(m_keyNames, CALL_LOCATION(errMsg));
     }
 
     void TestGetInstance()
     {
-        std::wostringstream errMsg;
+        std::wstring errMsg;
         TestableContext context;
         StandardTestGetInstance<mi::SCX_ProcessorStatisticalInformation_Class_Provider,
             mi::SCX_ProcessorStatisticalInformation_Class>(context, m_keyNames.size(), CALL_LOCATION(errMsg));
         ValidateInstance(context, CALL_LOCATION(errMsg));
     }
 
-    void ValidateInstance(const TestableContext& context, std::wostringstream &errMsg)
+    void ValidateInstance(const TestableContext& context, std::wstring errMsg)
     {
         for (size_t n = 0; n < context.Size(); n++)
         {
