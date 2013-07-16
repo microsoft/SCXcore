@@ -78,9 +78,9 @@ using SCXCoreLib::StrToMultibyte;
 */
 wstring SCXSSLException::What() const 
 { 
-    // Example:
-    // Error generating SSL Certificate 'unable to write file'
-    return L"Error generating SSL certificate: '" + m_Reason + L"'";
+    return L"Error generating SSL certificate.  Use scxsslconfig to "
+        L"generate a new certificate, specifying host and domain names if "
+        L"necessary.  The error was: '" + m_Reason + L"'";
  }
 
 /******************************************************************************
