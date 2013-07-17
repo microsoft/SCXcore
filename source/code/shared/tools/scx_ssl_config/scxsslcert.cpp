@@ -64,6 +64,17 @@ using SCXCoreLib::SCXNULLPointerException;
 using SCXCoreLib::StrFromMultibyte;
 using SCXCoreLib::StrToMultibyte;
 
+// Define constant strings for the IDN library name based on platform:
+//      For UNIX: libidn.so
+//      For Linux: libcidn.so
+// Take care that Universal Linux is counted as Linux
+
+#if defined(aix) || defined(hpux) || defined(sun)
+const char *s_idnLibraryName = "libidn.so";
+#else
+const char *s_idnLibraryName = "libcidn.so";
+#endif
+
 
 /******************************************************************************
  *  
@@ -844,7 +855,7 @@ void * SCXSSLCertificateLocalizedDomain::GetLibIDN(void)
     // Use dlopen() to look in the usual places ... this will
     // work if libcidn.so is a softlink chaining to a binary, 
     // which will be the case if the idn devel library is installed.
-    pLib = dlopen("libcidn.so", RTLD_LOCAL|RTLD_LAZY); 
+    pLib = dlopen(s_idnLibraryName, RTLD_LOCAL|RTLD_LAZY); 
     if(pLib)
         return pLib; 
 
@@ -902,10 +913,11 @@ void * SCXSSLCertificateLocalizedDomain::GetLibIDNByDirectory(const char * sDir)
     // one that will trap any positive integer of any length and exclude all
     // non-digits. So this is done the old fashioned way, with a trailing '*' and a 
     // validation routine. 
-    file_path.SetFilename(L"libcidn.so.*"); 
+    std::wstring idnName(SCXCoreLib::StrFromUTF8(s_idnLibraryName));
+    idnName += L".*";
+    file_path.SetFilename(idnName);
 
     SCXCoreLib::SCXGlob glob(file_path.Get());
-
     SCXCoreLib::SCXFilePath path; 
 
     glob.DoGlob();
