@@ -68,7 +68,6 @@ class HPUXPackageFile(Installer):
         configure.WriteLn('set -e')
         configure.CallFunction(configure.CreateSoftLinkToSudo())
         configure.CallFunction(configure.WriteInstallInfo())
-        configure.CallFunction(configure.GenerateCertificate())
         configure.WriteLn('set +e')
         configure.CallFunction(configure.UnconfigureScxPAM())
         configure.CallFunction(configure.ConfigurePAM())
@@ -77,8 +76,9 @@ class HPUXPackageFile(Installer):
         configure.CallFunction(configure.RemoveConfBackupTemp())
         configure.CallFunction(configure.ConfigureOmiService())
         configure.WriteLn('set -e')
+        # Generate only after everything else been done (allow manual recovery)
+        configure.CallFunction(configure.GenerateCertificate())
         configure.CallFunction(configure.StartOmiService())
-        configure.WriteLn('set +e')
         configure.WriteLn('exit 0')
         configure.Generate()
 

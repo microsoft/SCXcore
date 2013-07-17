@@ -68,7 +68,6 @@ class SunOSPKGFile(Installer):
             postInstall.WriteLn('set +e')
             postInstall.CallFunction(postInstall.CreateLink_usr_sbin_scxadmin())
             postInstall.WriteLn('set -e')
-        postInstall.CallFunction(postInstall.GenerateCertificate())
         postInstall.WriteLn('set +e')
         postInstall.CallFunction(postInstall.UnconfigureScxPAM())
         postInstall.CallFunction(postInstall.ConfigurePAM())
@@ -77,8 +76,9 @@ class SunOSPKGFile(Installer):
         postInstall.CallFunction(postInstall.HandleConfigFiles())
         postInstall.CallFunction(postInstall.RemoveConfBackupTemp())
         postInstall.CallFunction(postInstall.ConfigureOmiService())
+        # Generate only after everything else been done (allow manual recovery)
+        postInstall.CallFunction(postInstall.GenerateCertificate())
         postInstall.CallFunction(postInstall.StartOmiService())
-        postInstall.WriteLn('set +e')
         postInstall.WriteLn('exit 0')
         postInstall.Generate()
 
