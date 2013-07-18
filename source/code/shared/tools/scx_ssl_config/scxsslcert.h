@@ -171,7 +171,7 @@ private:
       \param[in]    hLib      Library handle to close
     */
     AutoClose(void * hLib) : m_hLib(hLib) {}
-        ~AutoClose();
+    ~AutoClose();
 
     private:
         void * m_hLib;     //!< Library handle
@@ -179,6 +179,8 @@ private:
 
 private:
     std::wstring m_domainname_raw;
+
+    friend class ScxSSLCertTest;
 };
 
 #endif /* SCXSSLCERT_H */

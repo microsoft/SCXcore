@@ -21,8 +21,16 @@
 #include <scxcorelib/scxprocess.h>
 #include <testutils/scxtestutils.h>
 #include <scxcorelib/scxnameresolver.h>
-#include <string>
+
 #include <iostream>
+#include <string>
+
+#if defined(linux)
+  static const bool s_fIsLinux = true;
+#else
+  static const bool s_fIsLinux = false;
+#endif
+
 
 using std::cout;
 using std::wcout;
@@ -44,7 +52,6 @@ class ScxSSLCertTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST_SUITE_END();
 
 private:
-
     class SCXSSLCertificateTest : public SCXSSLCertificate
     {
     public:
@@ -232,26 +239,24 @@ public:
         }
         catch(SCXSSLException e)
         {
-// If it is a Linux platform, it has no right to fail. 
-#if defined(linux) 
-            
-            std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
-            CPPUNIT_ASSERT_MESSAGE(msg, false);
-            
-#endif
+            // All Linux platforms should have the IDN libraries installed
+            if (s_fIsLinux)
+            {
+                std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
+                CPPUNIT_ASSERT_MESSAGE(msg, false);
+            }
+
             // A unix platform can drop through here, we expect an exception .. 
         }
 
-// If it is a unix platform, it has no right to succeed.
-#if  ! defined(linux) 
-        
-        if(bConverted)
+        // If the UNIX system doesn't have the libidn libraries, we shouldn't have worked ... verify that
+        if( bConverted )
         {
-            std::string msg("Expected a failure to convert on this platform, succeeded mysteriously, fail (" + debugChatter.str() + ")");
-            CPPUNIT_ASSERT_MESSAGE(msg, false);
-        }
+            void * hLib = SCXSSLCertificateLocalizedDomain::GetLibIDN();
+            SCXSSLCertificateLocalizedDomain::AutoClose aclib(hLib);
 
-#endif
+            CPPUNIT_ASSERT_MESSAGE("Expected a failure to convert on this platform, but it succeeded (" + debugChatter.str() + ")", hLib != NULL);
+        }
     }
 
 
@@ -290,7 +295,7 @@ public:
         certPath.SetFilename(L"scx-test-cert.pem"); 
 
         std::string hostname("myhostname");
-        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, SCXCoreLib::StrFromMultibyte(hostname), L"vanilladomain.com", 2048);
+        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, SCXCoreLib::StrFromUTF8(hostname), L"vanilladomain.com", 2048);
             
         try
         {
@@ -310,7 +315,7 @@ public:
         }
         catch(SCXSSLException e)
         {
-// should succeed everywhere
+            // Should succeed everywhere
             std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
             CPPUNIT_ASSERT_MESSAGE(msg, false);
         }
@@ -321,58 +326,55 @@ public:
         bool bConverted = false;
         std::ostringstream debugChatter;
  
-        SCXCoreLib::SCXFilePath keyPath; 
-        keyPath.SetDirectory(L"./testfiles"); 
-        keyPath.SetFilename(L"scx-test-key.pem"); 
+        SCXCoreLib::SCXFilePath keyPath;
+        keyPath.SetDirectory(L"./testfiles");
+        keyPath.SetFilename(L"scx-test-key.pem");
 
-        SCXCoreLib::SCXFilePath certPath; 
-        certPath.SetDirectory(L"./testfiles");  
-        certPath.SetFilename(L"scx-test-cert.pem"); 
+        SCXCoreLib::SCXFilePath certPath;
+        certPath.SetDirectory(L"./testfiles");
+        certPath.SetFilename(L"scx-test-cert.pem");
 
         std::string hostname("myhostname");
-        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, SCXCoreLib::StrFromMultibyte(hostname), L"bücher.com", 2048);
-            
+        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, SCXCoreLib::StrFromUTF8(hostname), L"bücher.com", 2048);
+
         try
         {
             cert.Generate(debugChatter);
 
-            // Will self delete to clean up 
+            // Will self delete to clean up
             SCXCoreLib::SelfDeletingFilePath sdCertPath(cert.m_CertPath.Get());
             SCXCoreLib::SelfDeletingFilePath sdKeyPath(cert.m_KeyPath.Get());
 
             //xn--bcher-kva.com is what bücher.com should be in punycode
             CPPUNIT_ASSERT_MESSAGE("Punycode function produced incorrect output", 0 == cert.m_domainname.compare(L"xn--bcher-kva.com"));
             CPPUNIT_ASSERT_MESSAGE("Output certificate file not found", SCXCoreLib::SCXFile::Exists(cert.m_CertPath));
-            CPPUNIT_ASSERT_MESSAGE("Certificate mismatch or corruption", CheckCertificate(cert.m_CertPath.Get(), std::string("xn--bcher-kva"), hostname)); 
+            CPPUNIT_ASSERT_MESSAGE("Certificate mismatch or corruption", CheckCertificate(cert.m_CertPath.Get(), std::string("xn--bcher-kva"), hostname));
             CPPUNIT_ASSERT_MESSAGE("Output key file not found", SCXCoreLib::SCXFile::Exists(cert.m_KeyPath));
-            
+
             cout << debugChatter.str();
             bConverted = true;
         }
         catch(SCXSSLException e)
         {
-// If it is a non-unix platform, it has no right to fail. 
-#if defined(linux)  
-            
-            std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
-            CPPUNIT_ASSERT_MESSAGE(msg, false);
-            
-#endif
+            // All Linux platforms should have the IDN libraries installed
+            if (s_fIsLinux)
+            {
+                std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
+                CPPUNIT_ASSERT_MESSAGE(msg, false);
+            }
+
             // A unix platform can drop through here, we expect an exception .. 
         }
 
-// If it is a unix platform, it has no right to succeed.
-#if ! defined(linux) 
-        
-        if(bConverted)
+        // If the UNIX system doesn't have the libidn libraries, we shouldn't have worked ... verify that
+        if( bConverted )
         {
-            std::string msg("Expected a failure to convert on this platform, succeeded mysteriously, fail (" + debugChatter.str() + ")");
-            CPPUNIT_ASSERT_MESSAGE(msg, false);
-        }
+            void * hLib = SCXSSLCertificateLocalizedDomain::GetLibIDN();
+            SCXSSLCertificateLocalizedDomain::AutoClose aclib(hLib);
 
-#endif
+            CPPUNIT_ASSERT_MESSAGE("Expected a failure to convert on this platform, but it succeeded (" + debugChatter.str() + ")", hLib != NULL);
+        }
     }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( ScxSSLCertTest );
-
