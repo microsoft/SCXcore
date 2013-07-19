@@ -985,18 +985,32 @@ namespace SCXSystemLib
         }
         
         if(fJboss7Check)
-        {
+        {            
             try {
-            
+                
                 filename2.Append(L"bin/");
-                 
+                
                 std::istringstream in;
                 std::ostringstream out;
                 std::ostringstream err;
-                 
+                
+                // Get command line from function
+                // Determine parse full string to only get filepath/standalone.sh
+                // Determine if SCXFileExists(..filepath/standalone.sh)
+                // Only use SCXProcess::Run If standalone.sh exists
+
                 wstring cli = m_deps->GetJboss7Command(filename2);
 
-                if(cli.length())
+                std::size_t found = cli.find( L" --version");
+                bool jboss7StandaloneFilePathExist = false;
+                
+                if(found!=std::wstring::npos)
+                {
+                    SCXFilePath standaloneFileInJB7(cli.substr(0,found));
+                    jboss7StandaloneFilePathExist = SCXFile::Exists(standaloneFileInJB7); 
+                }
+
+                if(cli.length() && jboss7StandaloneFilePathExist)
                 {
                     int exitStatus = SCXCoreLib::SCXProcess::Run(cli,in,out,err,10000);
             
