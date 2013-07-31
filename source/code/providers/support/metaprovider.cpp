@@ -13,6 +13,7 @@
 /*----------------------------------------------------------------------------*/
 
 #include <scxcorelib/scxcmn.h>
+#include <scxcorelib/scxlocale.h>
 #include <scxcorelib/scxstream.h>
 
 #include "metaprovider.h"
@@ -55,6 +56,10 @@ namespace SCXCore
             m_log = SCXCoreLib::SCXLogHandleFactory::GetLogHandle(L"scx.core.providers.metaprovider");
             LogStartup();
             SCX_LOGTRACE(m_log, L"MetaProvider::Load()");
+
+            /* The seems like a suitable place to report the active locale */
+            SCX_LOGINFO(m_log, SCXCoreLib::StrAppend(L"Active locale setting is ",
+                        SCXCoreLib::SCXLocaleContext::GetActiveLocale()));
 
             ReadInstallInfoFile();
             GetReleaseDate();
