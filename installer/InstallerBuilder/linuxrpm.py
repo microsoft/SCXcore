@@ -285,3 +285,8 @@ class LinuxRPMFile(Installer):
         scxutil.Move(os.path.join(rpmpath, rpmfilename), os.path.join(self.targetDir, rpmNewFileName))
         print "Moved to: " + os.path.join(self.targetDir, rpmNewFileName)
 
+        # Build the bundle file
+
+        print
+        print "Building bundle file from kit: %s ..." % rpmNewFileName
+        os.system('../installer/bundle/create_bundle.sh linux %s %s' % (self.targetDir, rpmNewFileName))

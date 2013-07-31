@@ -1,0 +1,250 @@
+#!/bin/sh
+#
+#
+# This script is a skeleton bundle file for primary platforms (Redhat, SUSE,
+# AIX, HP, and Solaris).  It should not be used for secondary platforms (such
+# as ULINUX); these have a separate bundle file.
+#
+# Use this script by concatenating it with some binary package.
+#
+# The bundle is created by cat'ing the script in front of the binary, so for
+# the gzip'ed tar example, a command like the following will build the bundle:
+#
+#     tar -cfvz - <target-dir> | cat sfx.skel - > my.bundle
+#
+# The bundle can then be copied to a system, made executable (chmod +x) and
+# then run.  When run without any options it will make any pre-extraction
+# calls, extract the binary, and then make any post-extraction calls.
+#
+# This script has some usefull helper options to split out the script and/or
+# binary in place, and to turn on shell debugging.
+#
+# The magic of this script is the regular expression used by sed to find the
+# transition between the script and the binary file.  In this example it is
+# the line that starts with WHITESPACE, followed by "#####>>-", followd by
+# any text, and ending with "-<<#####".  The regular expression is:
+#
+#     /^[[:space:]]*#####>>-.*-<<#####$/
+#
+# Note The use of the class [:space:], which may not be supported on some
+#      platforms.  If that is the case, it may be necessary to replace the class
+#      with a space and a tab character.  If this is the case, it is important
+#      that anyone editing the document is careful not to use an editor that
+#      replaces tabs with spaces.
+#
+# Note: The sequences "#####>>-" and "-<<#####" can be anything that is
+#       sufficiently unique that it won't appear in the script or binary
+#       at the begining/end of a line.
+#
+# Note: It is important that the delimiter line is followed by a single,
+#       empty line.  Otherwise the binary portion, wheather it is a tarball
+#       an install package, or an actual executable will basically be corupted
+#       with leading garbage characters.
+#
+
+
+set -e
+PATH=/usr/bin:/bin
+umask 022
+
+# Can't use something like 'readlink -e $0' because that doesn't work everywhere
+SCRIPT_INDIRECT="`dirname $PWD/$0`"
+SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
+SCRIPT="$SCRIPT_DIR/`basename $0`"
+
+# These symbols will get replaced during the bundle creation process.
+#
+# The PLATFORM symbol should contain ONE of the following:
+#	linux, aix, hpux, sun
+# (It is assumed that, from an installation perspective, RHEL and SUSE are
+# identical).
+#
+# The OM_PKG symbol should contain something like:
+#	scx-1.5.1-115.rhel.6.x64.rpm
+
+PLATFORM=<PLATFORM_TYPE>
+OM_PKG=<OM_PKG>
+
+
+usage()
+{
+    echo "usage: $1 [OPTIONS]"
+    echo "Options:"
+    echo "  --extract-script FILE  extract the script to FILE."
+    echo "  --extract-binary FILE  extract the binary to FILE."
+    echo "  --force                Force upgrade (override version checks)."
+    echo "  --install              Install the package from the system."
+    echo "  --purge                Uninstall the package and remove all related data."
+    echo "  --remove               Uninstall the package from the system."
+    echo "  --upgrade              Upgrade the package in the system."
+    echo "  --debug                use shell debug mode."
+    echo "  -? | --help            shows this usage text."
+}
+
+
+verifyNoInstallationOption()
+{
+    if [ -n "${installMode}" ]; then
+	echo "$0: Conflicting qualifiers, exiting" >&2
+	exit 1
+    fi
+
+    return;
+}
+
+while [ $# -ne 0 ]
+do
+    case "$1" in
+	--extract-script)
+	    # hidden option, not part of usage
+	    sed -n -e '1,/^[ 	]*#####>>-.*-<<#####$/p' "${SCRIPT}" > "$2"
+	    local shouldexit=true
+	    shift 2
+	    ;;
+
+	--extract-binary)
+	    # hidden option, not part of usage
+	    sed -e '1,/^[ 	]*#####>>-.*-<<#####$/d' "${SCRIPT}" > "$2"
+	    local shouldexit=true
+	    shift 2
+	    ;;
+
+	--force)
+	    forceFlag=true
+	    shift 1
+	    ;;
+
+	--install)
+	    verifyNoInstallationOption
+	    installMode=I
+	    shift 1
+	    ;;
+
+	--purge)
+	    verifyNoInstallationOption
+	    installMode=P
+	    shouldexit=true
+	    shift 1
+	    ;;
+
+	--remove)
+	    verifyNoInstallationOption
+	    installMode=R
+	    shouldexit=true
+	    shift 1
+	    ;;
+
+	--upgrade)
+	    verifyNoInstallationOption
+	    installMode=U
+	    shift 1
+	    ;;
+
+	--debug)
+	    echo "Starting shell debug mode." >&2
+	    set -x
+	    shift 1
+	    ;;
+
+	-? | --help)
+	    usage `basename $0` >&2
+	    exit 0
+	    ;;
+
+	*)
+	    usage `basename $0` >&2
+	    exit 1
+	    ;;
+    esac
+done
+
+# Determine install/deinstall command lines
+
+[ -n "${forceFlag}" ] && FORCE="--force"
+case "$PLATFORM" in
+    linux)
+	PKG_ADD="rpm --install $OM_PKG"
+	PKG_RM="rpm --erase scx"
+	PKG_UPD="rpm --upgrade $FORCE $OM_PKG"
+	;;
+
+    *)
+	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+	exit 2
+esac
+
+# Do we need to remove the package?
+
+if [ "$installMode" = "R" -o "$installMode" = "P" ]
+then
+    echo "Removing cross-platform agent ..."
+    ${PKG_RM}
+
+    if [ "$installMode" = "P" ]
+    then
+	echo "Purging all files in cross-platform agent ..."
+	rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
+    fi
+fi
+
+if [ -n "${shouldexit}" ]
+then
+    # when extracting script/tarball don't also install
+    exit 0
+fi
+
+#
+# Do stuff before extracting the binary here, for example test [ `id -u` -eq 0 ],
+# validate space, platform, uninstall a previous version, backup config data, etc...
+#
+
+#
+# Extract the binary here.
+#
+
+echo "Extracting..."
+sed -e '1,/^[ 	]*#####>>-.*-<<#####$/d' "${SCRIPT}" | tar xzf -
+STATUS=$?
+if [ ${STATUS} -ne 0 ]
+then
+    echo "Failed: could not extract the install bundle."
+    exit ${STATUS}
+fi
+
+# Default behavior is to extract the bundle and then exit
+
+[ -z "$installMode" ] && exit 0
+
+#
+# Do stuff after extracting the binary here, such as actually installing the package.
+#
+
+set +e
+EXIT_STATUS=0
+
+case "$installMode" in
+    I)
+	echo "Installing cross-platform agent ..."
+	${PKG_ADD}
+	EXIT_STATUS=$?
+	;;
+
+    U)
+	echo "Updating cross-platform agent ..."
+	${PKG_UPD}
+	EXIT_STATUS=$?
+	;;
+
+    *)
+	echo "$0: Invalid setting of variable \$installMode, exiting" >&2
+	exit 2
+esac
+
+# Remove the package that was extracted as part of the bundle
+# NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
+
+rm $OM_PKG
+
+exit $EXIT_STATUS
+
+#####>>- This must be the last line of this script, followed by a single empty line. -<<#####
