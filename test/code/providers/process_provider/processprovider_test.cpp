@@ -250,12 +250,10 @@ public:
             tmpExpectedProperties.push_back(L"RealUserID");
             tmpExpectedProperties.push_back(L"ProcessGroupID");
             tmpExpectedProperties.push_back(L"ProcessNiceValue");
-            
+            tmpExpectedProperties.push_back(L"Priority");
 #if defined(hpux)
-            tmpPossibleProperties.push_back(L"Priority");
             tmpPossibleProperties.push_back(L"ProcessSessionID");
 #else
-            tmpExpectedProperties.push_back(L"Priority");
             tmpExpectedProperties.push_back(L"ProcessSessionID");
 #endif
 #if !(defined(linux) || defined(aix) || defined(sun))
