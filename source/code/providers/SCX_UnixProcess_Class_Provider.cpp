@@ -132,7 +132,7 @@ static void EnumerateOneInstance(Context& context,
             inst.Name_value(name.c_str());
         }
 
-        if (processinst->GetPriority(uint))
+        if (processinst->GetNormalizedWin32Priority(uint))
         {
             inst.Priority_value(uint);
         }
