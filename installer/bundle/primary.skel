@@ -10,7 +10,7 @@
 # The bundle is created by cat'ing the script in front of the binary, so for
 # the gzip'ed tar example, a command like the following will build the bundle:
 #
-#     tar -cfvz - <target-dir> | cat sfx.skel - > my.bundle
+#     tar -czvf - <target-dir> | cat sfx.skel - > my.bundle
 #
 # The bundle can then be copied to a system, made executable (chmod +x) and
 # then run.  When run without any options it will make any pre-extraction
@@ -163,6 +163,13 @@ case "$PLATFORM" in
 	PKG_UPD="/usr/sbin/installp -X $FORCE -d $OM_PKG scx.rte"
 	;;
 
+    hpux)
+	[ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
+	PKG_ADD="/usr/sbin/swinstall -s $PWD/$OM_PKG scx"
+	PKG_RM="/usr/sbin/swremove scx"
+	PKG_UPD="/usr/sbin/swinstall $FORCE -s $PWD/$OM_PKG scx"
+	;;
+
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
 	exit 2
@@ -206,6 +213,10 @@ case "$PLATFORM" in
 
     aix)
 	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
+	;;
+
+    hpux)
+	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
 	;;
 
     *)

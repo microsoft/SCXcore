@@ -106,12 +106,17 @@ cp $OUTPUT_DIR/$3 .
 case "$1" in
     linux)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
-	tar cfvz - $3 | cat primary.skel - > $BUNDLE_FILE
+	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     aix)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp/.sh/"`
-	tar cfv - $3 | gzip -c | cat primary.skel - > $BUNDLE_FILE
+	tar cvf - $3 | gzip -c | cat primary.skel - > $BUNDLE_FILE
+	;;
+
+    hpux)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.depot/.sh/"`
+	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     *)
