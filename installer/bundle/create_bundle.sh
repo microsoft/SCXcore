@@ -71,8 +71,7 @@ if [ ! -f "$2/$3" ]; then
     exit 1
 fi
 
-# Determine the bundle file name
-BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
+# Determine the output file name
 OUTPUT_DIR=`(cd $2; pwd -P)`
 
 # Work from the temporary directory from this point forward
@@ -90,11 +89,36 @@ mv primary.$$ primary.skel
 sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$3/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
+SCRIPT_LEN=`wc -l < primary.skel`
+SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
+
+sed -e "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/" < primary.skel > primary.$$
+mv primary.$$ primary.skel
+
+sed -e "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/" < primary.skel > primary.$$
+mv primary.$$ primary.skel
+
+
 # Fetch the kit
 cp $OUTPUT_DIR/$3 .
 
 # Build the bundle
-tar cfvz - $3 | cat primary.skel - > $BUNDLE_FILE
+case "$1" in
+    linux)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
+	tar cfvz - $3 | cat primary.skel - > $BUNDLE_FILE
+	;;
+
+    aix)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp/.sh/"`
+	tar cfv - $3 | gzip -c | cat primary.skel - > $BUNDLE_FILE
+	;;
+
+    *)
+	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+	exit 2
+esac
+
 chmod +x $BUNDLE_FILE
 rm primary.skel
 

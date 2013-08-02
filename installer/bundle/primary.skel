@@ -19,29 +19,15 @@
 # This script has some usefull helper options to split out the script and/or
 # binary in place, and to turn on shell debugging.
 #
-# The magic of this script is the regular expression used by sed to find the
-# transition between the script and the binary file.  In this example it is
-# the line that starts with WHITESPACE, followed by "#####>>-", followd by
-# any text, and ending with "-<<#####".  The regular expression is:
+# This script is paired with create_bundle.sh, which will edit constants in
+# this script for proper execution at runtime.  The "magic", here, is that
+# create_bundle.sh encodes the length of this script in the script itself.
+# Then the script can use that with 'tail' in order to strip the script from
+# the binary package.
 #
-#     /^[[:space:]]*#####>>-.*-<<#####$/
-#
-# Note The use of the class [:space:], which may not be supported on some
-#      platforms.  If that is the case, it may be necessary to replace the class
-#      with a space and a tab character.  If this is the case, it is important
-#      that anyone editing the document is careful not to use an editor that
-#      replaces tabs with spaces.
-#
-# Note: The sequences "#####>>-" and "-<<#####" can be anything that is
-#       sufficiently unique that it won't appear in the script or binary
-#       at the begining/end of a line.
-#
-# Note: It is important that the delimiter line is followed by a single,
-#       empty line.  Otherwise the binary portion, wheather it is a tarball
-#       an install package, or an actual executable will basically be corupted
-#       with leading garbage characters.
-#
-
+# Developer note: A prior incarnation of this script used 'sed' to strip the
+# script from the binary package.  That didn't work on AIX 5, where 'sed' did
+# strip the binary package - AND null bytes, creating a corrupted stream.
 
 set -e
 PATH=/usr/bin:/bin
@@ -64,14 +50,14 @@ SCRIPT="$SCRIPT_DIR/`basename $0`"
 
 PLATFORM=<PLATFORM_TYPE>
 OM_PKG=<OM_PKG>
+SCRIPT_LEN=<SCRIPT_LEN>
+SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>
 
 
 usage()
 {
     echo "usage: $1 [OPTIONS]"
     echo "Options:"
-    echo "  --extract-script FILE  extract the script to FILE."
-    echo "  --extract-binary FILE  extract the binary to FILE."
     echo "  --force                Force upgrade (override version checks)."
     echo "  --install              Install the package from the system."
     echo "  --purge                Uninstall the package and remove all related data."
@@ -97,14 +83,16 @@ do
     case "$1" in
 	--extract-script)
 	    # hidden option, not part of usage
-	    sed -n -e '1,/^[ 	]*#####>>-.*-<<#####$/p' "${SCRIPT}" > "$2"
+	    # echo "  --extract-script FILE  extract the script to FILE."
+	    head -${SCRIPT_LEN} "${SCRIPT}" > "$2"
 	    local shouldexit=true
 	    shift 2
 	    ;;
 
 	--extract-binary)
 	    # hidden option, not part of usage
-	    sed -e '1,/^[ 	]*#####>>-.*-<<#####$/d' "${SCRIPT}" > "$2"
+	    # echo "  --extract-binary FILE  extract the binary to FILE."
+	    tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" > "$2"
 	    local shouldexit=true
 	    shift 2
 	    ;;
@@ -160,12 +148,19 @@ done
 
 # Determine install/deinstall command lines
 
-[ -n "${forceFlag}" ] && FORCE="--force"
 case "$PLATFORM" in
     linux)
+	[ -n "${forceFlag}" ] && FORCE="--force"
 	PKG_ADD="rpm --install $OM_PKG"
 	PKG_RM="rpm --erase scx"
 	PKG_UPD="rpm --upgrade $FORCE $OM_PKG"
+	;;
+
+    aix)
+	[ -n "${forceFlag}" ] && FORCE="-F"
+	PKG_ADD="/usr/sbin/installp -X -d $OM_PKG scx.rte"
+	PKG_RM="/usr/sbin/installp -u scx.rte"
+	PKG_UPD="/usr/sbin/installp -X $FORCE -d $OM_PKG scx.rte"
 	;;
 
     *)
@@ -203,7 +198,21 @@ fi
 #
 
 echo "Extracting..."
-sed -e '1,/^[ 	]*#####>>-.*-<<#####$/d' "${SCRIPT}" | tar xzf -
+
+case "$PLATFORM" in
+    linux)
+	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
+	;;
+
+    aix)
+	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
+	;;
+
+    *)
+	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+	exit 2
+esac
+
 STATUS=$?
 if [ ${STATUS} -ne 0 ]
 then

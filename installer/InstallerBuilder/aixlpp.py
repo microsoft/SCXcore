@@ -252,13 +252,22 @@ class AIXLPPFile(Installer):
     # Actually creates the finished package file.
     #
     def BuildPackage(self):
-        lppfilename = os.path.join(self.targetDir, 'scx-' + \
-                                   self.configuration['version'] + '-' + \
-                                   self.configuration['release'] + \
-                                   '.aix.' + str(self.configuration['pfmajor']) + '.' + \
-                                   self.configuration['pfarch'] + '.lpp')
+        lppbasefilename = 'scx-' + \
+            self.configuration['version'] + '-' + \
+            self.configuration['release'] + \
+            '.aix.' + str(self.configuration['pfmajor']) + '.' + \
+            self.configuration['pfarch'] + '.lpp'
+        lppfilename = os.path.join(self.targetDir, lppbasefilename)
         os.system('cd ' + self.stagingRootDir + \
                   ' && find . | grep -v \"^\\.$\" | backup -ivqf ' + lppfilename)
+
+        # Build the bundle file
+
+        print
+        print "Building bundle file from kit: %s ..." % lppfilename
+        os.system('../installer/bundle/create_bundle.sh aix %s %s' % (self.targetDir, lppbasefilename))
+
+        # Compress the package
+        print
+        print "Compressing AIX kit: %s ..." % lppfilename
         os.system('gzip -f ' + lppfilename)
-
-
