@@ -196,11 +196,20 @@ class HPUXPackageFile(Installer):
         else:
             arch = self.configuration['pfarch']
 
-        depotfilename = os.path.join(self.targetDir, 'scx-' + \
+        depotbasefilename = 'scx-' + \
                                      self.configuration['version'] + '-' + \
                                      self.configuration['release'] + \
-                                     '.hpux.' + osversion + '.' + arch + '.depot')
+                                     '.hpux.' + osversion + '.' + arch + '.depot'
+        depotfilename = os.path.join(self.targetDir, depotbasefilename)
         os.system('/usr/sbin/swpackage -s ' + os.path.join(self.tempDir, self.specificationFileName) + ' -x run_as_superuser=false -x admin_directory=' + self.intermediateDir + ' -x media_type=tape @ ' + depotfilename)
-        os.system('compress -f ' + depotfilename)
-        
 
+        # Build the bundle file
+
+        print
+        print "Building bundle file from kit: %s ..." % depotfilename
+        os.system('../installer/bundle/create_bundle.sh hpux %s %s' % (self.targetDir, depotbasefilename))
+
+        # Compress the package
+        print
+        print "Compressing HP-UX kit: %s ..." % depotfilename
+        os.system('compress -f ' + depotfilename)
