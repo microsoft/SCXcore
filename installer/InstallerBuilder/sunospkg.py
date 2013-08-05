@@ -235,14 +235,23 @@ class SunOSPKGFile(Installer):
                   ' -r ' + self.stagingDir.GetRootPath() + \
                   ' -f ' + self.prototypeFileName + \
                   ' -d ' + self.tempDir)
-        pkgfilename = os.path.join(self.targetDir, 'scx-' + \
+        pkgbasefilename = 'scx-' + \
                                    self.configuration['version'] + '-' + \
                                    self.configuration['release'] + \
                                    '.solaris.' + str(self.configuration['pfminor']) + '.' + \
-                                   self.configuration['pfarch'] + '.pkg')
+                                   self.configuration['pfarch'] + '.pkg'
+        pkgfilename = os.path.join(self.targetDir, pkgbasefilename)
         os.system('pkgtrans -s ' + self.tempDir + ' ' + pkgfilename + ' ' + 'MSFT' + self.configuration['short_name'])
 
-        # Note: On a "Core System Support" installation, gzip doesn't exist - use compress instead
+        # Build the bundle file
+
+        print
+        print "Building bundle file from kit: %s ..." % pkgfilename
+        os.system('../installer/bundle/create_bundle.sh sun %s %s' % (self.targetDir, pkgbasefilename))
+
+        # Compress the package
+        print
+        print "Compressing Solaris kit: %s ..." % pkgfilename
         os.system('compress -f ' + pkgfilename)
 
 
