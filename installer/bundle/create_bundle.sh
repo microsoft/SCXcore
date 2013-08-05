@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #
 # This script will create a bundle file given an existing kit.
@@ -89,7 +89,7 @@ mv primary.$$ primary.skel
 sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$3/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
-SCRIPT_LEN=`wc -l < primary.skel`
+SCRIPT_LEN=`wc -l < primary.skel | sed -e 's/ //g'`
 SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
 
 sed -e "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/" < primary.skel > primary.$$
@@ -116,6 +116,11 @@ case "$1" in
 
     hpux)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.depot/.sh/"`
+	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
+	;;
+
+    sun)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg/.sh/"`
 	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
 	;;
 

@@ -78,6 +78,9 @@ verifyNoInstallationOption()
     return;
 }
 
+# Only Solaris doesn't allow the -n qualifier in 'tail' command
+[ "$PLATFORM" != "sun" ] && TAIL_CQUAL="-n"
+
 while [ $# -ne 0 ]
 do
     case "$1" in
@@ -92,7 +95,7 @@ do
 	--extract-binary)
 	    # hidden option, not part of usage
 	    # echo "  --extract-binary FILE  extract the binary to FILE."
-	    tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" > "$2"
+	    tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" > "$2"
 	    local shouldexit=true
 	    shift 2
 	    ;;
@@ -170,17 +173,43 @@ case "$PLATFORM" in
 	PKG_UPD="/usr/sbin/swinstall $FORCE -s $PWD/$OM_PKG scx"
 	;;
 
+    sun)
+	# No notion of "--force" since Sun package has no notion of update
+	PKG_ADD="/usr/sbin/pkgadd -a scx-admin -n -d $OM_PKG MSFTscx"
+	PKG_RM="/usr/sbin/pkgrm -a scx-admin -n MSFTscx"
+	PKG_UPD="$PKG_ADD"
+	;;
+
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
 	exit 2
 esac
+
+# Create installation administrative file for Solaris platform if needed
+CLEANUP=""
+if [ "$PLATFORM" = "sun" ]; then
+    CLEANUP='rm -f scx-admin'
+    echo "mail=" > scx-admin
+    echo "instance=overwrite" >> scx-admin
+    echo "partial=nocheck" >> scx-admin
+    echo "idepend=quit" >> scx-admin
+    echo "rdepend=quit" >> scx-admin
+    echo "conflict=nocheck" >> scx-admin
+    echo "action=nocheck" >> scx-admin
+    echo "basedir=default" >> scx-admin
+fi
 
 # Do we need to remove the package?
 
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
     echo "Removing cross-platform agent ..."
+    set +e
     ${PKG_RM}
+    EXIT_STATUS=$?
+    ${CLEANUP}
+    [ $EXIT_STATUS -ne 0 ] && exit $EXIT_STATUS
+    set -e
 
     if [ "$installMode" = "P" ]
     then
@@ -192,6 +221,7 @@ fi
 if [ -n "${shouldexit}" ]
 then
     # when extracting script/tarball don't also install
+    ${CLEANUP}
     exit 0
 fi
 
@@ -215,12 +245,13 @@ case "$PLATFORM" in
 	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
 	;;
 
-    hpux)
-	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
+    hpux|sun)
+	tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
 	;;
 
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+	${CLEANUP}
 	exit 2
 esac
 
@@ -228,12 +259,13 @@ STATUS=$?
 if [ ${STATUS} -ne 0 ]
 then
     echo "Failed: could not extract the install bundle."
+    ${CLEANUP}
     exit ${STATUS}
 fi
 
 # Default behavior is to extract the bundle and then exit
 
-[ -z "$installMode" ] && exit 0
+[ -z "$installMode" ] && ${CLEANUP} && exit 0
 
 #
 # Do stuff after extracting the binary here, such as actually installing the package.
@@ -245,20 +277,35 @@ EXIT_STATUS=0
 case "$installMode" in
     I)
 	echo "Installing cross-platform agent ..."
+	if [ "$PLATFORM" = "sun" ]; then
+	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
+	    if [ $? -eq 0 ]; then
+		echo "ERROR: SCX package is already installed"
+		rm $OM_PKG
+		exit 2
+	    fi
+	fi
 	${PKG_ADD}
 	EXIT_STATUS=$?
 	;;
 
     U)
 	echo "Updating cross-platform agent ..."
+	if [ "$PLATFORM" = "sun" ]; then
+	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
+	    [ $? -eq 0 ] && ${PKG_RM}
+	fi
 	${PKG_UPD}
 	EXIT_STATUS=$?
 	;;
 
     *)
 	echo "$0: Invalid setting of variable \$installMode, exiting" >&2
+	${CLEANUP}
 	exit 2
 esac
+
+${CLEANUP}
 
 # Remove the package that was extracted as part of the bundle
 # NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
