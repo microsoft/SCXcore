@@ -34,6 +34,9 @@ PATH=/usr/bin:/bin
 umask 022
 
 # Can't use something like 'readlink -e $0' because that doesn't work everywhere
+# And HP doesn't define $PWD in a sudo environment, so we define our own
+PWD="`pwd`"
+
 SCRIPT_INDIRECT="`dirname $PWD/$0`"
 SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 SCRIPT="$SCRIPT_DIR/`basename $0`"
@@ -133,6 +136,11 @@ do
 
 	--debug)
 	    echo "Starting shell debug mode." >&2
+	    echo "" >&2
+	    echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2
+	    echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2
+	    echo "SCRIPT:          $SCRIPT" >&2
+	    echo >&2
 	    set -x
 	    shift 1
 	    ;;
