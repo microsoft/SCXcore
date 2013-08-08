@@ -200,3 +200,9 @@ class LinuxDebFile(Installer):
 
         # Undo the permissions settings so we can delete properly
         os.system('sudo chown -R $USER:`id -gn` %s' % self.stagingDir.GetRootPath())
+
+        # Build the bundle file
+
+        print
+        print "Building bundle file from kit: %s ..." % pkgName
+        os.system('../installer/bundle/create_bundle.sh ulinux-d %s %s' % (self.targetDir, pkgName))

@@ -23,7 +23,7 @@ usage()
 {
     echo "usage: $0 platform directory package-name"
     echo "  where"
-    echo "    platform is one of: linux, aix, hpux, sun"
+    echo "    platform is one of: linux, ulinux-r, ulinux-d, aix, hpux, sun"
     echo "    directory is directory path to package file"
     echo "    package-name is the name of the installation package"
     exit 1
@@ -39,7 +39,7 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
-    linux|aix|hpux|sun)
+    linux|ulinux-r|ulinux-d|aix|hpux|sun)
 	;;
 
     *)
@@ -104,8 +104,13 @@ cp $OUTPUT_DIR/$3 .
 
 # Build the bundle
 case "$1" in
-    linux)
+    linux|ulinux-r)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
+	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
+	;;
+
+    ulinux-d)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.deb/.sh/"`
 	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 

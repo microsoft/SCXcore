@@ -152,11 +152,24 @@ done
 # Determine install/deinstall command lines
 
 case "$PLATFORM" in
-    linux)
+    linux|ulinux-r)
 	[ -n "${forceFlag}" ] && FORCE="--force"
 	PKG_ADD="rpm --install $OM_PKG"
 	PKG_RM="rpm --erase scx"
 	PKG_UPD="rpm --upgrade $FORCE $OM_PKG"
+	;;
+
+    ulinux-d)
+	[ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
+	PKG_ADD="dpkg --install --refuse-downgrade $OM_PKG"
+	if [ "$installMode" = "P" ]; then
+	    PKG_RM="dpkg --purge scx"
+	else
+	    PKG_RM="dpkg --remove scx"
+	fi
+	PKG_UPD="dpkg --install $FORCE $OM_PKG"
+
+	export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 	;;
 
     aix)
@@ -237,7 +250,7 @@ fi
 echo "Extracting..."
 
 case "$PLATFORM" in
-    linux)
+    linux|ulinux-d|ulinux-r)
 	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
 	;;
 
