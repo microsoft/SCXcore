@@ -287,6 +287,10 @@ class LinuxRPMFile(Installer):
 
         # Build the bundle file
 
+        platformType="linux"
+        if self.configuration['pfdistro'] == 'ULINUX':
+            platformType="ulinux-r"
+
         print
         print "Building bundle file from kit: %s ..." % rpmNewFileName
-        os.system('../installer/bundle/create_bundle.sh linux %s %s' % (self.targetDir, rpmNewFileName))
+        os.system('../installer/bundle/create_bundle.sh %s %s %s' % (platformType, self.targetDir, rpmNewFileName))
