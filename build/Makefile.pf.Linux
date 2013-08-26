@@ -147,5 +147,48 @@ SSL_LIBS = `pkg-config --libs openssl`
 
 CXXFLAGS+=
 
+#--------------------------------------------------------------------------------
+# InstallBuilder datafile determination
+#--------------------------------------------------------------------------------
+
+PF_DEPENDENT_DATAFILES = Linux.data
+ifeq ($(PF_DISTRO), REDHAT)
+PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_RHEL.data
+  ifeq ($(PF_MAJOR), 6)
+PF_DEPENDENT_DATAFILES += Linux_RHEL_6.data
+  endif
+  ifeq ($(PF_MAJOR), 5)
+PF_DEPENDENT_DATAFILES += Linux_RHEL_5.data
+  endif
+  ifeq ($(PF_MAJOR), 4)
+PF_DEPENDENT_DATAFILES += Linux_RHEL_4.data
+  endif
+endif
+ifeq ($(PF_DISTRO), SUSE)
+PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_SLES.data
+  ifeq ($(PF_MAJOR), 11)
+PF_DEPENDENT_DATAFILES += Linux_SLES_11.data
+  endif
+  ifeq ($(PF_MAJOR), 10)
+PF_DEPENDENT_DATAFILES += Linux_SLES_10.data
+  endif
+  ifeq ($(PF_MAJOR), 9)
+PF_DEPENDENT_DATAFILES += Linux_SLES_9.data
+  endif
+endif
+ifeq ($(PF_DISTRO), ULINUX)
+PF_DEPENDENT_DATAFILES += Linux_ULINUX.data
+  ifeq ($(PF_ARCH), x86)
+PF_DEPENDENT_DATAFILES += Linux_ULINUX_x86.data
+  else
+PF_DEPENDENT_DATAFILES += Linux_ULINUX_x64.data
+  endif
+  ifeq ($(PF_DISTRO_ULINUX_R), 1)
+PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_ULINUX_R.data
+  endif
+  ifeq ($(PF_DISTRO_ULINUX_D), 1)
+PF_DEPENDENT_DATAFILES += Linux_DPKG.data Linux_ULINUX_D.data
+  endif
+endif
 
 #-------------------------------- End of File -----------------------------------

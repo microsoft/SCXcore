@@ -17,24 +17,69 @@ else
 
 endif
 
+DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
+
+DISTRO_TYPE = $(PF)
+ifeq ($(PF),Linux)
+DISTRO_TYPE = $(PF)_$(PF_DISTRO)
+ ifeq ($(PF_DISTRO_ULINUX_R),1)
+DISTRO_TYPE = $(PF)_$(PF_DISTRO)_R
+ endif
+ ifeq ($(PF_DISTRO_ULINUX_D),1)
+DISTRO_TYPE = $(PF)_$(PF_DISTRO)_D
+ endif
+endif
+
+installerOnly: compressed_kit bundle
+
+STAGING_DIR = $(SCX_BRD)/installer/intermediate/staging
+
 # Easy way to just run installer (if you know all targets are built properly)
-installerOnly: GetLinuxOS
+native_kit: GetLinuxOS scx_scripts
 	$(ECHO) "========================= Performing make installer"
-	python $(SCX_BRD)/installer/InstallerBuilder/installerbuild.py \
-		--basedir=$(SCX_BRD) \
-		--pf=$(PF) \
-		--pfmajor=$(PF_MAJOR) \
-		--pfminor=$(PF_MINOR) \
-		--pfdistro=$(PF_DISTRO) \
-		--pfagenttype=$(PF_AGENTTYPE) \
-		--pfarch=$(PF_ARCH) \
-		--pfwidth=$(PF_WIDTH) \
-		--bt=$(BUILD_TYPE) \
-		--major=$(SCX_BUILDVERSION_MAJOR) \
-		--minor=$(SCX_BUILDVERSION_MINOR) \
-		--patch=$(SCX_BUILDVERSION_PATCH) \
-		--buildnr=$(SCX_BUILDVERSION_BUILDNR) \
-		--omidir=$(SCXOMI_DIR)
+	sudo rm -rf $(STAGING_DIR)
+# The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR) \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES)
+
+bundle: native_kit
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(TARGET_DIR) `cat $(TARGET_DIR)/package_filename`
+
+# Technically, a compressed kit doesn't have a prereq on the bundle, 
+# but compressing the kit will make the uncompressed kit unavailable to the bundle...
+compressed_kit: native_kit bundle
+ifeq ($(PF),SunOS)
+	compress -f $(TARGET_DIR)/`cat $(TARGET_DIR)/package_filename`
+endif
+ifeq ($(PF),HPUX)
+	compress -f $(TARGET_DIR)/`cat $(TARGET_DIR)/package_filename`
+endif
+ifeq ($(PF),AIX)
+	gzip -f $(TARGET_DIR)/`cat $(TARGET_DIR)/package_filename`
+endif
+
+# Generate scripts that are consumed by SCXCore
+scx_scripts: 
+	python $(SCX_BRD)/installer/generate_scxcore_scripts.py \
+		--OUTPUT_DIR=$(INTERMEDIATE_DIR) \
+		--PF=$(PF) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--BT=$(BUILD_TYPE)
 
 installerPackage: \
 	scxcore-status $(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) \

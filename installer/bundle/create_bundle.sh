@@ -39,7 +39,7 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
-    linux|ulinux-r|ulinux-d|aix|hpux|sun)
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
 	;;
 
     *)
@@ -104,27 +104,27 @@ cp $OUTPUT_DIR/$3 .
 
 # Build the bundle
 case "$1" in
-    linux|ulinux-r)
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
 	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
-    ulinux-d)
+    Linux_ULINUX_D)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.deb/.sh/"`
 	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
-    aix)
+    AIX)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp/.sh/"`
 	tar cvf - $3 | gzip -c | cat primary.skel - > $BUNDLE_FILE
 	;;
 
-    hpux)
+    HPUX)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.depot/.sh/"`
 	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
 	;;
 
-    sun)
+    SunOS)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg/.sh/"`
 	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
 	;;

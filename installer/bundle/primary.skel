@@ -35,18 +35,22 @@ umask 022
 
 # Can't use something like 'readlink -e $0' because that doesn't work everywhere
 # And HP doesn't define $PWD in a sudo environment, so we define our own
-PWD="`pwd`"
-
-SCRIPT_INDIRECT="`dirname $PWD/$0`"
+case $0 in
+    /*|~*)
+	SCRIPT_INDIRECT="`dirname $0`"
+	;;
+    *)
+	PWD="`pwd`"
+	SCRIPT_INDIRECT="`dirname $PWD/$0`"
+	;;
+esac
 SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 SCRIPT="$SCRIPT_DIR/`basename $0`"
 
 # These symbols will get replaced during the bundle creation process.
 #
 # The PLATFORM symbol should contain ONE of the following:
-#	linux, aix, hpux, sun
-# (It is assumed that, from an installation perspective, RHEL and SUSE are
-# identical).
+#       Linux_REDHAT, Linux_SUSE, Linux_ULINUX_R, Linux_ULINUX_D, HPUX, AIX, SunOS
 #
 # The OM_PKG symbol should contain something like:
 #	scx-1.5.1-115.rhel.6.x64.rpm
@@ -82,7 +86,7 @@ verifyNoInstallationOption()
 }
 
 # Only Solaris doesn't allow the -n qualifier in 'tail' command
-[ "$PLATFORM" != "sun" ] && TAIL_CQUAL="-n"
+[ "$PLATFORM" != "SunOS" ] && TAIL_CQUAL="-n"
 
 while [ $# -ne 0 ]
 do
@@ -160,14 +164,14 @@ done
 # Determine install/deinstall command lines
 
 case "$PLATFORM" in
-    linux|ulinux-r)
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
 	[ -n "${forceFlag}" ] && FORCE="--force"
 	PKG_ADD="rpm --install $OM_PKG"
 	PKG_RM="rpm --erase scx"
 	PKG_UPD="rpm --upgrade $FORCE $OM_PKG"
 	;;
 
-    ulinux-d)
+    Linux_ULINUX_D)
 	[ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
 	PKG_ADD="dpkg --install --refuse-downgrade $OM_PKG"
 	if [ "$installMode" = "P" ]; then
@@ -180,21 +184,21 @@ case "$PLATFORM" in
 	export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 	;;
 
-    aix)
+    AIX)
 	[ -n "${forceFlag}" ] && FORCE="-F"
 	PKG_ADD="/usr/sbin/installp -X -d $OM_PKG scx.rte"
 	PKG_RM="/usr/sbin/installp -u scx.rte"
 	PKG_UPD="/usr/sbin/installp -X $FORCE -d $OM_PKG scx.rte"
 	;;
 
-    hpux)
+    HPUX)
 	[ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
 	PKG_ADD="/usr/sbin/swinstall -s $PWD/$OM_PKG scx"
 	PKG_RM="/usr/sbin/swremove scx"
 	PKG_UPD="/usr/sbin/swinstall $FORCE -s $PWD/$OM_PKG scx"
 	;;
 
-    sun)
+    SunOS)
 	# No notion of "--force" since Sun package has no notion of update
 	PKG_ADD="/usr/sbin/pkgadd -a scx-admin -n -d $OM_PKG MSFTscx"
 	PKG_RM="/usr/sbin/pkgrm -a scx-admin -n MSFTscx"
@@ -208,7 +212,7 @@ esac
 
 # Create installation administrative file for Solaris platform if needed
 CLEANUP=""
-if [ "$PLATFORM" = "sun" ]; then
+if [ "$PLATFORM" = "SunOS" ]; then
     CLEANUP='rm -f scx-admin'
     echo "mail=" > scx-admin
     echo "instance=overwrite" >> scx-admin
@@ -258,15 +262,15 @@ fi
 echo "Extracting..."
 
 case "$PLATFORM" in
-    linux|ulinux-d|ulinux-r)
+    Linux_*)
 	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
 	;;
 
-    aix)
+    AIX)
 	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
 	;;
 
-    hpux|sun)
+    HPUX|SunOS)
 	tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
 	;;
 
@@ -298,7 +302,7 @@ EXIT_STATUS=0
 case "$installMode" in
     I)
 	echo "Installing cross-platform agent ..."
-	if [ "$PLATFORM" = "sun" ]; then
+	if [ "$PLATFORM" = "SunOS" ]; then
 	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
 	    if [ $? -eq 0 ]; then
 		echo "ERROR: SCX package is already installed"
@@ -312,7 +316,7 @@ case "$installMode" in
 
     U)
 	echo "Updating cross-platform agent ..."
-	if [ "$PLATFORM" = "sun" ]; then
+	if [ "$PLATFORM" = "SunOS" ]; then
 	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
 	    [ $? -eq 0 ] && ${PKG_RM}
 	fi

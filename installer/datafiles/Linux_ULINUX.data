@@ -1,0 +1,129 @@
+%Variables
+PFDISTRO: 'ULINUX'
+PFMAJOR: '1'
+PFMINOR: '0'
+pam_dir_passwd_redhat: 'auth include system-auth\n account required pam_nologin.so\n account include system-auth'
+pam_dir_passwd_suse:   'auth include common-auth\n auth required pam_nologin.so\n account include common-account'
+pam_dir_passwd_ubuntu: 'auth required pam_env.so\n auth required pam_unix.so nullok_secure\n account required pam_unix.so\n session required pam_limits.so'
+
+pam_file_passwd_redhat: 'omi auth include system-auth\nomi account required pam_nologin.so\nomi account include system-auth'
+pam_file_passwd_suse:   'omi auth include common-auth\nomi auth required pam_nologin.so\nomi account include common-account'
+pam_file_passwd_ubuntu: 'omi auth required pam_env.so\nomi auth required pam_unix.so nullok_secure\nomi account required pam_unix.so\nomi session required pam_limits.so'
+
+%Defines
+ULINUX
+
+%Files
+/etc/init.d/scx-cimd;	                                          installer/conf/init.d/scx-cimd.ulinux;                       744; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/GetLinuxOS.sh;	  target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/GetLinuxOS.sh;	  target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;	       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/setup.sh;		          intermediate/${{BUILD_CONFIGURATION}}/scx_setup.sh;	       644; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/setup.sh;		          intermediate/${{BUILD_CONFIGURATION}}/scx_setup.sh;	       644; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/setup.sh;		  intermediate/${{BUILD_CONFIGURATION}}/scx_setup_tools.sh;    644; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/setup.sh;		  intermediate/${{BUILD_CONFIGURATION}}/scx_setup_tools.sh;    644; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/scxadmin;		  intermediate/${{BUILD_CONFIGURATION}}/scxadmin.sh;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/scxadmin;		  intermediate/${{BUILD_CONFIGURATION}}/scxadmin.sh;	       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/scxsslconfig;	  intermediate/${{BUILD_CONFIGURATION}}/scxsslconfig.sh;       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/scxsslconfig;	  intermediate/${{BUILD_CONFIGURATION}}/scxsslconfig.sh;       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/omiagent;		          ${{OMI_DIR}}/output_openssl_0.9.8/bin/omiagent;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/omiagent;		          ${{OMI_DIR}}/output_openssl_1.0.0/bin/omiagent;	       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/omiserver;		          ${{OMI_DIR}}/output_openssl_0.9.8/bin/omiserver;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/omiserver;		          ${{OMI_DIR}}/output_openssl_1.0.0/bin/omiserver;	       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/omicli;		  ${{OMI_DIR}}/output_openssl_0.9.8/bin/omicli;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/omicli;		  ${{OMI_DIR}}/output_openssl_1.0.0/bin/omicli;	       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/.scxsslconfig;	  target/${{BUILD_CONFIGURATION}}/openssl_0.9.8/scxsslconfig;  755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/.scxsslconfig;	  target/${{BUILD_CONFIGURATION}}/openssl_1.0.0/scxsslconfig;  755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools/.scxadmin;		  target/${{BUILD_CONFIGURATION}}/scxadmin;		       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools/.scxadmin;		  target/${{BUILD_CONFIGURATION}}/scxadmin;		       755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/scxlogfilereader;	          target/${{BUILD_CONFIGURATION}}/scxlogfilereader;	       755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/scxlogfilereader;	          target/${{BUILD_CONFIGURATION}}/scxlogfilereader;	       755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8/libmicxx.so;		  ${{OMI_DIR}}/output_openssl_0.9.8/lib/libmicxx.so;	       755; root; root
+/opt/microsoft/scx/lib_openssl_1.0.0/libmicxx.so;		  ${{OMI_DIR}}/output_openssl_1.0.0/lib/libmicxx.so;	       755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8/libomiclient.so;             ${{OMI_DIR}}/output_openssl_0.9.8/lib/libomiclient.so;      755; root; root
+/opt/microsoft/scx/lib_openssl_1.0.0/libomiclient.so;             ${{OMI_DIR}}/output_openssl_1.0.0/lib/libomiclient.so;      755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8/libomiidentify.so;           ${{OMI_DIR}}/output_openssl_0.9.8/lib/libomiidentify.so;    755; root; root
+/opt/microsoft/scx/lib_openssl_1.0.0/libomiidentify.so;           ${{OMI_DIR}}/output_openssl_1.0.0/lib/libomiidentify.so;    755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8/libSCXCoreProviderModule.so; target/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.so; 755; root; root
+/opt/microsoft/scx/lib_openssl_1.0.0/libSCXCoreProviderModule.so; target/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.so; 755; root; root
+
+%Directories
+/opt/microsoft/scx/bin_openssl_0.9.8;					755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0;					755; root; root
+/opt/microsoft/scx/bin_openssl_0.9.8/tools;				755; root; root
+/opt/microsoft/scx/bin_openssl_1.0.0/tools;				755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8;					755; root; root
+/opt/microsoft/scx/lib_openssl_1.0.0;					755; root; root
+
+%Links
+/opt/microsoft/scx/lib_openssl_0.9.8/libssl.so.0.9.8;    ${{SYSLIB_DIR}}/libssl.so;                     755; root; root
+/opt/microsoft/scx/lib_openssl_0.9.8/libcrypto.so.0.9.8; ${{SYSLIB_DIR}}/libcrypto.so;                  755; root; root
+
+%Preinstall_50
+# VerifySSLVersion
+openssl version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.'
+if [ $? -ne 0 ]; then
+    echo 'Unsupported OpenSSL version - must be either 0.9.8* or 1.0.*.'
+    echo 'Installation cannot proceed.'
+    exit 1
+fi
+
+%Postinstall_150
+# CreateLinksForProperSSLVersion
+SSL_VERSION=`openssl version | awk '{print $2}'`
+case $SSL_VERSION in
+    0.9.8*)
+	(cd /opt/microsoft/scx; ln -s bin_openssl_0.9.8 bin; ln -s lib_openssl_0.9.8 lib)
+#if PFARCH == x86
+	LIB_DIR=/lib
+	DIR_LIST="/lib/ /usr/lib/"
+#else
+	LIB_DIR=/lib64
+	DIR_LIST="/lib64/ /usr/lib64/"
+#endif
+        # We stage (in /opt/microsoft/scx/lib_openssl_0.9.8) two soft links of interest:
+        #   libcrypto.so.0.9.8 and libssl.so.0.9.8
+        # These resolve to files in /usr/lib/libcrypto.so and /usr/lib/libssl.so
+        # (or /usr/lib64/libcrypto.so and /usr/lib64/libssl.so) respectively.
+        # On some systems (Oracle Enterprise Linux), they don't exist.  Recover here.
+	if [ ! -e /usr${LIB_DIR}/libcrypto.so -o ! -e /usr${LIB_DIR}/libssl.so ]; then
+            # We don't have the links we expected; thus, create a list of dirs
+            # and extensions and then start looking for our SSL libraries ...
+	    LIBCRYPTO_FILE=
+	    LIBSSL_FILE=
+	    SSL_VERSION_SUBS=`echo ${SSL_VERSION} | awk -F - '{print $1}'`
+	    EXT_LIST="${SSL_VERSION} `echo ${SSL_VERSION} | tr -d A-Za-z` ${SSL_VERSION_SUBS} `echo ${SSL_VERSION_SUBS} | tr -d A-Za-z` "
+	    
+	    for dir in ${DIR_LIST}; do
+		for ext in ${EXT_LIST}; do
+		    echo Checking existence of ${dir}libssl.so.${ext} and ${dir}libcrypto.so.${ext} ...
+		    if [ -e ${dir}libssl.so.${ext} -a -e ${dir}libcrypto.so.${ext} ]; then
+			LIBCRYPTO_FILE=${dir}libcrypto.so.${ext}
+			LIBSSL_FILE=${dir}libssl.so.${ext}
+			echo "  Found $LIBSSL_FILE and $LIBCRYPTO_FILE ..."
+			break
+		    fi
+		done
+		[ -n "$LIBCRYPTO_FILE" -a -n "$LIBSSL_FILE" ] && break
+	    done
+	    
+	    if [ -z ${LIBCRYPTO_FILE} -o -z ${LIBSSL_FILE} ]; then
+		echo "Unable to find file libssl.so.0.9.8? or libcrypto.ssl.0.9.8?"
+		exit 1
+	    fi
+	    rm /opt/microsoft/scx/lib_openssl_0.9.8/libcrypto.so.0.9.8
+	    rm /opt/microsoft/scx/lib_openssl_0.9.8/libssl.so.0.9.8
+	    ln -s ${LIBCRYPTO_FILE} /opt/microsoft/scx/lib_openssl_0.9.8/libcrypto.so.0.9.8
+	    ln -s ${LIBSSL_FILE} /opt/microsoft/scx/lib_openssl_0.9.8/libssl.so.0.9.8
+	fi
+	;;
+    1.0.*)
+	(cd /opt/microsoft/scx; ln -s bin_openssl_1.0.0 bin; ln -s lib_openssl_1.0.0 lib)
+	;;
+    *)
+	echo "Unable to determine SSL version for: $SSL_VERSION"
+	exit 1
+esac
+
+%Preuninstall_900
+# RemoveLinksForProperSSLVersion
+rm /opt/microsoft/scx/lib /opt/microsoft/scx/bin

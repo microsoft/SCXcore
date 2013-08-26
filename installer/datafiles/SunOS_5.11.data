@@ -1,0 +1,86 @@
+%Variables
+PFMAJOR: '5'
+PFMINOR: '11'
+
+%Files
+/var/svc/manifest/application/management/scx-cimd.xml; installer/conf/svc-manifest/scx-cimd.xml; 444; root; sys
+/opt/microsoft/scx/bin/tools/scx-cimd; installer/conf/svc-method/scx-cimd; 555; root; bin
+
+%Directories
+/var/svc/manifest/application/management;  700; root; root; sysdir
+
+%OmiService_funcs
+StopOmiService() {
+    svcadm disable -s svc:/application/management/scx-cimd
+}
+
+RemoveOmiService() {
+    svccfg delete svc:/application/management/scx-cimd:default
+}
+
+%Preinstall_210
+pkg list system/core-os > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Dependency missing: IPS package system/core-os is not installed."
+  exit 1
+fi
+pkg list system/library > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Dependency missing: IPS package system/library is not installed."
+  exit 1
+fi
+pkg list system/library/c++-runtime > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Dependency missing: IPS package system/library/c++-runtime is not installed."
+  exit 1
+fi
+pkg list system/library/math > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Dependency missing: IPS package system/library/math is not installed."
+  exit 1
+fi
+pkg list library/security/openssl > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Dependency missing: IPS package library/security/openssl is not installed."
+  exit 1
+fi
+
+%Postinstall_1050
+# ConfigureOmiService
+svcadm restart svc:/system/manifest-import
+
+%Postinstall_1100
+StartOmiService() {
+    set +e
+    COUNT=0
+    while [ $COUNT -lt 15 ]; do
+	echo "Waiting for service: svc:/application/management/scx-cimd ..."
+	sleep 1
+	/usr/bin/svcs -H svc:/application/management/scx-cimd 2> /dev/null | grep -i online > /dev/null 2>&1
+	[ $? -eq 0 ] && break
+	COUNT=`expr $COUNT + 1`
+    done
+}
+
+StartOmiService
+
+%Preuninstall_100
+#include OmiService_funcs
+StopOmiService
+
+
+%Preuninstall_200
+RemoveOmiService
+
+%Postuninstall_200
+svcadm restart svc:/system/manifest-import
+set +e
+COUNT=0
+while [ $COUNT -lt 15 ]; do
+    echo "Waiting for service: svc:/application/management/scx-cimd ..."
+    sleep 1
+    /usr/bin/svcs -H svc:/system/manifest-import 2> /dev/null | grep -i online > /dev/null 2>&1
+    [ $? -eq 0 ] && break
+    COUNT=`expr $COUNT + 1`
+done
+

@@ -1,0 +1,5 @@
+%Preinstall_200
+if [ `uname -p` != "i386" ]; then
+  echo "This package only supports x86 architecture."
+  exit 1
+fi

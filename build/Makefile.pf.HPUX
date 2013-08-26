@@ -163,4 +163,16 @@ get_ld_flags_for_retaining_symbols=$(foreach EXPOSED_SYM,$(1), -u $(EXPOSED_SYM)
 SSL_CFLAGS := $(shell pkg-config --cflags openssl)
 SSL_LIBS   := $(shell pkg-config --libs openssl)
 
+#--------------------------------------------------------------------------------
+# InstallBuilder datafile determination
+#--------------------------------------------------------------------------------
+
+PF_DEPENDENT_DATAFILES = HPUX.data
+ifeq ($(PF_ARCH), pa-risc)
+PF_DEPENDENT_DATAFILES += HPUX_pa-risc.data
+endif
+ifeq ($(PF_ARCH), ia64)
+PF_DEPENDENT_DATAFILES += HPUX_ia64.data
+endif
+
 #-------------------------------- End of File -----------------------------------
