@@ -1,0 +1,6 @@
+%Variables
+PFARCH: 'pa-risc'
+SHLIB_EXT: 'sl'
+
+%Files
+/opt/microsoft/scx/lib/libbase.${{SHLIB_EXT}}; ${{OMI_DIR}}/output/lib/libbase.${{SHLIB_EXT}}; 755; root; ${{ROOT_GROUP_NAME}}

@@ -132,4 +132,19 @@ LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE) -brtl -lperfstat -lodm -lcfg -llvm -l
 
 SSL_LIBS = -lssl -lcrypto
 
+#--------------------------------------------------------------------------------
+# InstallBuilder datafile determination
+#--------------------------------------------------------------------------------
+
+PF_DEPENDENT_DATAFILES = AIX.data
+ifeq ($(PF_MAJOR), 7)
+PF_DEPENDENT_DATAFILES += AIX_7.data
+endif
+ifeq ($(PF_MAJOR), 6)
+PF_DEPENDENT_DATAFILES += AIX_6.data
+endif
+ifeq ($(PF_MAJOR), 5)
+PF_DEPENDENT_DATAFILES += AIX_5.data
+endif
+
 #-------------------------------- End of File -----------------------------------

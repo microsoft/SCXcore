@@ -1,0 +1,7 @@
+%Preinstall_200
+# CheckAdditionalDeps
+if [ `uname -p` != "sparc" ]; then
+  echo "This package only supports sparc architecture."
+  exit 1
+fi
+

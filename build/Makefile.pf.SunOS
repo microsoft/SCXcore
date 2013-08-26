@@ -145,5 +145,41 @@ LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE) -lkstat -lsocket
 # Run pkg-config to get ssl library switches for this platform
 SSL_LIBS = `pkg-config --libs openssl`
 
+#--------------------------------------------------------------------------------
+# InstallBuilder datafile determination
+#--------------------------------------------------------------------------------
+
+PF_DEPENDENT_DATAFILES = SunOS.data
+ifeq ($(PF_ARCH), x86)
+PF_DEPENDENT_DATAFILES += SunOS_x86.data
+else
+PF_DEPENDENT_DATAFILES += SunOS_SPARC.data
+endif
+
+ifeq ($(PF_MINOR), 11)
+PF_DEPENDENT_DATAFILES += SunOS_5.11.data
+  ifeq ($(PF_ARCH), x86)
+PF_DEPENDENT_DATAFILES += SunOS_x86_5.11.data
+  else
+PF_DEPENDENT_DATAFILES += SunOS_SPARC_5.11.data
+  endif
+endif
+ifeq ($(PF_MINOR), 10)
+PF_DEPENDENT_DATAFILES += SunOS_5.10.data
+  ifeq ($(PF_ARCH), x86)
+PF_DEPENDENT_DATAFILES += SunOS_x86_5.10.data
+  else
+PF_DEPENDENT_DATAFILES += SunOS_SPARC_5.10.data
+  endif
+endif
+ifeq ($(PF_MINOR), 9)
+PF_DEPENDENT_DATAFILES += SunOS_5.9.data
+  ifeq ($(PF_ARCH), x86)
+PF_DEPENDENT_DATAFILES += SunOS_x86_5.9.data
+  else
+PF_DEPENDENT_DATAFILES += SunOS_SPARC_5.9.data
+  endif
+endif
+
 #-------------------------------- End of File -----------------------------------
 
