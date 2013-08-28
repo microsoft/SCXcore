@@ -44,6 +44,12 @@ case "$1" in
     start)
     # Start daemon
     echo "Starting $DESC"
+    echo "Starting $DESC at `date` ..." >> /var/opt/microsoft/scx/log/agent-start.log
+    ulimit -a >> /var/opt/microsoft/scx/log/agent-start.log
+    ulimit -n 1024
+    if [ $? -ne 0 ]; then
+        echo "ulimit -n 1024 failed with exit status $?" >> /var/opt/microsoft/scx/log/agent-start.log
+    fi
     $DAEMON $OPTIONS -d
     exit $?
     ;;
