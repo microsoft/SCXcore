@@ -44,6 +44,7 @@ STATIC_CPUPROVIDER_SRCFILES = \
 
 STATIC_DISKPROVIDERLIB_SRCFILES = \
 	$(PROVIDER_DIR)/support/diskprovider.cpp \
+	$(PROVIDER_DIR)/support/filesystemprovider.cpp \
 	$(PROVIDER_DIR)/SCX_DiskDrive_Class_Provider.cpp \
 	$(PROVIDER_DIR)/SCX_DiskDriveStatisticalInformation_Class_Provider.cpp \
 	$(PROVIDER_DIR)/SCX_FileSystem_Class_Provider.cpp \

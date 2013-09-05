@@ -19,6 +19,7 @@
 #include <testutils/disktestutils.h>
 #include <testutils/providertestutils.h>
 #include "support/diskprovider.h"
+#include "support/filesystemprovider.h"
 
 #include "SCX_DiskDrive.h"
 #include "SCX_DiskDrive_Class_Provider.h"
@@ -32,11 +33,13 @@ class SCXDiskProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( TestCountsAndEnumerations );
 
     CPPUNIT_TEST( TestEnumInstanceNamesSanity );
+    CPPUNIT_TEST( TestPhysicalLogicalDiskDecoupled );
     CPPUNIT_TEST( RemoveTotalInstanceShouldFail );
     CPPUNIT_TEST( RemoveDiskDriveAlsoRemovesStatisticalInstance );
     CPPUNIT_TEST( RemoveFileSystemAlsoRemovesStatisticalInstance );
     
     SCXUNIT_TEST_ATTRIBUTE(TestEnumInstanceNamesSanity, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestPhysicalLogicalDiskDecoupled, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(RemoveTotalInstanceShouldFail, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestVerifyKeyCompletePartial, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(RemoveDiskDriveAlsoRemovesStatisticalInstance, SLOW);
@@ -91,14 +94,14 @@ public:
     size_t FSCount()
     {
         SCXCoreLib::SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> diskEnum =
-            SCXCore::g_DiskProvider.getEnumstaticLogicalDisks();
+            SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
         return diskEnum->Size();
     }
 
     size_t FSSCount()
     {
         SCXCoreLib::SCXHandle<SCXSystemLib::StatisticalLogicalDiskEnumeration> diskEnum =
-            SCXCore::g_DiskProvider.getEnumstatisticalLogicalDisks();
+            SCXCore::g_FileSystemProvider.getEnumstatisticalLogicalDisks();
         // In the case of statistical enumeration classes we set total to 1 because _Total instance is not actually stored
         // in the enumeration collection but is instead generated on the fly. in other cases we set total to 0.
         return diskEnum->Size() + 1;
@@ -242,6 +245,60 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(fs.Size()-1, FSCount());
         CPPUNIT_ASSERT_EQUAL(fss.Size()-1, FSSCount());
+    }
+    
+    void TestPhysicalLogicalDiskDecoupled(void)
+    {
+        // This test ensures that DiskDrive and LogicalDisk providers are decoupled. No instances of
+        // StaticPhysicalDiskInstance or StatisticalPhysicalDiskInstance should be created while LogicalDisk provider
+        // is running.
+
+        // Before we run our test we first shut down any existing DiskDrive objects so we can check if any were created
+        // during the test.
+        std::wstring errMsg;
+        TestableContext context;
+        TearDownAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
+        TearDownAgent<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(context, CALL_LOCATION(errMsg));
+
+        // Get the state before the LogicalDisk provider is ran.
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("After shutting down SCX_DiskDrive_Class_Provider there "
+            "are still StaticPhysicalDiskInstance-s present. Memory leak?",
+            0u, SCXSystemLib::StaticPhysicalDiskInstance::GetCurrentInstancesCount());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("After shutting down SCX_DiskDriveStatisticalInformation_Class_Provider there "
+            "are still StatisticalPhysicalDiskInstance-s present. Memory leak?",
+            0u, SCXSystemLib::StatisticalPhysicalDiskInstance::GetCurrentInstancesCount());
+        size_t staticPhysicalInstancesSinceStart =
+            SCXSystemLib::StaticPhysicalDiskInstance::GetInstancesCountSinceModuleStart();
+        size_t statisticalPhysicalInstancesSinceStart =
+            SCXSystemLib::StatisticalPhysicalDiskInstance::GetInstancesCountSinceModuleStart();
+
+        // Run the LogicalDisk provider.
+        TestableContext fs, fss;
+        EnumInstances<mi::SCX_FileSystem_Class_Provider>(fs, CALL_LOCATION(errMsg));
+        EnumInstances<mi::SCX_FileSystemStatisticalInformation_Class_Provider>(fss, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_MESSAGE("There are no logical disks on this system?!", 0 < fs.Size());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Mismatch between static and statistical disk drive counts", fs.Size()+1, fss.Size());
+
+        // Verify no DiskDrive disk instances were created.
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("After running FileSystem and FileSystemStatisticalInformation providers there "
+            "are StaticPhysicalDiskInstance-s present.",
+            0u, SCXSystemLib::StaticPhysicalDiskInstance::GetCurrentInstancesCount());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("After running FileSystem and FileSystemStatisticalInformation providers there "
+            "are StatisticalPhysicalDiskInstance-s present.",
+            0u, SCXSystemLib::StatisticalPhysicalDiskInstance::GetCurrentInstancesCount());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("While running FileSystem and FileSystemStatisticalInformation providers "
+            "StaticPhysicalDiskInstance-s were created.",
+            staticPhysicalInstancesSinceStart,
+            SCXSystemLib::StaticPhysicalDiskInstance::GetInstancesCountSinceModuleStart());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("While running FileSystem and FileSystemStatisticalInformation providers "
+            "StatisticalPhysicalDiskInstance-s were created.",
+            statisticalPhysicalInstancesSinceStart,
+            SCXSystemLib::StatisticalPhysicalDiskInstance::GetInstancesCountSinceModuleStart());
+
+        // After the test we restore DiskDrive objects to make sure object counters match (for each destruction
+        // there's creation and vice-versa).
+        SetUpAgent<mi::SCX_DiskDrive_Class_Provider>(context, CALL_LOCATION(errMsg));
+        SetUpAgent<mi::SCX_DiskDriveStatisticalInformation_Class_Provider>(context, CALL_LOCATION(errMsg));
     }
 };
 
