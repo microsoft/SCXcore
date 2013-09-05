@@ -6,7 +6,7 @@
 #include <scxcorelib/scxassert.h>
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxnameresolver.h>
-#include "support/diskprovider.h"
+#include "support/filesystemprovider.h"
 #include "support/scxcimutils.h"
 
 using namespace SCXSystemLib;
@@ -147,19 +147,19 @@ void SCX_FileSystem_Class_Provider::Load(
     {
         // Global lock for DiskProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
-        SCXCore::g_DiskProvider.Load();
+        SCXCore::g_FileSystemProvider.Load();
 
         // Notify that we don't wish to unload
         MI_Result r = context.RefuseUnload();
         if ( MI_RESULT_OK != r )
         {
-            SCX_LOGWARNING(SCXCore::g_DiskProvider.GetLogHandle(),
+            SCX_LOGWARNING(SCXCore::g_FileSystemProvider.GetLogHandle(),
                            SCXCoreLib::StrAppend(L"SCX_FileSystem_Class_Provider::Load() refuses to not unload, error = ", r));
         }
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Load", SCXCore::g_DiskProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Load", SCXCore::g_FileSystemProvider.GetLogHandle() );
 }
 
 void SCX_FileSystem_Class_Provider::Unload(
@@ -169,10 +169,10 @@ void SCX_FileSystem_Class_Provider::Unload(
     {
         // Global lock for DiskProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
-        SCXCore::g_DiskProvider.UnLoad();
+        SCXCore::g_FileSystemProvider.UnLoad();
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Unload", SCXCore::g_DiskProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Unload", SCXCore::g_FileSystemProvider.GetLogHandle() );
 }
 
 void SCX_FileSystem_Class_Provider::EnumerateInstances(
@@ -188,7 +188,7 @@ void SCX_FileSystem_Class_Provider::EnumerateInstances(
        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
 
        // (Note: Only do full update if we're not enumerating keys) 
-       SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_DiskProvider.getEnumstaticLogicalDisks();
+       SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
        staticLogicalDisksEnum->Update(!keysOnly);
 
        for(size_t i = 0; i < staticLogicalDisksEnum->Size(); i++) 
@@ -209,7 +209,7 @@ void SCX_FileSystem_Class_Provider::EnumerateInstances(
 
        context.Post(MI_RESULT_OK);
    }
-   SCX_PEX_END( L"SCX_FileSystem_Class_Provider::EnumerateInstances", SCXCore::g_DiskProvider.GetLogHandle() );
+   SCX_PEX_END( L"SCX_FileSystem_Class_Provider::EnumerateInstances", SCXCore::g_FileSystemProvider.GetLogHandle() );
 }
 
 void SCX_FileSystem_Class_Provider::GetInstance(
@@ -241,7 +241,7 @@ void SCX_FileSystem_Class_Provider::GetInstance(
             NameResolver mi;
             csName = StrToMultibyte(mi.GetHostDomainname()).c_str();
         } catch (SCXException& e) {
-            SCX_LOGWARNING(SCXCore::g_DiskProvider.GetLogHandle(), StrAppend(
+            SCX_LOGWARNING(SCXCore::g_FileSystemProvider.GetLogHandle(), StrAppend(
                                StrAppend(L"Can't read host/domainname because ", e.What()),
                                e.Where()));
         }
@@ -255,7 +255,7 @@ void SCX_FileSystem_Class_Provider::GetInstance(
             return;
         }
 
-        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_DiskProvider.getEnumstaticLogicalDisks();
+        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
         staticLogicalDisksEnum->Update(true);
 
         const std::string name = (instanceName.Name_value()).Str();
@@ -279,7 +279,7 @@ void SCX_FileSystem_Class_Provider::GetInstance(
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_FileSystem_Class_Provider::GetInstance",
-                   SCXCore::g_DiskProvider.GetLogHandle() );
+                   SCXCore::g_FileSystemProvider.GetLogHandle() );
 }
 
 void SCX_FileSystem_Class_Provider::CreateInstance(
@@ -327,7 +327,7 @@ void SCX_FileSystem_Class_Provider::Invoke_RemoveByName(
         // Global lock for DiskProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
         
-        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_DiskProvider.getEnumstaticLogicalDisks();
+        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
         staticLogicalDisksEnum->Update(true);
 
         SCX_FileSystem_RemoveByName_Class inst;
@@ -352,14 +352,14 @@ void SCX_FileSystem_Class_Provider::Invoke_RemoveByName(
         SCX_FileSystem_Class fsInst;
         EnumerateOneInstance(context, fsInst, false, diskinst);
 
-        bool cmdok = SCXCore::g_DiskProvider.getEnumstatisticalLogicalDisks()->RemoveInstanceById(name) && 
-                             SCXCore::g_DiskProvider.getEnumstaticLogicalDisks()->RemoveInstanceById(name);
+        bool cmdok = SCXCore::g_FileSystemProvider.getEnumstatisticalLogicalDisks()->RemoveInstanceById(name) && 
+                             SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks()->RemoveInstanceById(name);
 
         inst.MIReturn_value(cmdok);
         context.Post(inst);
         context.Post(MI_RESULT_OK);
         }
-        SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Invoke_RemoveByName", SCXCore::g_DiskProvider.GetLogHandle() );
+        SCX_PEX_END( L"SCX_FileSystem_Class_Provider::Invoke_RemoveByName", SCXCore::g_FileSystemProvider.GetLogHandle() );
 }
 
 

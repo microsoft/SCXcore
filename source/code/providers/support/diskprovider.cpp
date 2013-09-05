@@ -27,22 +27,14 @@ namespace SCXCore
 
             // Set up the dependencies;
             m_staticPhysicaldeps = new DiskDependDefault();
-            m_staticLogicaldeps = new DiskDependDefault();
-            m_statiticalLogicaldeps = new DiskDependDefault();
             m_statisticalPhysicsdeps = new DiskDependDefault();
 
             // Create the enumeration objects
             m_statisticalPhysicalDisks = new StatisticalPhysicalDiskEnumeration(m_statisticalPhysicsdeps);
             m_statisticalPhysicalDisks->Init();
 
-            m_statisticalLogicalDisks = new StatisticalLogicalDiskEnumeration(m_statiticalLogicaldeps);
-            m_statisticalLogicalDisks->Init();
-
             m_staticPhysicalDisks = new StaticPhysicalDiskEnumeration(m_staticPhysicaldeps);
             m_staticPhysicalDisks->Init();
-
-            m_staticLogicalDisks = new StaticLogicalDiskEnumeration(m_staticLogicaldeps);
-            m_staticLogicalDisks->Init();
         }
     }
 
@@ -58,22 +50,10 @@ namespace SCXCore
                 m_statisticalPhysicalDisks = NULL;
             }
 
-            if (m_statisticalLogicalDisks != NULL)
-            {
-                m_statisticalLogicalDisks->CleanUp();
-                m_statisticalLogicalDisks = NULL;
-            }
-
             if (m_staticPhysicalDisks != NULL)
             {
                 m_staticPhysicalDisks->CleanUp();
                 m_staticPhysicalDisks = NULL;
-            }
-
-            if (m_staticLogicalDisks != NULL)
-            {
-                m_staticLogicalDisks->CleanUp();
-                m_staticLogicalDisks = NULL;
             }
         }
     }
