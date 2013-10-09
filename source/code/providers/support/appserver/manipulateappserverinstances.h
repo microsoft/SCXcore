@@ -1,6 +1,5 @@
 /*--------------------------------------------------------------------------------
   Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
    \file        manipulateappserverinstances.h
@@ -8,7 +7,6 @@
    \brief       Manipulates vectors of application server instances
 
    \date        11-05-26 12:00:00
-
 */
 /*----------------------------------------------------------------------------*/
 #ifndef MANIPULATEAPPSERVERINSTANCES_H

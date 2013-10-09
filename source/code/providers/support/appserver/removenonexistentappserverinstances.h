@@ -1,9 +1,8 @@
 /*--------------------------------------------------------------------------------
   Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
-   \file        persistappserverinstances.h
+   \file        removenonexistentappserverinstances.h
 
    \brief       Remove AppServerInstances from an array if they are no 
                 longer on disk

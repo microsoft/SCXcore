@@ -1,16 +1,12 @@
 /*--------------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
     \file        productdependencies.cpp
 
     \brief       Implements the product-specific dependencies for SCXCore
-    \date        2013-02-26 13:38:00
 
-    \note        This module is supplied solely to implement hooks for unit
-                 test purposes.  This module provides hooks that must be
-                 implemented by any consumer of the SCXCore code base.
+    \date        2013-02-26 13:38:00
 */
 /*----------------------------------------------------------------------------*/
 

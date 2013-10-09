@@ -3,7 +3,7 @@
     
 */
 /**
-    \file        
+    \file        logpolicy.cpp
 
     \brief       Includes the default implementation of the log policy factory.
 

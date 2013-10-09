@@ -1,6 +1,5 @@
 /*--------------------------------------------------------------------------------
   Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
    \file        persistappserverinstances.h
@@ -8,7 +7,6 @@
    \brief       Persist instances of discovered application servers
 
    \date        11-05-19 12:00:00
-
 */
 /*----------------------------------------------------------------------------*/
 #ifndef PERSISTAPPSERVERINSTANCES_H

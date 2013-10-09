@@ -3,12 +3,11 @@
     
 */
 /**
-    \file
+    \file      logfileprovider.cpp
  
     \brief     Main implementation file for Log File Provider
  
     \date      2008-0-08 09:35:36
- 
 
 */
 /*----------------------------------------------------------------------------*/

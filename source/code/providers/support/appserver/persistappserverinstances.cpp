@@ -1,15 +1,13 @@
 /*--------------------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file
+   \file        persistappserverinstances.cpp
 
- \brief       Means of persisting application server instances to disk
+   \brief       Means of persisting application server instances to disk
 
- \date        11-05-18 12:00:00
-
- */
+   \date        11-05-18 12:00:00
+*/
 /*-----------------------------------------------------------------*/
 
 #include <scxcorelib/scxcmn.h>

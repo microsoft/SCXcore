@@ -1,11 +1,12 @@
+/*--------------------------------------------------------------------------------
+ *        Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
     \file     networkprovider.h
 
     \brief    Declarations of the Network Provider class and its dependencies.
 
-
     \date     12-03-20 11:00
-
 */
 /*----------------------------------------------------------------------------*/
 #ifndef NETWORKPROVIDER_H

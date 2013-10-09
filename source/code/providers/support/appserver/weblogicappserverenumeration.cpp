@@ -1,14 +1,13 @@
 /*----------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file        weblogicappserverenumeration.cpp
+   \file        weblogicappserverenumeration.cpp
 
- \brief       Enumerator of WebLogic Application Server
+   \brief       Enumerator of WebLogic Application Server
 
- \date        11-08-18 12:00:00
- */
+   \date        11-08-18 12:00:00
+*/
 /*----------------------------------------------------------------------*/
 
 #include <algorithm>

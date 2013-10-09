@@ -1,14 +1,13 @@
 /*--------------------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file
+   \file        removenonexistentappserverinstances.cpp
 
- \brief       Means of removing non-existent application server instances 
-              from an array if the instances are no longer on disk
+   \brief       Means of removing non-existent application server instances 
+                from an array if the instances are no longer on disk
 
- \date        11-05-27 12:00:00
+   \date        11-05-27 12:00:00
 
  */
 /*-----------------------------------------------------------------*/

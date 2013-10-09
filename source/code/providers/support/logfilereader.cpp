@@ -3,12 +3,11 @@
     
 */
 /**
-    \file
+    \file      logfilereader.cpp
  
     \brief     Main routine for LogFileReader command line program.
- 
-    \date      2011-04-14 17:10:00
 
+    \date      2011-04-14 17:10:00
 */
 /*----------------------------------------------------------------------------*/
 

@@ -3,12 +3,11 @@
     
 */
 /**
-    \file
- 
+    \file      logfileutils.h
+
     \brief     LogFile utility header file
- 
+
     \date      2011-3-09
- 
 */
 /*----------------------------------------------------------------------------*/
 #ifndef LOGFILEUTILS_H

@@ -1,3 +1,15 @@
+/*--------------------------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+/**
+    \file        SCX_FileSystemStatisticalInformation_Class_Provider.cpp
+
+    \brief       Provider support using OMI framework.
+    
+    \date        03-14-2013 11:09:45
+*/
+/*----------------------------------------------------------------------------*/
+
 /* @migen@ */
 #include <MI.h>
 #include "SCX_FileSystemStatisticalInformation_Class_Provider.h"

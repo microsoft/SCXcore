@@ -1,14 +1,12 @@
 /*------------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation. All rights reserved.
-    
 */
 /**
-    \file
- 
-    \date      08-10-21 17:56:06
+    \file      startuplog.h
 
     \brief     Declaration of the "log once" functionality for startup logging
- 
+
+    \date      08-10-21 17:56:06
 */
 /*----------------------------------------------------------------------------*/
 #ifndef INITLOG_H
@@ -17,7 +15,7 @@
 #include <scxcorelib/scxcmn.h>
 
 namespace SCXCore {
-	void LogStartup(void);
+        void LogStartup(void);
 }
 
 #endif /* INITLOG_H */
