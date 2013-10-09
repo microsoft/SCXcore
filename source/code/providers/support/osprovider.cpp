@@ -1,13 +1,12 @@
 /*--------------------------------------------------------------------------------
  *        Copyright (c) Microsoft Corporation.  All rights reserved.
- *      
- *           */
- /**
+*/
+/**
         \file        osprovider.cpp
 
         \brief       OS provider implementation
-                
-                \date        04-26-13 
+
+        \date        04-26-13 
 */
 /*----------------------------------------------------------------------------*/
 

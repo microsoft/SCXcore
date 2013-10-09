@@ -1,15 +1,13 @@
 /*--------------------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file        weblogicappserverenumeration.h
+   \file        weblogicappserverenumeration.h
 
- \brief       Enumeration of weblogic application servers
+   \brief       Enumeration of weblogic application servers
 
- \date        11-05-18 12:00:00
-
- */
+   \date        11-05-18 12:00:00
+*/
 /*----------------------------------------------------------------------------*/
 #ifndef WEBLOGICAPPSERVERENUMERATION_H
 #define WEBLOGICAPPSERVERENUMERATION_H

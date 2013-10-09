@@ -1,3 +1,15 @@
+/*--------------------------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+/**
+    \file        SCX_Agent_Class_Provider.cpp
+
+    \brief       Provider support using OMI framework.
+    
+    \date        03-13-2013 13:27:47
+*/
+/*----------------------------------------------------------------------------*/
+
 /* @migen@ */
 #include <MI.h>
 #include "SCX_Agent_Class_Provider.h"

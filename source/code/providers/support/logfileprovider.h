@@ -3,7 +3,7 @@
     
 */
 /**
-    \file
+    \file      logfileprovider.h
  
     \brief     LogFile provider header file
  

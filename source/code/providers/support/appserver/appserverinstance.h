@@ -1,9 +1,8 @@
 /*--------------------------------------------------------------------------------
   Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
-   \file
+   \file        appserverinstance.h
 
    \brief       PAL representation of a Application Server
 

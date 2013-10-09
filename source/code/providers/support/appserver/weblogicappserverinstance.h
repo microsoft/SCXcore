@@ -1,14 +1,13 @@
 /*--------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file        weblogicappservcerinstance.h
+   \file        weblogicappservcerinstance.h
 
- \brief       Representation of a WebLogic Application Server instance
+   \brief       Representation of a WebLogic Application Server instance
 
- \date        11-08-18 12:00:00
- */
+   \date        11-08-18 12:00:00
+*/
 /*--------------------------------------------------------------------*/
 #ifndef WEBLOGICAPPSERVERINSTANCE_H
 #define WEBLOGICAPPSERVERINSTANCE_H

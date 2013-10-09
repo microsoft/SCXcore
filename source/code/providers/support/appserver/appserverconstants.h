@@ -1,14 +1,13 @@
 /*-----------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file        appserverconstants.h
+   \file        appserverconstants.h
 
- \brief       Constants associated with the various application
- servers
+   \brief       Constants associated with the various application servers
 
- \date        11-08-19 12:00:00
- */
+   \date        11-08-19 12:00:00
+*/
 /*-----------------------------------------------------------------------*/
 #ifndef APPSERVERCONSTANTS_H
 #define APPSERVERCONSTANTS_H

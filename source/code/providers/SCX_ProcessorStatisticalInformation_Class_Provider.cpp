@@ -1,3 +1,15 @@
+/*--------------------------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
+/**
+    \file        SCX_ProcessorStatisticalInformation_Class_Provider.cpp
+
+    \brief       Provider support using OMI framework.
+    
+    \date        03-22-2013 17:48:44
+*/
+/*----------------------------------------------------------------------------*/
+
 /* @migen@ */
 #include <MI.h>
 #include "SCX_ProcessorStatisticalInformation_Class_Provider.h"

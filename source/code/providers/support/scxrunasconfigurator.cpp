@@ -1,14 +1,12 @@
 /*--------------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation.  All rights reserved. 
-    
 */
 /**
-    \file        
+    \file        scxrunasconfigurator.cpp
 
     \brief       Implementation of the runas configurator.
-    
-    \date        2008-08-27 15:57:34
 
+    \date        2008-08-27 15:57:34
 */
 /*----------------------------------------------------------------------------*/
 

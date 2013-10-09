@@ -1,15 +1,13 @@
 /*--------------------------------------------------------------------------------
- Copyright (c) Microsoft Corporation.  All rights reserved.
-
- */
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
- \file        manipulateappserverinsancs.cpp
+   \file        manipulateappserverinstances.cpp
 
- \brief       Manipulates vectors of application server instances
+   \brief       Manipulates vectors of application server instances
 
- \date        11-05-26 12:00:00
-
- */
+   \date        11-05-26 12:00:00
+*/
 /*----------------------------------------------------------------------------*/
 #include <algorithm>
 #include <string>

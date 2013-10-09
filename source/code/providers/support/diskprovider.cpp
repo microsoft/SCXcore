@@ -6,8 +6,8 @@
         \file        diskprovider.cpp
 
         \brief       Disk provider implementation
-                
-                \date        03-21-13 
+
+        \date        03-21-13 
 */
 /*----------------------------------------------------------------------------*/
 

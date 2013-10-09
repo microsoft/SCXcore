@@ -1,13 +1,12 @@
 /*--------------------------------------------------------------------------------
  *        Copyright (c) Microsoft Corporation.  All rights reserved.
- *      
- *           */
- /**
+*/
+/**
         \file        appserverprovider.cpp
 
         \brief       App Server provider implementation
-                
-                \date        05-08-13 
+
+        \date        05-08-13 
 */
 /*----------------------------------------------------------------------------*/
 

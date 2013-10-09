@@ -6,8 +6,8 @@
         \file        filesystemprovider.cpp
 
         \brief       FileSystem provider implementation
-                
-                \date        08-30-13 
+
+        \date        08-30-13 
 */
 /*----------------------------------------------------------------------------*/
 

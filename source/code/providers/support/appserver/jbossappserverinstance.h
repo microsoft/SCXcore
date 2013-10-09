@@ -1,9 +1,8 @@
 /*--------------------------------------------------------------------------------
   Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
-   \file
+   \file        jbossappserverinstance.h
 
    \brief       PAL representation of a JBoss Application Server
 

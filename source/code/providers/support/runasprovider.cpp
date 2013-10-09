@@ -1,13 +1,12 @@
 /*--------------------------------------------------------------------------------
  *        Copyright (c) Microsoft Corporation.  All rights reserved.
- *      
- *           */
- /**
+*/
+/**
         \file        runasprovider.cpp
 
         \brief       RunAs provider implementation
-                
-                \date        05-15-13 
+
+        \date        05-15-13 
 */
 /*----------------------------------------------------------------------------*/
 

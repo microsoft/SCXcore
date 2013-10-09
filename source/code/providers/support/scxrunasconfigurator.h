@@ -1,14 +1,12 @@
 /*--------------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation.  All rights reserved. 
-    
 */
 /**
-    \file        
+    \file        scxrunasconfigurator.h
 
     \brief       Implements a configuration parser for the runas provider.
-    
-    \date        2008-08-27 15:51:24
 
+    \date        2008-08-27 15:51:24
 */
 /*----------------------------------------------------------------------------*/
 #ifndef SCXRUNASCONFIGURATOR_H

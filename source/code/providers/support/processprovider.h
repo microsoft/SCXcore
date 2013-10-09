@@ -1,11 +1,12 @@
+/*--------------------------------------------------------------------------------
+ *        Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
     \file     processprovider.h
 
     \brief    Declarations of the Process Provider class.
 
-
     \date     12-03-27 14:15
-
 */
 /*----------------------------------------------------------------------------*/
 #ifndef PROCESSPROVIDER_H

@@ -1,11 +1,12 @@
+/*--------------------------------------------------------------------------------
+ *        Copyright (c) Microsoft Corporation.  All rights reserved.
+*/
 /**
     \file     networkprovider.cpp
 
     \brief    Implementation of the Network Provider Dependencies  class.
 
-
     \date     12-03-21 11:21
-
 */
 /*----------------------------------------------------------------------------*/
 #include "networkprovider.h"
@@ -16,7 +17,6 @@ namespace SCXCore
 }
 int SCXCore::NetworkProvider::ms_loadCount = 0;
 
-/*********************** NetworkProviderDependencies **************************/
 /*----------------------------------------------------------------------------*/
 /**
  * Initialize the interfaces
@@ -42,7 +42,7 @@ void SCXCore::NetworkProviderDependencies::CleanUpIntf()
  * Update interfaces`
  * \param[in]   updateInstances   Update existing instances only
  */
-void SCXCore::NetworkProviderDependencies::UpdateIntf(bool updateInstances) 
+void SCXCore::NetworkProviderDependencies::UpdateIntf(bool updateInstances)
 {
     m_interfaces->Update(updateInstances);
 }
@@ -75,5 +75,3 @@ SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> SCXCore::NetworkPr
 {
     return m_interfaces->GetInstance(intfId);
 }
-
-/******************** End of NetworkProviderDependencies ***********************/

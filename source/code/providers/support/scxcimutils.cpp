@@ -1,14 +1,12 @@
 /*----------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation.  All rights reserved.
-
 */
 /**
-    \file
+    \file      scxcimutils.cpp
 
     \brief     SCX CIM Utility Functions
 
     \date      2013-03-08 08:26:00
-
 */
 /*----------------------------------------------------------------------------*/
 
