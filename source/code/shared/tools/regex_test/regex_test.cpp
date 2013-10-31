@@ -1,3 +1,8 @@
+/*--------------------------------------------------------------------------------
+    Copyright (c) Microsoft Corporation. All rights reserved. See license.txt for license information.
+
+*/
+
 // Simple program to test native C-style regular expressions
 //
 // Compile with something like:
