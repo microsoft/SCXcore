@@ -24,7 +24,7 @@ def GenerateSetupScriptFile():
         shfile.write('SHLIB_PATH=/opt/microsoft/scx/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
     elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:$LD_LIBRARY_PATH' + '\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == "AIX":
         shfile.write('LIBPATH=/opt/microsoft/scx/lib:$LIBPATH\n')
@@ -58,7 +58,7 @@ def GenerateToolsSetupScriptFile():
         shfile.write('SHLIB_PATH=/opt/microsoft/scx/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
     elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:$LD_LIBRARY_PATH' + '\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == 'AIX':
         shfile.write('LIBPATH=/opt/microsoft/scx/lib:$LIBPATH\n')
