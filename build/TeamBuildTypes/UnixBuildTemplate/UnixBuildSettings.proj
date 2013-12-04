@@ -215,7 +215,7 @@
 
     <When Condition=" '$(UnixBuildType)'=='SunOS_5.10_sparc' ">
       <PropertyGroup>
-        <UnixBuildServer>scxsun06</UnixBuildServer>
+        <UnixBuildServer>ostcbld-sparc10-01</UnixBuildServer>
         <UnixWorkSpaceName>ScxCore_SCXDEV_SunOS510_sparc</UnixWorkSpaceName>
         <DropPath>Sun5.10_sparc</DropPath>
       </PropertyGroup>
