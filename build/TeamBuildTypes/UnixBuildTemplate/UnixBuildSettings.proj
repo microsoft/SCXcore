@@ -77,7 +77,7 @@
 
     <When Condition=" '$(UnixBuildType)'=='HPUX_11.23_ia64' ">
       <PropertyGroup>
-        <UnixBuildServer>scxhpv02</UnixBuildServer>
+        <UnixBuildServer>ostcbldia-hpux23-01</UnixBuildServer>
         <UnixWorkSpaceName>ScxCore_SCXDEV_HPUX1123_ia64</UnixWorkSpaceName>
         <DropPath>HPUX11.23_ia64</DropPath>
       </PropertyGroup>
