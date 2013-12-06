@@ -2,95 +2,64 @@
 PF:	'Linux'
 
 %OmiService_funcs
-StopOmiService() {
+StopOmiServer() {
 #ifdef ULINUX
     if [ -x /usr/sbin/invoke-rc.d ]; then
-	invoke-rc.d scx-cimd stop
+	/usr/sbin/invoke-rc.d omiserverd stop
     elif [ -x /sbin/service ]; then
-	service scx-cimd stop
+	service omiserverd stop
     else
-	echo "Unrecognized Service Controller to stop SCX Service."
+	echo "Unrecognized Service Controller to start OMI Service"
 	exit 1
     fi
-    
-#elseif PFDISTRO == SUSE
+
+#elseif PFDISTRO == SUSE 
 #if PFMAJOR == 9
-    /etc/init.d/scx-cimd stop
+    /etc/init.d/omiserverd stop
 #else
-    service scx-cimd stop
+    service omiserverd stop
 #endif
 #else
-    service scx-cimd stop
+    service omiserverd stop
 #endif
 }
 
-RemoveOmiService() {
+StartOmiServer() {
 #ifdef ULINUX
-    if [ -x /usr/sbin/update-rc.d ]; then
-	update-rc.d scx-cimd defaults > /dev/null
-    elif
-#else
-    if
-#endif
-    [ -x /usr/lib/lsb/install_initd ]; then
-	/usr/lib/lsb/install_initd /etc/init.d/scx-cimd
-    elif [ -x /sbin/chkconfig ]; then
-	chkconfig --del scx-cimd > /dev/null
+    if [ -x /usr/sbin/invoke-rc.d ]; then
+	/usr/sbin/invoke-rc.d omiserverd start
+    elif [ -x /sbin/service ]; then
+	service omiserverd start
     else
-	echo "Unrecognized Service Controller to unregister OMI Service."
+	echo "Unrecognized Service Controller to start OMI Service"
 	exit 1
     fi
+    
+#elseif PFDISTRO == SUSE 
+#if PFMAJOR == 9
+    /etc/init.d/omiserverd start
+#else
+    service omiserverd start
+#endif
+#else
+    service omiserverd start
+#endif
 }
+
+%Preinstall_10
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
 
 %Postinstall_775
 set -e
 
-%Postinstall_950
-# ConfigureOmiService
-#ifdef ULINUX
-if [ -x /usr/sbin/update-rc.d ]; then
-    update-rc.d scx-cimd defaults > /dev/null
-elif
-#else
-if
-#endif
-[ -x /usr/lib/lsb/install_initd ]; then
-    /usr/lib/lsb/install_initd /etc/init.d/scx-cimd
-elif [ -x /sbin/chkconfig ]; then
-    chkconfig --add scx-cimd > /dev/null
-else
-    echo "Unrecognized Service Controller to configure OMI Service."
-    exit 1
-fi
 
 %Postinstall_1100
-# StartOmiService
-#ifdef ULINUX
-if [ -x /usr/sbin/invoke-rc.d ]; then
-    invoke-rc.d scx-cimd start
-elif [ -x /sbin/service ]; then
-    service scx-cimd start
-else
-    echo "Unrecognized Service Controller to start SCX Service"
-    exit 1
-fi
-
-#elseif PFDISTRO == SUSE 
-#if PFMAJOR == 9
-/etc/init.d/scx-cimd start
-#else
-service scx-cimd start
-#endif
-#else
-service scx-cimd start
-#endif
-
-%Preuninstall_100
 #include OmiService_funcs
-StopOmiService
-
-%Preuninstall_200
-RemoveOmiService
+StartOmiServer
 
 %Preuninstall_800
 #include DeleteSoftLinkToSudo

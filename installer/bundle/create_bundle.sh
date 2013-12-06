@@ -21,11 +21,16 @@ set -x
 
 usage()
 {
-    echo "usage: $0 platform directory package-name"
+    echo "usage: $0 platform directory tar-file scx-package-name omi-package-name [scx-package-name-100 omi-package-name-100]"
     echo "  where"
     echo "    platform is one of: linux, ulinux-r, ulinux-d, aix, hpux, sun"
     echo "    directory is directory path to package file"
-    echo "    package-name is the name of the installation package"
+    echo "    tar-file is the name of the tar file that contains the following packages"
+    echo "    scx-package-name is the name of the scx installation package"
+    echo "    omi-package-name is the name of the omi installation package"
+    echo "  If ULINUX, the default packages above are for openssl 0.9.8 versions, and below:"
+    echo "    scx-package-name-100 is the name of the openssl 1.0.0 scx installation package"
+    echo "    omi-package-name-100 is the name of the openssl 1.0.0 omi installation package"
     exit 1
 }
 
@@ -60,14 +65,45 @@ if [ ! -d "$2" ]; then
 fi
 
 if [ -z "$3" ]; then
-    echo "Missing parameter: package-name" >&2
+    echo "Missing parameter: tar-file" >&2
     echo ""
     usage
     exit 1
 fi
 
+if [ -z "$4" ]; then
+    echo "Missing parameter: scx-package-name" >&2
+    echo ""
+    usage
+    exit 1
+fi
+
+if [ -z "$5" ]; then
+    echo "Missing parameter: omi-package-name" >&2
+    echo ""
+    usage
+    exit 1
+fi
+
+if [ "$1" = "ulinux-d" ]; then
+    # $6 and $7 need to be set for ULINUX
+    if [ -z "$6" ]; then
+	echo "Missing parameter: scx-package-name-100" >&2
+	echo ""
+	usage
+	exit 1
+    fi
+    
+    if [ -z "$7" ]; then
+	echo "Missing parameter: omi-package-name-100" >&2
+	echo ""
+	usage
+	exit 1
+    fi
+fi
+
 if [ ! -f "$2/$3" ]; then
-    echo "Package \"$2/$3\" does not exist"
+    echo "Tar file \"$2/$3\" does not exist"
     exit 1
 fi
 
@@ -86,7 +122,13 @@ chmod u+w primary.skel
 sed -e "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$1/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
-sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$3/" < primary.skel > primary.$$
+sed -e "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" < primary.skel > primary.$$
+mv primary.$$ primary.skel
+
+sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$4/" < primary.skel > primary.$$
+mv primary.$$ primary.skel
+
+sed -e "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$5/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
 SCRIPT_LEN=`wc -l < primary.skel | sed -e 's/ //g'`
@@ -105,28 +147,28 @@ cp $OUTPUT_DIR/$3 .
 # Build the bundle
 case "$1" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm/.sh/"`
-	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" | sed -e "s/.tar//"`.sh
+	gzip -c $3 $4 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     Linux_ULINUX_D)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.deb/.sh/"`
-	tar czvf - $3 | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.deb//" | sed -e "s/.tar//"`.sh
+	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     AIX)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp/.sh/"`
-	tar cvf - $3 | gzip -c | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp//" | sed -e "s/.tar//"`.sh
+	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     HPUX)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.depot/.sh/"`
-	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.depot//" | sed -e "s/.tar//"`.sh
+	compress -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     SunOS)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg/.sh/"`
-	tar cvf - $3 | compress -c | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg//" | sed -e "s/.tar//"`.sh
+	compress -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     *)

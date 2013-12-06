@@ -30,7 +30,7 @@
 # strip the binary package - AND null bytes, creating a corrupted stream.
 
 set -e
-PATH=/usr/bin:/bin
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 # Can't use something like 'readlink -e $0' because that doesn't work everywhere
@@ -56,7 +56,9 @@ SCRIPT="$SCRIPT_DIR/`basename $0`"
 #	scx-1.5.1-115.rhel.6.x64.rpm
 
 PLATFORM=<PLATFORM_TYPE>
+TAR_FILE=<TAR_FILE>
 OM_PKG=<OM_PKG>
+OMI_PKG=<OMI_PKG>
 SCRIPT_LEN=<SCRIPT_LEN>
 SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>
 
@@ -83,6 +85,24 @@ verifyNoInstallationOption()
     fi
 
     return;
+}
+
+ulinux_detect_openssl_version() {
+    TMPBINDIR=
+    # the system OpenSSL version is 0.9.8.  Likewise with OPENSSL_SYSTEM_VERSION_100
+    OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
+    OPENSSL_SYSTEM_VERSION_098=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^0.9.8'; echo $?`
+    OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
+    if [ $OPENSSL_SYSTEM_VERSION_098 = 0 ]; then
+        TMPBINDIR=098
+    elif [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
+        TMPBINDIR=100
+    else
+        echo "Error: This system does not have a supported version of OpenSSL installed."
+        echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
+        echo "Supported versions: 0.9.8*, 1.0.*"
+        exit 60
+    fi
 }
 
 # Only Solaris doesn't allow the -n qualifier in 'tail' command
@@ -161,48 +181,176 @@ do
     esac
 done
 
-# Determine install/deinstall command lines
+# $1 - The name of the package to check as to whether it's installed
+check_if_pkg_is_installed() {
+    case "$PLATFORM" in
+	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+	    rpm -q $1 2> /dev/null 1> /dev/null
+	    ;;
+	
+	Linux_ULINUX_D)
+	    dpkg -s $1 2> /dev/null 1> /dev/null
+	    ;;
+	
+	AIX)
+	    lslpp $1 2> /dev/null 1> /dev/null
+	    ;;
+	
+	HPUX)
+	    swlist $1 2> /dev/null 1> /dev/null
+	    ;;
+	
+	SunOS)
+	    /usr/bin/pkginfo MSFT$1 2> /dev/null 1> /dev/null
+	    ;;
+    esac
+    return $?
+}
+
+# $1 - The filename of the package to be installed
+# $2 - The package name of the package to be installed
+pkg_add() {
+    pkg_filename=$1
+    case "$PLATFORM" in
+	Linux_ULINUX*)
+	    ulinux_detect_openssl_version
+	    pkg_filename=$TMPBINDIR/$pkg_filename
+	    ;;
+    esac
+
+    case "$PLATFORM" in
+	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+	    rpm --install $pkg_filename
+	    ;;
+	
+	Linux_ULINUX_D)
+	    dpkg --install --refuse-downgrade $pkg_filename
+	    ;;
+	
+	AIX)
+	    /usr/sbin/installp -X -d $1 $2.rte
+	    ;;
+	
+	HPUX)
+	    /usr/sbin/swinstall -s $PWD/$1 $2
+	    ;;
+	
+	SunOS)
+	    /usr/sbin/pkgadd -a scx-admin -n -d $1 MSFT$2
+	    ;;
+    esac
+}
+
+# $1 - The package name of the package to be uninstalled
+# $2 - Optional parameter. Only used when forcibly removing omi on SunOS
+pkg_rm() {
+    case "$PLATFORM" in
+	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+	    rpm --erase $1 1> /dev/null 2> /dev/null
+	    ;;
+	
+	Linux_ULINUX_D)
+	    if [ "$installMode" = "P" ]; then
+		dpkg --purge $1 1> /dev/null 2> /dev/null
+	    else
+		dpkg --remove $1 1> /dev/null 2> /dev/null
+	    fi
+	    ;;
+	
+	AIX)
+	    /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+
+	    ;;
+	
+	HPUX)
+	    /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+	    ;;
+	
+	SunOS)
+	    if [ "$2" = "force" ]; then
+		/usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 1> /dev/null 2> /dev/null
+	    else
+		/usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+	    fi
+	    ;;
+    esac
+}
+
+
+# $1 - The filename of the package to be installed
+# $2 - The package name of the package to be installed
+pkg_upd() {
+    pkg_filename=$1
+    case "$PLATFORM" in
+	Linux_ULINUX*)
+	    ulinux_detect_openssl_version
+	    pkg_filename=$TMPBINDIR/$pkg_filename
+	    ;;
+    esac
+
+    case "$PLATFORM" in
+	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+	    [ -n "${forceFlag}" ] && FORCE="--force"
+	    rpm --upgrade $FORCE $pkg_filename
+	    ;;
+	
+	Linux_ULINUX_D)
+	    [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
+	    dpkg --install $FORCE $pkg_filename
+	    
+	    export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+	    ;;
+	
+	AIX)
+	    [ -n "${forceFlag}" ] && FORCE="-F"
+	    /usr/sbin/installp -X $FORCE -d $1 $2.rte
+	    ;;
+	
+	HPUX)
+	    [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
+
+	    /usr/sbin/swinstall $FORCE -s $PWD/$1 $2
+	    ;;
+	
+	SunOS)
+            # No notion of "--force" since Sun package has no notion of update
+	    check_if_pkg_is_installed $2
+	    if [ $? -eq 0 ]; then
+                # Check version numbers of this package, both installed and the new file
+		INSTALLED_VERSION=`pkginfo -l MSFT$2 | grep VERSION | awk '{ print $2 }'`
+		FILE_VERSION=`pkginfo -l -d $1 | grep VERSION | awk '{ print $2 }'`
+		IV_1=`echo $INSTALLED_VERSION | awk -F. '{ print $1 }'`
+		IV_2=`echo $INSTALLED_VERSION | awk -F. '{ print $2 }'`
+		IV_3=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }'`
+		IV_4=`echo $INSTALLED_VERSION | awk -F. '{ print $4 }'`
+		FV_1=`echo $FILE_VERSION | awk -F. '{ print $1 }'`
+		FV_2=`echo $FILE_VERSION | awk -F. '{ print $2 }'`
+		FV_3=`echo $FILE_VERSION | awk -F. '{ print $3 }'`
+		FV_4=`echo $FILE_VERSION | awk -F. '{ print $4 }'`
+		
+		# If the new version is greater than the previous, upgrade it. We expect at least 3 tokens in the version.
+		UPGRADE_PACKAGE=0
+		if [ $FV_1 -gt $IV_1 -o $FV_2 -gt $IV_2 -o  $FV_3 -gt $IV_3 ]; then
+		    UPGRADE_PACKAGE=1
+		elif [ -n "$FV_4" -a -n "$IV_4" ]; then
+		    if [ $FV_4 -gt $IV_4 ]; then
+			UPGRADE_PACKAGE=1
+		    fi
+		fi
+
+		if [ $UPGRADE_PACKAGE -eq 1 ]; then
+		    pkg_rm $2 force
+		    pkg_add $1 $2
+		fi
+	    else
+		pkg_add $1 $2
+	    fi
+	    ;;
+    esac
+}
 
 case "$PLATFORM" in
-    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	[ -n "${forceFlag}" ] && FORCE="--force"
-	PKG_ADD="rpm --install $OM_PKG"
-	PKG_RM="rpm --erase scx"
-	PKG_UPD="rpm --upgrade $FORCE $OM_PKG"
-	;;
-
-    Linux_ULINUX_D)
-	[ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
-	PKG_ADD="dpkg --install --refuse-downgrade $OM_PKG"
-	if [ "$installMode" = "P" ]; then
-	    PKG_RM="dpkg --purge scx"
-	else
-	    PKG_RM="dpkg --remove scx"
-	fi
-	PKG_UPD="dpkg --install $FORCE $OM_PKG"
-
-	export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
-	;;
-
-    AIX)
-	[ -n "${forceFlag}" ] && FORCE="-F"
-	PKG_ADD="/usr/sbin/installp -X -d $OM_PKG scx.rte"
-	PKG_RM="/usr/sbin/installp -u scx.rte"
-	PKG_UPD="/usr/sbin/installp -X $FORCE -d $OM_PKG scx.rte"
-	;;
-
-    HPUX)
-	[ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
-	PKG_ADD="/usr/sbin/swinstall -s $PWD/$OM_PKG scx"
-	PKG_RM="/usr/sbin/swremove scx"
-	PKG_UPD="/usr/sbin/swinstall $FORCE -s $PWD/$OM_PKG scx"
-	;;
-
-    SunOS)
-	# No notion of "--force" since Sun package has no notion of update
-	PKG_ADD="/usr/sbin/pkgadd -a scx-admin -n -d $OM_PKG MSFTscx"
-	PKG_RM="/usr/sbin/pkgrm -a scx-admin -n MSFTscx"
-	PKG_UPD="$PKG_ADD"
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
 	;;
 
     *)
@@ -213,7 +361,7 @@ esac
 # Create installation administrative file for Solaris platform if needed
 CLEANUP=""
 if [ "$PLATFORM" = "SunOS" ]; then
-    CLEANUP='rm -f scx-admin'
+    CLEANUP='rm -f scx-admin; rm -f scx-admin-upgrade'
     echo "mail=" > scx-admin
     echo "instance=overwrite" >> scx-admin
     echo "partial=nocheck" >> scx-admin
@@ -222,24 +370,33 @@ if [ "$PLATFORM" = "SunOS" ]; then
     echo "conflict=nocheck" >> scx-admin
     echo "action=nocheck" >> scx-admin
     echo "basedir=default" >> scx-admin
+
+    echo "mail=" > scx-admin-upgrade
+    echo "instance=overwrite" >> scx-admin-upgrade
+    echo "partial=nocheck" >> scx-admin-upgrade
+    echo "idepend=quit" >> scx-admin-upgrade
+    echo "rdepend=nocheck" >> scx-admin-upgrade
+    echo "conflict=nocheck" >> scx-admin-upgrade
+    echo "action=nocheck" >> scx-admin-upgrade
+    echo "basedir=default" >> scx-admin-upgrade
 fi
 
 # Do we need to remove the package?
 
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
-    echo "Removing cross-platform agent ..."
-    set +e
-    ${PKG_RM}
-    EXIT_STATUS=$?
-    ${CLEANUP}
-    [ $EXIT_STATUS -ne 0 ] && exit $EXIT_STATUS
-    set -e
+    /opt/microsoft/scx/bin/uninstall
 
     if [ "$installMode" = "P" ]
     then
 	echo "Purging all files in cross-platform agent ..."
 	rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
+
+	# If OMI is not installed, purge its directories as well.
+	check_if_pkg_is_installed omi
+	if [ $? -ne 0 ]; then
+	    rm -rf /etc/opt/microsoft/omi /opt/microsoft/omi /var/opt/microsoft/omi
+	fi
     fi
 fi
 
@@ -303,25 +460,44 @@ case "$installMode" in
     I)
 	echo "Installing cross-platform agent ..."
 	if [ "$PLATFORM" = "SunOS" ]; then
-	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
+	    check_if_pkg_is_installed scx
 	    if [ $? -eq 0 ]; then
 		echo "ERROR: SCX package is already installed"
-		rm $OM_PKG
+		rm $OM_PKG $OMI_PKG $TAR_FILE
 		exit 2
 	    fi
+	fi	
+
+	check_if_pkg_is_installed omi
+	if [ $? -eq 0 ]; then
+	    pkg_upd $OMI_PKG omi
+	    # It is acceptable that this fails due to the new omi being 
+	    # the same version (or less) than the one currently installed.
+	    OMI_EXIT_STATUS=0
+	else
+	    pkg_add $OMI_PKG omi
+	    OMI_EXIT_STATUS=$?
 	fi
-	${PKG_ADD}
-	EXIT_STATUS=$?
+
+	pkg_add $OM_PKG scx
+	SCX_EXIT_STATUS=$?
 	;;
 
     U)
 	echo "Updating cross-platform agent ..."
-	if [ "$PLATFORM" = "SunOS" ]; then
-	    /usr/bin/pkginfo MSFTscx > /dev/null 2>&1
-	    [ $? -eq 0 ] && ${PKG_RM}
+	check_if_pkg_is_installed omi
+	if [ $? -eq 0 ]; then
+	    pkg_upd $OMI_PKG omi
+	    # It is acceptable that this fails due to the new omi being 
+	    # the same version (or less) than the one currently installed.
+	    OMI_EXIT_STATUS=0
+	else
+	    pkg_add $OMI_PKG omi
+	    OMI_EXIT_STATUS=$?	
 	fi
-	${PKG_UPD}
-	EXIT_STATUS=$?
+	
+	pkg_upd $OM_PKG scx
+	SCX_EXIT_STATUS=$?
 	;;
 
     *)
@@ -335,8 +511,19 @@ ${CLEANUP}
 # Remove the package that was extracted as part of the bundle
 # NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
 
-rm $OM_PKG
+case "$PLATFORM" in
+    Linux_ULINUX*)
+	rm -rf 098 100
+	;;
+    *)
+	rm $OM_PKG $OMI_PKG
+	;;
+esac
 
-exit $EXIT_STATUS
+if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" ]; then
+    exit 1
+else
+    exit 0
+fi
 
 #####>>- This must be the last line of this script, followed by a single empty line. -<<#####

@@ -193,18 +193,18 @@ void SCX_AdminServiceControl::ExecuteCommand( const std::wstring& command, std::
 */
 SCX_CimomServiceControl::SCX_CimomServiceControl()
 #if defined(aix)
-    : SCX_AdminServiceControl(L"omiserver", L"/usr/bin/startsrc -s scx-cimd", L"/usr/bin/stopsrc -c -s scx-cimd")
+    : SCX_AdminServiceControl(L"omiserver", L"/usr/bin/startsrc -s omiserverd", L"/usr/bin/stopsrc -c -s omiserverd")
 #elif defined(hpux)
-    : SCX_AdminServiceControl(L"omiserver", L"/sbin/init.d/scx-cimd start", L"/sbin/init.d/scx-cimd stop")
+    : SCX_AdminServiceControl(L"omiserver", L"/sbin/init.d/omiserverd start", L"/sbin/init.d/omiserverd stop")
 #elif defined(linux)
-    : SCX_AdminServiceControl(L"omiserver", L"/etc/init.d/scx-cimd start", L"/etc/init.d/scx-cimd stop")
+    : SCX_AdminServiceControl(L"omiserver", L"/etc/init.d/omiserverd start", L"/etc/init.d/omiserverd stop")
 #elif defined(macos)
     : SCX_AdminServiceControl(L"omiserver", L"launchctl load -w /Library/LaunchDaemons/com.microsoft.scx-cimd.plist", L"launchctl unload -w /Library/LaunchDaemons/com.microsoft.scx-cimd.plist")
 #elif defined(sun)
 #if (PF_MAJOR == 5) && (PF_MINOR > 9)
-    : SCX_AdminServiceControl(L"omiserver", L"/usr/sbin/svcadm -v enable -s svc:/application/management/scx-cimd", L"/usr/sbin/svcadm -v disable -s svc:/application/management/scx-cimd")
+    : SCX_AdminServiceControl(L"omiserver", L"/usr/sbin/svcadm -v enable -s svc:/application/management/omiserverd", L"/usr/sbin/svcadm -v disable -s svc:/application/management/omiserverd")
 #else
-    : SCX_AdminServiceControl(L"omiserver", L"/etc/init.d/scx-cimd start", L"/etc/init.d/scx-cimd stop")
+    : SCX_AdminServiceControl(L"omiserver", L"/etc/init.d/omiserverd start", L"/etc/init.d/omiserverd stop")
 #endif
 #else
     : SCX_AdminServiceControl(L"omiserver", L"", L"")

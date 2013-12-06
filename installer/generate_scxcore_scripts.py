@@ -13,28 +13,28 @@ def GenerateSetupScriptFile():
     # Configure script to not complain if environment variable isn't currently set
     shfile.write('set +u\n')
     if Variables["PF"] == 'MacOS':
-        shfile.write('PATH=/usr/libexec/microsoft/scx/bin:$PATH' + '\n')
+        shfile.write('PATH=/usr/libexec/microsoft/omi/bin:$PATH' + '\n')
     else:
-        shfile.write('PATH=/opt/microsoft/scx/bin:$PATH' + '\n')
+        shfile.write('PATH=/opt/microsoft/omi/bin:$PATH' + '\n')
     shfile.write('export PATH' + '\n')
     if Variables["PF"] == 'MacOS':
         shfile.write('DYLD_LIBRARY_PATH=/usr/libexec/microsoft/scx/lib:$DYLD_LIBRARY_PATH' + '\n')
         shfile.write('export DYLD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == 'HPUX' and Variables["PFARCH"] == "pa-risc":
-        shfile.write('SHLIB_PATH=/opt/microsoft/scx/lib:$SHLIB_PATH' + '\n')
+        shfile.write('SHLIB_PATH=/opt/microsoft/omi/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
     elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == "AIX":
-        shfile.write('LIBPATH=/opt/microsoft/scx/lib:$LIBPATH\n')
+        shfile.write('LIBPATH=/opt/microsoft/omi/lib:$LIBPATH\n')
         shfile.write('export LIBPATH\n')
         # Since AIX searches LIBPATH first, it is questionable whether we need to define LD_LIBRARY_PATH also, but 
         # in the interests of avoiding side effects of code that looks for it, we will set it here.
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:$LD_LIBRARY_PATH\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:$LD_LIBRARY_PATH\n')
         shfile.write('export LD_LIBRARY_PATH\n')
     else:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:$LD_LIBRARY_PATH\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:$LD_LIBRARY_PATH\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     if Variables["BT"] == 'Bullseye':
         shfile.write('COVFILE=/var/opt/microsoft/scx/log/OpsMgr.cov' + '\n')
@@ -47,25 +47,25 @@ def GenerateToolsSetupScriptFile():
     # Configure script to not complain if environment variable isn't currently set
     shfile.write('set +u\n')
     if Variables["PF"] == 'MacOS':
-        shfile.write('PATH=/usr/libexec/microsoft/scx/bin/tools:$PATH' + '\n')
+        shfile.write('PATH=/usr/libexec/microsoft/omi/bin/tools:$PATH' + '\n')
     else:
-        shfile.write('PATH=/opt/microsoft/scx/bin/tools:$PATH' + '\n')
+        shfile.write('PATH=/opt/microsoft/omi/bin:/opt/microsoft/scx/bin/tools:$PATH' + '\n')
     shfile.write('export PATH' + '\n')
     if Variables["PF"] == 'MacOS':
         shfile.write('DYLD_LIBRARY_PATH=/usr/libexec/microsoft/scx/lib:$DYLD_LIBRARY_PATH' + '\n')
         shfile.write('export DYLD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == 'HPUX' and Variables["PFARCH"] == "pa-risc":
-        shfile.write('SHLIB_PATH=/opt/microsoft/scx/lib:$SHLIB_PATH' + '\n')
+        shfile.write('SHLIB_PATH=/opt/microsoft/omi/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
     elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == 'AIX':
-        shfile.write('LIBPATH=/opt/microsoft/scx/lib:$LIBPATH\n')
+        shfile.write('LIBPATH=/opt/microsoft/omi/lib:$LIBPATH\n')
         shfile.write('export LIBPATH' + '\n')
         # Since AIX searches LIBPATH first, it is questionable whether we need to define LD_LIBRARY_PATH also, but 
         # in the interests of avoiding side effects of code that looks for it, we will set it here.
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:$LD_LIBRARY_PATH\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:$LD_LIBRARY_PATH\n')
         shfile.write('export LD_LIBRARY_PATH\n')
     else:
         shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:$LD_LIBRARY_PATH' + '\n')

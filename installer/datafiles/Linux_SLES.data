@@ -1,8 +1,3 @@
 %Variables
 PFDISTRO: 'SUSE'
 PFMINOR: '0'
-pam_dir_passwd:	'auth include common-auth\nauth required pam_nologin.so\naccount include common-account'
-pam_file_passwd:	'omi auth include common-auth\nomi auth required pam_nologin.so\nomi account include common-account'
-
-%Files
-/etc/init.d/scx-cimd;   installer/conf/init.d/scx-cimd.sles;  744; root; root

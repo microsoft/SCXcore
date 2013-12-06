@@ -1,23 +1,8 @@
 %Variables
 PACKAGE_TYPE: 'RPM'
 
-%Preinstall_10
-#include OmiService_funcs
-
-%Preinstall_200
-if [ $1 -eq 2 ]; then
-
-%Preinstall_300
-StopOmiService
-RemoveOmiService
-
-%Preinstall_400
-#ifdef ULINUX
-rm /opt/microsoft/scx/lib /opt/microsoft/scx/bin
-#endif
-
-%Preinstall_500
-fi  ## if [ $1 -eq 2 ]
+%Dependencies
+omi >= 1.0.6.5
 
 %Postinstall_650
 # If this is a fresh install and not an upgrade
