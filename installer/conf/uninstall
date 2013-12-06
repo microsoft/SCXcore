@@ -1,0 +1,215 @@
+#!/bin/sh
+
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+umask 022
+
+PF_FILE_PATH=/etc/opt/microsoft/scx/pf_file.sh
+
+if [ ! -f $PF_FILE_PATH ]; then
+    echo "Error: package file $PF_FILE_PATH does not exist. Unable to uninstall."
+    exit 1
+fi
+
+. $PF_FILE_PATH
+
+which rpm 1> /dev/null 2> /dev/null
+RPM_EXISTS=$?
+which dpkg 1> /dev/null 2> /dev/null
+DPKG_EXISTS=$?
+
+# $1 - The package name of the package to be uninstalled
+# $2 - Optional parameter. Only used when forcibly removing omi on SunOS
+pkg_rm() {
+    case "$PF" in
+	Linux)
+	    case "$PF_DISTRO" in
+		ULINUX)
+		    if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
+			dpkg --remove $1 1> /dev/null 2> /dev/null
+		    elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
+		       	rpm --erase $1 1> /dev/null 2> /dev/null
+		    fi
+		    ;;
+		REDHAT|SUSE)
+		    rpm --erase $1 1> /dev/null 2> /dev/null
+		    ;;
+	    esac
+	    ;;
+
+	AIX)
+	    /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+	    ;;
+	
+	HPUX)
+	    /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+	    ;;
+	
+	SunOS)
+	    /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+	    ;;
+    esac
+}
+
+service_action_delay()
+{
+    case "$PF_MINOR" in
+        10|11)
+            COUNT=0
+            while [ $COUNT -lt 15 ]; do
+                /usr/bin/svcs -H $1 2> /dev/null | grep -i $2 2> /dev/null 1> /dev/null
+                [ $? -eq 0 ] && break
+                echo "Waiting for service: $1 ..."
+		sleep 2
+                COUNT=`expr $COUNT + 1`
+            done
+        ;;
+
+    esac
+}
+
+
+stop_omiserver() {
+    case "$PF" in
+        AIX)
+	    stopsrc -s omiserverd
+            ;;
+	
+	Linux)
+	    case "$PF_DISTRO" in
+		ULINUX)
+		    if [ -x /usr/sbin/invoke-rc.d ]; then
+			invoke-rc.d omiserverd stop
+		    elif [ -x /sbin/service ]; then
+			service omiserverd stop
+		    else
+			echo "Unrecognized Service Controller to stop OMI Service."
+			exit 1
+		    fi
+		    ;;
+		SUSE)
+		    case "$PF_MAJOR" in
+			9)
+			    /etc/init.d/omiserverd stop
+			    ;;
+			*)
+			    service omiserverd stop
+			    ;;
+		    esac
+		    ;;
+		REDHAT)
+		    service omiserverd stop
+		    ;;
+	    esac
+	    ;;
+
+	HPUX)
+	    $OMI_HOME/bin/omiserver -s
+	    ;;
+	
+	SunOS)
+	    case "$PF_MINOR" in
+		9)
+		    $OMI_HOME/bin/omiserver -s
+		    ;;
+		10|11)
+		    svcs -l omiserverd 2> /dev/null 1> /dev/null
+		    if [ $? -eq 0 ]; then
+			svcadm disable -s svc:/application/management/omiserverd
+			service_action_delay svc:/application/management/omiserverd disabled
+		    fi
+		    ;;
+	    esac
+	    ;;
+    esac
+}
+
+
+start_omiserver() {
+    case "$PF" in
+        AIX)
+	    startsrc -s omiserverd -e "LD_LIBRARY_PATH=$OMI_HOME/lib"
+            ;;
+	
+	Linux)
+	    case "$PF_DISTRO" in
+		ULINUX)
+		    if [ -x /usr/sbin/invoke-rc.d ]; then
+			invoke-rc.d omiserverd start
+		    elif [ -x /sbin/service ]; then
+			service omiserverd start
+		    else
+			echo "Unrecognized Service Controller to start SCX Service"
+			exit 1
+		    fi
+		    ;;
+		SUSE)
+		    case "$PF_MAJOR" in
+			9)
+			    /etc/init.d/omiserverd start
+			    ;;
+			*)
+			    service omiserverd start
+			    ;;
+		    esac
+		    ;;
+		REDHAT)
+		    service omiserverd start
+		    ;;
+	    esac
+	    ;;
+
+	HPUX)
+	    /opt/microsoft/omi/bin/omiserver -d
+	    ;;
+	
+	SunOS)
+	    case "$PF_MINOR" in
+		9)
+		    /opt/microsoft/omi/bin/omiserver -d
+		    ;;
+		10|11)
+		    svcs -H omiserverd 2> /dev/null | grep -i online 2> /dev/null 1> /dev/null
+		    if [ $? -eq 0 ]; then
+			return
+		    fi
+		    
+		    service_action_delay svc:/application/management/omiserverd disabled
+		    svcadm enable -s svc:/application/management/omiserverd
+		    ;;
+	    esac
+	    ;;
+    esac
+}
+
+# Create installation administrative file for Solaris platform if needed
+CLEANUP=""
+if [ "$PLATFORM" = "SunOS" ]; then
+    CLEANUP='rm -f scx-admin'
+    echo "mail=" > scx-admin
+    echo "instance=overwrite" >> scx-admin
+    echo "partial=nocheck" >> scx-admin
+    echo "idepend=quit" >> scx-admin
+    echo "rdepend=quit" >> scx-admin
+    echo "conflict=nocheck" >> scx-admin
+    echo "action=nocheck" >> scx-admin
+    echo "basedir=default" >> scx-admin
+fi
+
+echo "Removing cross-platform agent ..."
+pkg_rm scx
+SCX_EXIT_STATUS=$?
+pkg_rm omi
+OMI_EXIT_STATUS=$?
+
+if [ $OMI_EXIT_STATUS -ne 0 ]; then
+    # Unable to uninstall omi.  This is most likely due to another dependency on omi.  In this case, we should restart omi
+    stop_omiserver
+    start_omiserver
+fi
+
+${CLEANUP}
+if [ "$SCX_EXIT_STATUS" -ne "0" ]; then
+    exit 1
+else
+    exit 0
+fi

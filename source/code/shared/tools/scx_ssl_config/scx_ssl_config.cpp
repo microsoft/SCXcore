@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     // Control variables built from command line arguments (defaulted as needed by SCX)
     bool debugMode = false;
     bool doGenerateCert = false;
-    wstring targetPath = L"/etc/opt/microsoft/scx/ssl";
+    wstring targetPath = L"/etc/opt/microsoft/omi/ssl";
     int startDays = -365;
     int endDays = 7300;
 #if defined(hpux) && defined(hppa)
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
     {
         SCXFilePath keyPath;
         keyPath.SetDirectory(targetPath);
-        keyPath.SetFilename(L"scx-key.pem");
+        keyPath.SetFilename(L"omikey.pem");
 
         SCXCoreLib::SCXFileInfo keyInfo(keyPath);
         if ( ! keyInfo.Exists() )
@@ -319,14 +319,14 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname,
                       int bits, bool bDebug)
 {
-    std::wstring c_certFilename(L"scx-host-");  // Remainder must be generated
-    const std::wstring c_keyFilename(L"scx-key.pem");
+    std::wstring c_certFilename(L"omi-host-");  // Remainder must be generated
+    const std::wstring c_keyFilename(L"omikey.pem");
 
     int rc = 0;
     // Do not allow an exception to slip out
     try
     {
-        // The certificate filename must be something like scx-host-<hostname>.pem; generate it
+        // The certificate filename must be something like omi-host-<hostname>.pem; generate it
         c_certFilename.append(hostname);
         c_certFilename.append(L".pem");
 
@@ -378,9 +378,9 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         /*
         ** We actually have three certificate files in total:
         **
-        ** Certificate File: scx-host-<hostname>.pem  (public)
-        ** Key File:         scx-key.pem              (private)
-        ** Soft link:        scx.pem  (soft link to certificate file, used by openwsman)
+        ** Certificate File: omi-host-<hostname>.pem  (public)
+        ** Key File:         omi-key.pem              (private)
+        ** Soft link:        omi.pem  (soft link to certificate file, used by openwsman)
         **
         **
         ** Create the soft link to point to the certificate file.
@@ -388,7 +388,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
 
         SCXFilePath fpLinkFile;
         fpLinkFile.SetDirectory(targetPath);
-        fpLinkFile.SetFilename(L"scx.pem");
+        fpLinkFile.SetFilename(L"omi.pem");
 
         std::string sLinkFile = SCXCoreLib::StrToMultibyte(fpLinkFile.Get());
         std::string sCertFile = SCXCoreLib::StrToMultibyte(certPath.Get());

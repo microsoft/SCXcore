@@ -1,32 +1,34 @@
 %Variables
-PF: 'AIX'
+PF:              'AIX'
 ROOT_GROUP_NAME: 'system'
-pam_dir_passwd:	'auth required /usr/lib/security/pam_aix\naccount required /usr/lib/security/pam_aix'
-pam_file_passwd:	'omi auth required /usr/lib/security/pam_aix\nomi account required /usr/lib/security/pam_aix'
-COPYRIGHT_FILE: 'For copyright and license information please refer to\n/opt/microsoft/scx/COPYRIGHT and /opt/microsoft/scx/LICENSE.\n'
+COPYRIGHT_FILE:  'For copyright and license information please refer to\n/opt/microsoft/scx/COPYRIGHT and /opt/microsoft/scx/LICENSE.\n'
 
 %Directories
 /usr/lpp; 755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /usr/lpp/scx.rte; 755; root; ${{ROOT_GROUP_NAME}}
 
+%Dependencies
+*prereq omi.rte 1.0.6.5
+
 %OmiService_funcs
-StopOmiService() {
-    stopsrc -c -s scx-cimd
+StopOmiServer() {
+    stopsrc -s omiserverd
 }
 
-RemoveOmiService() {
-    rmssys -s scx-cimd
-    rmitab scx-cimd
+StartOmiServer() {
+    startsrc -s omiserverd -e "LD_LIBRARY_PATH=/opt/microsoft/omi/lib"
 }
+
+%Preinstall_10
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
 
 %Preupgrade_1000
-#include OmiService_funcs
 #include CreateConfBackupTemp
-StopOmiService
 CreateConfBackupTemp
-
-%Preupgrade_1100
-RemoveOmiService
 
 %Postinstall_650
 # If this is not an upgrade, ConfigureRunas
@@ -35,25 +37,9 @@ if [ "$INSTALLED_LIST" = "" ]; then
 %Postinstall_750
 fi  ## if [ "$INSTALLED_LIST" = "" ]
 
-%Postinstall_950
-# ConfigureOmiService
-mkssys -s scx-cimd -p ${{SCXHOME}}/bin/omiserver -u root -S -n 15 -f 9 -G scx
-grep scx-cimd /etc/inittab > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    rmitab scx-cimd
-fi
-mkitab 'scx-cimd:2:once:/usr/bin/startsrc -s scx-cimd -e " LIBPATH=\"\" LD_LIBRARY_PATH=\"\" " > /dev/console 2>&1'
-
 %Postinstall_1100
-# StartOmiService
-startsrc -s scx-cimd
-
-%Preuninstall_100
 #include OmiService_funcs
-StopOmiService
-
-%Preuninstall_200
-RemoveOmiService
+StartOmiServer
 
 %Preuninstall_800
 #include DeleteSoftLinkToSudo

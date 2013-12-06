@@ -37,8 +37,16 @@ STAGING_DIR = $(SCX_BRD)/installer/intermediate/staging
 # Easy way to just run installer (if you know all targets are built properly)
 native_kit: GetLinuxOS scx_scripts
 	$(ECHO) "========================= Performing make installer"
+	$(ECHO) PF=$(PF) > $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_DISTRO=$(PF_DISTRO) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_MAJOR=$(PF_MAJOR) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_MINOR=$(PF_MINOR) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_ARCH=$(PF_ARCH) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_DISTRO_ULINUX_D=$(PF_DISTRO_ULINUX_D) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+	$(ECHO) PF_DISTRO_ULINUX_R=$(PF_DISTRO_ULINUX_R) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
+        # The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
+ifneq ($(PF_DISTRO),ULINUX)
 	sudo rm -rf $(STAGING_DIR)
-# The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(TARGET_DIR) \
@@ -52,11 +60,70 @@ native_kit: GetLinuxOS scx_scripts
 		--PFMINOR=$(PF_MINOR) \
 		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX= \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(DATAFILES)
+else
+	sudo rm -rf $(STAGING_DIR)
+	rm -rf $(TARGET_DIR)/{098,100}
+	mkdir -p $(TARGET_DIR)/{098,100}
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/098 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_0.9.8 \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/100 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.0.0 \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES)
+endif
 
 bundle: native_kit
-	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(TARGET_DIR) `cat $(TARGET_DIR)/package_filename`
+ifneq ($(PF_DISTRO),ULINUX)
+	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/
+	cp `find $(SCXOMI_DIR)/output -name package_filename` $(TARGET_DIR)/omi_package_filename
+	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename`
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
+                                             $(TARGET_DIR) \
+                                             `cat $(TARGET_DIR)/package_filename`.tar \
+                                             `cat $(TARGET_DIR)/package_filename` \
+                                             `cat $(TARGET_DIR)/omi_package_filename`
+else
+	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/098/
+	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name package_filename` $(TARGET_DIR)/098/omi_package_filename
+	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/100/
+	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name package_filename` $(TARGET_DIR)/100/omi_package_filename
+	cd $(TARGET_DIR); tar cvf `cat 098/package_filename`.tar 098/`cat 098/package_filename` 098/`cat 098/omi_package_filename` 100/`cat 100/package_filename` 100/`cat 100/omi_package_filename`
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
+					     $(TARGET_DIR)  \
+                                             `cat $(TARGET_DIR)/098/package_filename`.tar \
+                                             `cat $(TARGET_DIR)/098/package_filename` \
+                                             `cat $(TARGET_DIR)/098/omi_package_filename`
+endif
 
 # Technically, a compressed kit doesn't have a prereq on the bundle, 
 # but compressing the kit will make the uncompressed kit unavailable to the bundle...

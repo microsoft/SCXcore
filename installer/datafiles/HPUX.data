@@ -1,43 +1,25 @@
 %Variables
 PF: 'HPUX'
-pam_dir_passwd: 'auth required libpam_hpsec.so.1\nauth required libpam_unix.so.1\naccount required libpam_hpsec.so.1\naccount required libpam_unix.so.1'
-pam_file_passwd: 'omi auth required libpam_hpsec.so.1\nomi auth required libpam_unix.so.1\nomi account required libpam_hpsec.so.1\nomi account required libpam_unix.so.1'
 HPUX_COPYRIGHT: 'Copyright (c) Microsoft Corporation.  All rights reserved.'
 
-%Files
-/sbin/init.d/scx-cimd; installer/conf/init.d/scx-cimd.hpux; 744; root; ${{ROOT_GROUP_NAME}}
-
-%Directories
-/var/log;     755; root; sys; sysdir
-/sbin;        755; root; bin; sysdir
-/sbin/init.d; 755; root; bin; sysdir
-/sbin/rc2.d;  755; root; bin; sysdir
-/sbin/rc1.d;  755; root; bin; sysdir
-
-%Links
-/sbin/rc2.d/S999scx-cimd; ../init.d/scx-cimd; 744; root; ${{ROOT_GROUP_NAME}}
-/sbin/rc1.d/K100scx-cimd; ../init.d/scx-cimd; 744; root; ${{ROOT_GROUP_NAME}}
-
-
 %Dependencies
-openssl.OPENSSL-LIB,r>=A.00.09.07l.003,r<A.00.09.08 | openssl.OPENSSL-LIB,r>=A.00.09.08d.002
+omi,r>=1.0.6.5
 
 %OmiService_funcs
-StopOmiService() {
-    /sbin/init.d/scx-cimd stop
+StopOmiServer() {
+    /sbin/init.d/omiserverd stop
+}
+
+StartOmiServer() {
+    /sbin/init.d/omiserverd start
 }
 
 %Preinstall_10
 #include OmiService_funcs
-
-%Preinstall_200
-if [ -f /etc/opt/microsoft/scx/conf/installinfo.txt ]; then
-
-%Preinstall_300
-StopOmiService
-
-%Preinstall_400
-# RemoveOmiService
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
 
 %Preinstall_500
 # RemoveDeletedFiles
@@ -45,19 +27,12 @@ rm -f ${{SCXHOME}}/lib/libpegCLIClientLib.*
 rm -f ${{SCXHOME}}/lib/libpegcql.*
 rm -Rf /var/opt/microsoft/scx/lib/repository/root#scx/classes
 
-%Preinstall_600
-fi  ## if [ -f /etc/opt/microsoft/scx/conf/installinfo.txt ]
-
 %Postinstall_950
 set -e
 
 %Postinstall_1100
-# StartOmiService
-/sbin/init.d/scx-cimd start
-
-%Preuninstall_100
 #include OmiService_funcs
-StopOmiService
+StartOmiServer
 
 %Postuninstall_100
 #include DeleteSoftLinkToSudo
