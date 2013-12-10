@@ -189,7 +189,7 @@ check_if_pkg_is_installed() {
 	    ;;
 	
 	Linux_ULINUX_D)
-	    dpkg -s $1 2> /dev/null 1> /dev/null
+	    dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
 	    ;;
 	
 	AIX)
@@ -349,6 +349,12 @@ pkg_upd() {
     esac
 }
 
+cleanup () {
+    if [ "$PLATFORM" = "SunOS" ]; then
+	rm -f scx-admin scx-admin-upgrade
+    fi
+}
+
 case "$PLATFORM" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
 	;;
@@ -359,9 +365,7 @@ case "$PLATFORM" in
 esac
 
 # Create installation administrative file for Solaris platform if needed
-CLEANUP=""
 if [ "$PLATFORM" = "SunOS" ]; then
-    CLEANUP='rm -f scx-admin; rm -f scx-admin-upgrade'
     echo "mail=" > scx-admin
     echo "instance=overwrite" >> scx-admin
     echo "partial=nocheck" >> scx-admin
@@ -382,10 +386,15 @@ if [ "$PLATFORM" = "SunOS" ]; then
 fi
 
 # Do we need to remove the package?
-
+set +e
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
-    /opt/microsoft/scx/bin/uninstall
+    if [ -f /opt/microsoft/scx/bin/uninstall ]; then
+	/opt/microsoft/scx/bin/uninstall
+    else
+	# This is an old kit.  Let's just simply pkg_rm scx
+	pkg_rm scx
+    fi
 
     if [ "$installMode" = "P" ]
     then
@@ -403,7 +412,7 @@ fi
 if [ -n "${shouldexit}" ]
 then
     # when extracting script/tarball don't also install
-    ${CLEANUP}
+    cleanup
     exit 0
 fi
 
@@ -433,7 +442,7 @@ case "$PLATFORM" in
 
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-	${CLEANUP}
+	cleanup
 	exit 2
 esac
 
@@ -441,19 +450,18 @@ STATUS=$?
 if [ ${STATUS} -ne 0 ]
 then
     echo "Failed: could not extract the install bundle."
-    ${CLEANUP}
+    cleanup
     exit ${STATUS}
 fi
 
 # Default behavior is to extract the bundle and then exit
 
-[ -z "$installMode" ] && ${CLEANUP} && exit 0
+[ -z "$installMode" ] && cleanup && exit 0
 
 #
 # Do stuff after extracting the binary here, such as actually installing the package.
 #
 
-set +e
 EXIT_STATUS=0
 
 case "$installMode" in
@@ -502,11 +510,11 @@ case "$installMode" in
 
     *)
 	echo "$0: Invalid setting of variable \$installMode, exiting" >&2
-	${CLEANUP}
+	cleanup
 	exit 2
 esac
 
-${CLEANUP}
+cleanup
 
 # Remove the package that was extracted as part of the bundle
 # NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
