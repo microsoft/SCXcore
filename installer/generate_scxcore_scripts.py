@@ -68,7 +68,7 @@ def GenerateToolsSetupScriptFile():
         shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:$LD_LIBRARY_PATH\n')
         shfile.write('export LD_LIBRARY_PATH\n')
     else:
-        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/scx/lib:$LD_LIBRARY_PATH' + '\n')
+        shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     if Variables["BT"] == 'Bullseye':
         shfile.write('COVFILE=/var/opt/microsoft/scx/log/OpsMgr.cov' + '\n')
