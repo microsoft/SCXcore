@@ -9,7 +9,7 @@ StopOmiServer() {
 }
 
 StartOmiServer() {
-    /etc/init.d/omiserverd stop
+    /etc/init.d/omiserverd start
 }
 
 %Preinstall_10

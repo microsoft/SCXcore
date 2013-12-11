@@ -23,7 +23,7 @@ def GenerateSetupScriptFile():
     elif Variables["PF"] == 'HPUX' and Variables["PFARCH"] == "pa-risc":
         shfile.write('SHLIB_PATH=/opt/microsoft/omi/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
-    elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
+    elif Variables["PF"] == "SunOS" and int(Variables["PFMAJOR"]) == 5 and int(Variables["PFMINOR"]) <= 9:
         shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == "AIX":
@@ -57,7 +57,7 @@ def GenerateToolsSetupScriptFile():
     elif Variables["PF"] == 'HPUX' and Variables["PFARCH"] == "pa-risc":
         shfile.write('SHLIB_PATH=/opt/microsoft/omi/lib:$SHLIB_PATH' + '\n')
         shfile.write('export SHLIB_PATH' + '\n')
-    elif Variables["PF"] == "SunOS" and Variables["PFMAJOR"] == 5 and Variables["PFMINOR"] <= 9:
+    elif Variables["PF"] == "SunOS" and int(Variables["PFMAJOR"]) == 5 and int(Variables["PFMINOR"]) <= 9:
         shfile.write('LD_LIBRARY_PATH=/opt/microsoft/omi/lib:/usr/local/ssl/lib:/usr/local/lib:$LD_LIBRARY_PATH' + '\n')
         shfile.write('export LD_LIBRARY_PATH' + '\n')
     elif Variables["PF"] == 'AIX':
