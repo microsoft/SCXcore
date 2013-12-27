@@ -100,12 +100,12 @@ static void EnumerateOneInstance(
         }
 
         {
-            data = data2 = 0;
+            data = 0;
             unsigned char percent = static_cast<unsigned char> (0);
 
-            if (meminst->GetCacheSizes(data, data2) && usermem > 0)
+            if (meminst->GetCacheSize(data) && usermem > 0)
             {
-                percent = static_cast<unsigned char> (GetPercentage(0, BytesToMegaBytes(data - data2), 0, usermem));
+                percent = static_cast<unsigned char> (GetPercentage(0, BytesToMegaBytes(data), 0, usermem));
             }
             inst.PercentUsedByCache_value(percent);
         }
