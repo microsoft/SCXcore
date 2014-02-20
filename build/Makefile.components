@@ -283,6 +283,7 @@ ifeq ($(PF_DISTRO),ULINUX)
 	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_0.9.8"
 
 	$(ECHO) "========================= Performing make omi (1.0.0)"
 
@@ -296,11 +297,13 @@ ifeq ($(PF_DISTRO),ULINUX)
 	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_1.0.0"
 
 else
 
 	$(ECHO) "========================= Performing make omi"
 	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder
 
 endif
 
