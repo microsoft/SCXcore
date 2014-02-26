@@ -148,7 +148,7 @@ cp $OUTPUT_DIR/$3 .
 case "$1" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" | sed -e "s/.tar//"`.sh
-	gzip -c $3 $4 | cat primary.skel - > $BUNDLE_FILE
+	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
     Linux_ULINUX_D)
