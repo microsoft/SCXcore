@@ -258,9 +258,12 @@ namespace SCXSystemLib
         wstring wasProfile;
         bool gotInstPath = false;
         bool gotParams = false;
-        
+
+        SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance enter");
 
         argNumberForRuntimeClass = GetArgNumber(params, WEBSPHERE_RUNTIME_CLASS);
+        SCX_LOGTRACE(m_log, StrAppend(L"AppServerEnumeration::CreateWebSphereInstance argNumberForRuntimeClass: ", argNumberForRuntimeClass)); 
+
         if(argNumberForRuntimeClass >= 0)
         {
            // parse out the "%CONFIG_ROOT%" "%WAS_CELL%" "%WAS_NODE%" %* %WORKSPACE_ROOT_PROP%
@@ -273,6 +276,7 @@ namespace SCXSystemLib
               wasNode = params[argNumberForRuntimeClass+3];
               wasServer = params[argNumberForRuntimeClass+4];
               gotParams = true;
+              SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotParams");
            }
         }
         instDir = ParseOutCommandLineArg(params, "-Dserver.root",true,true);
@@ -281,6 +285,7 @@ namespace SCXSystemLib
              SCXFilePath sf(StrFromUTF8(instDir));
              wasProfile = sf.GetFilename();
              gotInstPath=true;
+             SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotInstPath");
         }
         
         if(gotInstPath && gotParams)
@@ -365,6 +370,24 @@ namespace SCXSystemLib
 
           if (m_deps->GetParameters((*it),params)) 
           {
+             // Log "Found java process, Parameters: Size=x, Contents: y"
+             if (eTrace == m_log.GetSeverityThreshold())
+             {
+                 std::wostringstream txt;
+                 txt << L"AppServerEnumeration Update(): Found java process, Parameters: Size=" << params.size();
+                 if (params.size() > 0)
+                 {
+                     txt << L", Contents:";
+
+                     int count = 0;
+                     for (vector<string>::iterator itp = params.begin(); itp != params.end(); ++itp)
+                     {
+                         txt << L" " << ++count << L":\"" << StrFromUTF8(*itp) << L"\"";
+                     }
+                 }
+
+                 SCX_LOGTRACE(m_log, txt.str());
+             }
 
              // Loop through each 'java' process and check for 'JBoss' argument on the commandline
              if(CheckProcessCmdLineArgExists(params,"org.jboss.Main") ||
