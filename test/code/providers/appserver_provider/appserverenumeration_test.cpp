@@ -260,6 +260,7 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( JBoss_Tomcat_Process_MixedGoodBad );
     
     CPPUNIT_TEST( WebSphere_Process_Good_Params );
+    CPPUNIT_TEST( WebSphere_Process_Fixing_Incorrect_Enumerations );
     CPPUNIT_TEST( WebSphere_Process_Bad_Params_TooFewArgs_Missing_Server );
     CPPUNIT_TEST( WebSphere_Process_Bad_Params_TooFewArgs_Missing_Node );
     CPPUNIT_TEST( WebSphere_Process_Bad_Params_TooFewArgs_Missing_ServerRoot );
@@ -1255,8 +1256,8 @@ public:
         CPPUNIT_ASSERT(asEnum.Size() == 1);
         
         std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
-        CPPUNIT_ASSERT(L"AppSrv01-scxjet-rhel5-04Node01Cell-Node01-server1" == (*it)->GetId());
-        CPPUNIT_ASSERT(L"WebSphere" == (*it)->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"AppSrv01-scxjet-rhel5-04Node01Cell-Node01-server1",(*it)->GetId());
+        CPPUNIT_ASSERT_EQUAL(L"WebSphere",(*it)->GetType());
         
         asEnum.CleanUp();
     }
@@ -1735,6 +1736,176 @@ public:
         
         asEnum.CleanUp();
     }
+
+    /**************************************************************************************/
+    //
+    // Verify that correct number of enumerations is being calculated with WebSphere V8
+    // using Customer Log to populate data 
+    // 
+    /**************************************************************************************/
+    void WebSphere_Process_Fixing_Incorrect_Enumerations()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst1;
+               
+        inst1 = pal->CreateProcessInstance(1234, "1234");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/java/bin/java");
+        inst1->AddParameter("-Declipse.security");
+        inst1->AddParameter("-Dwas.status.socket=36244");
+        inst1->AddParameter("-Dosgi.install.area=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Dosgi.configuration.area=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/servers/StatementService_lsys401c/configuration");
+        inst1->AddParameter("-Djava.awt.headless=true");
+        inst1->AddParameter("-Dosgi.framework.extensions=com.ibm.cds,com.ibm.ws.eclipse.adaptors");
+        inst1->AddParameter("-Xshareclasses:name=webspherev80_%g,groupAccess,nonFatal");
+        inst1->AddParameter("-Dcom.ibm.xtq.processor.overrideSecureProcessing=true");
+        inst1->AddParameter("-Xbootclasspath/p:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ibmorb.jar");
+        inst1->AddParameter("-classpath");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties:/usr/WebSphere/WAS8/AppServer/properties:/usr/WebSphere/WAS8/AppServer/lib/startup.jar:/usr/WebSphere/WAS8/AppServer/lib/bootstrap.jar:/usr/WebSphere/WAS8/AppServer/lib/jsf-nls.jar:/usr/WebSphere/WAS8/AppServer/lib/lmproxy.jar:/usr/WebSphere/WAS8/AppServer/lib/urlprotocols.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batchboot.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batch2.jar:/usr/WebSphere/WAS8/AppServer/java/lib/tools.jar");
+        inst1->AddParameter("-Dibm.websphere.internalClassAccessMode=allow");
+        inst1->AddParameter("-Xms64m");
+        inst1->AddParameter("-Xmx128m");
+        inst1->AddParameter("-Xcompressedrefs");
+        inst1->AddParameter("-Xscmaxaot4M");
+        inst1->AddParameter("-Xscmx90M");
+        inst1->AddParameter("-Dws.ext.dirs=/usr/WebSphere/WAS8/AppServer/java/lib:/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/classes:/usr/WebSphere/WAS8/AppServer/classes:/usr/WebSphere/WAS8/AppServer/lib:/usr/WebSphere/WAS8/AppServer/installedChannels:/usr/WebSphere/WAS8/AppServer/lib/ext:/usr/WebSphere/WAS8/AppServer/web/help:/usr/WebSphere/WAS8/AppServer/deploytool/itp/plugins/com.ibm.etools.ejbdeploy/runtime");
+        inst1->AddParameter("-Xdump:java+heap:events=user");
+        inst1->AddParameter("-Dderby.system.home=/usr/WebSphere/WAS8/AppServer/derby");
+        inst1->AddParameter("-Dcom.ibm.itp.location=/usr/WebSphere/WAS8/AppServer/bin");
+        inst1->AddParameter("-Djava.util.logging.configureByServer=true");
+        inst1->AddParameter("-Duser.install.root=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01");
+        inst1->AddParameter("-Djava.ext.dirs=/usr/WebSphere/WAS8/AppServer/tivoli/tam:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ext");
+        inst1->AddParameter("-Djavax.management.builder.initial=com.ibm.ws.management.PlatformMBeanServerBuilder");
+        inst1->AddParameter("-Dpython.cachedir=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/temp/cachedir");
+        inst1->AddParameter("-Dwas.install.root=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager");
+        inst1->AddParameter("-Dserver.root=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01");
+        inst1->AddParameter("-Dcom.ibm.security.jgss.debug=off");
+        inst1->AddParameter("-Dcom.ibm.security.krb5.Krb5Debug=off");
+        inst1->AddParameter("-DWAS_LOG4J=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/log4j/STATEMENTSERVICE");
+        inst1->AddParameter("-Xgcpolicy:gencon");
+        inst1->AddParameter("-Djava.library.path=/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd64/compressedrefs:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/bin:/usr/lib:");
+        inst1->AddParameter("-Djava.endorsed.dirs=/usr/WebSphere/WAS8/AppServer/endorsed_apis:/usr/WebSphere/WAS8/AppServer/java/jre/lib/endorsed");
+        inst1->AddParameter("-Djava.security.auth.login.config=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties/wsjaas.conf");
+        inst1->AddParameter("-Djava.security.policy=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties/server.policy");
+        inst1->AddParameter("com.ibm.wsspi.bootstrap.WSPreLauncher");
+        inst1->AddParameter("-nosplash");
+        inst1->AddParameter("-application");
+        inst1->AddParameter("com.ibm.ws.bootstrap.WSLauncher");
+        inst1->AddParameter("com.ibm.ws.runtime.WsServer");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/config");
+        inst1->AddParameter("DEV");
+        inst1->AddParameter("lsys401cNode01");
+        inst1->AddParameter("StatementService_lsys401c");
+        
+        //Second Instance of WebSphere V8 with different server
+        inst1 = pal->CreateProcessInstance(1235, "1235");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/java/bin/java");
+        inst1->AddParameter("-Declipse.security");
+        inst1->AddParameter("-Dwas.status.socket=45529");
+        inst1->AddParameter("-Dosgi.install.area=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Dosgi.configuration.area=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/servers/dmgr/configuration");
+        inst1->AddParameter("-Djava.awt.headless=true");
+        inst1->AddParameter("-Dosgi.framework.extensions=com.ibm.cds,com.ibm.ws.eclipse.adaptors");
+        inst1->AddParameter("-Xshareclasses:name=webspherev80_%g,groupAccess,nonFatal");
+        inst1->AddParameter("-Xscmx50M");
+        inst1->AddParameter("-Dcom.ibm.xtq.processor.overrideSecureProcessing=true");
+        inst1->AddParameter("-Xbootclasspath/p:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ibmorb.jar");
+        inst1->AddParameter("-classpath");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/properties:/usr/WebSphere/WAS8/AppServer/properties:/usr/WebSphere/WAS8/AppServer/lib/startup.jar:/usr/WebSphere/WAS8/AppServer/lib/bootstrap.jar:/usr/WebSphere/WAS8/AppServer/lib/jsf-nls.jar:/usr/WebSphere/WAS8/AppServer/lib/lmproxy.jar:/usr/WebSphere/WAS8/AppServer/lib/urlprotocols.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batchboot.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batch2.jar:/usr/WebSphere/WAS8/AppServer/java/lib/tools.jar");
+        inst1->AddParameter("-Dibm.websphere.internalClassAccessMode=allow");
+        inst1->AddParameter("-Xms256m");
+        inst1->AddParameter("-Xmx512m");
+        inst1->AddParameter("-Xcompressedrefs");
+        inst1->AddParameter("-Dws.ext.dirs=/usr/WebSphere/WAS8/AppServer/java/lib:/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/classes:/usr/WebSphere/WAS8/AppServer/classes:/usr/WebSphere/WAS8/AppServer/lib:/usr/WebSphere/WAS8/AppServer/installedChannels:/usr/WebSphere/WAS8/AppServer/lib/ext:/usr/WebSphere/WAS8/AppServer/web/help:/usr/WebSphere/WAS8/AppServer/deploytool/itp/plugins/com.ibm.etools.ejbdeploy/runtime");
+        inst1->AddParameter("-Dderby.system.home=/usr/WebSphere/WAS8/AppServer/derby");
+        inst1->AddParameter("-Dcom.ibm.itp.location=/usr/WebSphere/WAS8/AppServer/bin");
+        inst1->AddParameter("-Djava.util.logging.configureByServer=true");
+        inst1->AddParameter("-Duser.install.root=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01");
+        inst1->AddParameter("-Djava.ext.dirs=/usr/WebSphere/WAS8/AppServer/tivoli/tam:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ext");
+        inst1->AddParameter("-Djavax.management.builder.initial=com.ibm.ws.management.PlatformMBeanServerBuilder");
+        inst1->AddParameter("-Dpython.cachedir=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/temp/cachedir");
+        inst1->AddParameter("-Dwas.install.root=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager");
+        inst1->AddParameter("-Dserver.root=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01");
+        inst1->AddParameter("-Dcom.ibm.security.jgss.debug=off");
+        inst1->AddParameter("-Dcom.ibm.security.krb5.Krb5Debug=off");
+        inst1->AddParameter("-Djava.library.path=/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd64/compressedrefs:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd64:/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/bin:/usr/lib:");
+        inst1->AddParameter("-Djava.endorsed.dirs=/usr/WebSphere/WAS8/AppServer/endorsed_apis:/usr/WebSphere/WAS8/AppServer/java/jre/lib/endorsed");
+        inst1->AddParameter("-Djava.security.auth.login.config=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/properties/wsjaas.conf");
+        inst1->AddParameter("-Djava.security.policy=/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/properties/server.policy");
+        inst1->AddParameter("com.ibm.wsspi.bootstrap.WSPreLauncher");
+        inst1->AddParameter("-nosplash");
+        inst1->AddParameter("-application");
+        inst1->AddParameter("com.ibm.ws.bootstrap.WSLauncher");
+        inst1->AddParameter("com.ibm.ws.runtime.WsServer");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/Dmgr01/config");
+        inst1->AddParameter("DEV");
+        inst1->AddParameter("lsys401cDmgr01");
+        inst1->AddParameter("dmgr");
+        
+        
+        //Third instance of WebSphere Server
+        inst1 = pal->CreateProcessInstance(1236, "1236");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/java/bin/java");
+        inst1->AddParameter("-Xmaxt0.5");
+        inst1->AddParameter("-Dwas.status.socket=38696");
+        inst1->AddParameter("-Declipse.security");
+        inst1->AddParameter("-Dosgi.install.area=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Dosgi.configuration.area=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/servers/nodeagent/configuration");
+        inst1->AddParameter("-Dosgi.framework.extensions=com.ibm.cds,com.ibm.ws.eclipse.adaptors");
+        inst1->AddParameter("-Xshareclasses:name=webspherev80_%g,groupAccess,nonFatal");
+        inst1->AddParameter("-Dcom.ibm.xtq.processor.overrideSecureProcessing=true");
+        inst1->AddParameter("-Xbootclasspath/p:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ibmorb.jar");
+        inst1->AddParameter("-Dorg.osgi.framework.bootdelegation=*");
+        inst1->AddParameter("-classpath");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties:/usr/WebSphere/WAS8/AppServer/properties:/usr/WebSphere/WAS8/AppServer/lib/startup.jar:/usr/WebSphere/WAS8/AppServer/lib/bootstrap.jar:/usr/WebSphere/WAS8/AppServer/lib/jsf-nls.jar:/usr/WebSphere/WAS8/AppServer/lib/lmproxy.jar:/usr/WebSphere/WAS8/AppServer/lib/urlprotocols.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batchboot.jar:/usr/WebSphere/WAS8/AppServer/deploytool/itp/batch2.jar:/usr/WebSphere/WAS8/AppServer/java/lib/tools.jar");
+        inst1->AddParameter("-Dorg.osgi.framework.bootdelegation=*");
+        inst1->AddParameter("-Dibm.websphere.internalClassAccessMode=allow");
+        inst1->AddParameter("-Xms50m");
+        inst1->AddParameter("-Xmx256m");
+        inst1->AddParameter("-Xcompressedrefs");
+        inst1->AddParameter("-Xscmaxaot4M");
+        inst1->AddParameter("-Xnoaot");
+        inst1->AddParameter("-Xscmx90M");
+        inst1->AddParameter("-Dws.ext.dirs=/usr/WebSphere/WAS8/AppServer/java/lib:/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/classes:/usr/WebSphere/WAS8/AppServer/classes:/usr/WebSphere/WAS8/AppServer/lib:/usr/WebSphere/WAS8/AppServer/installedChannels:/usr/WebSphere/WAS8/AppServer/lib/ext:/usr/WebSphere/WAS8/AppServer/web/help:/usr/WebSphere/WAS8/AppServer/deploytool/itp/plugins/com.ibm.etools.ejbdeploy/runtime");
+        inst1->AddParameter("-Dderby.system.home=/usr/WebSphere/WAS8/AppServer/derby");
+        inst1->AddParameter("-Dcom.ibm.itp.location=/usr/WebSphere/WAS8/AppServer/bin");
+        inst1->AddParameter("-Djava.util.logging.configureByServer=true");
+        inst1->AddParameter("-Duser.install.root=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01");
+        inst1->AddParameter("-Djava.ext.dirs=/usr/WebSphere/WAS8/AppServer/tivoli/tam:/usr/WebSphere/WAS8/AppServer/java/jre/lib/ext");
+        inst1->AddParameter("-Djavax.management.builder.initial=com.ibm.ws.management.PlatformMBeanServerBuilder");
+        inst1->AddParameter("-Dpython.cachedir=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/temp/cachedir");
+        inst1->AddParameter("-Dwas.install.root=/usr/WebSphere/WAS8/AppServer");
+        inst1->AddParameter("-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager");
+        inst1->AddParameter("-Dserver.root=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01");
+        inst1->AddParameter("-Dcom.ibm.security.jgss.debug=off");
+        inst1->AddParameter("-Dcom.ibm.security.krb5.Krb5Debug=off");
+        inst1->AddParameter("-Djava.awt.headless=true");
+        inst1->AddParameter("-Djava.library.path=/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd64/compressedrefs:/usr/WebSphere/WAS8/AppServer/java/jre/lib/amd64:/usr/WebSphere/WAS8/AppServer/lib/native/linux/x86_64/:/usr/WebSphere/WAS8/AppServer/bin:/usr/lib:");
+        inst1->AddParameter("-Djava.endorsed.dirs=/usr/WebSphere/WAS8/AppServer/endorsed_apis:/usr/WebSphere/WAS8/AppServer/java/jre/lib/endorsed");
+        inst1->AddParameter("-Djava.security.auth.login.config=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties/wsjaas.conf");
+        inst1->AddParameter("-Djava.security.policy=/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/properties/server.policy");
+        inst1->AddParameter("com.ibm.wsspi.bootstrap.WSPreLauncher");
+        inst1->AddParameter("-nosplash");
+        inst1->AddParameter("-application");
+        inst1->AddParameter("com.ibm.ws.bootstrap.WSLauncher");
+        inst1->AddParameter("com.ibm.ws.runtime.WsServer");
+        inst1->AddParameter("/usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/config");
+        inst1->AddParameter("DEV");
+        inst1->AddParameter("lsys401cNode01");
+        inst1->AddParameter("nodeagent");
+        
+        asEnum.Update(false);
+        //We have 3 different WebSphere enumerations
+        CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(3),asEnum.Size());
+
+        asEnum.CleanUp();
+    }
+
 
     /**************************************************************************************/
     //
