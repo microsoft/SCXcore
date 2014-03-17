@@ -17,6 +17,7 @@
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxfilepath.h>
+#include <scxcorelib/scxregex.h>
 #include <util/XElement.h>
 
 #include "appserverconstants.h"
@@ -70,7 +71,7 @@ namespace SCXSystemLib
         installPath.SetDirectory(installDir);
 
         m_diskPath = installPath.Get();
-
+        
         m_cell = cell;
         m_node = node;
         m_profile = profile;
@@ -117,7 +118,30 @@ namespace SCXSystemLib
             }
         }
     }
+    /*----------------------------------------------------------------------------*/
+    /**
+       function that returns the profileDiskPath instead of the full server disk path
+       profile Disk Path ex:/opt/IBM/WebSphere/AppServer/profiles/AppSrv01
+       server Disk Path  ec:/opt/IBM/WebSphere/AppServer/profiles/AppSrv01/servers/server1
 
+       to check if we have the already have the profile diskPath we check if the 2nd to last entry is
+       const string "profiles"
+    */
+    wstring returnProfileDiskPath(wstring m_diskPath)
+    {
+        SCXRegex re(L"(.*)/(.*)/(.*)/(.*)/(.*)");
+        vector<wstring> v_profileDiskPath;
+        if (re.ReturnMatch(m_diskPath,v_profileDiskPath,0))
+        {
+            //v_profileDiskPath[1] will include disk path until profile name <../../../../profiles>
+            //v_profileDiskPath[2] will include profile name <AppSrv01>
+            if(v_profileDiskPath[3].compare(L"profiles") != 0)
+            {
+                return v_profileDiskPath[1].append(L"/").append(v_profileDiskPath[2]).append(L"/");
+            }
+        }
+        return m_diskPath;
+    }
 
     /*----------------------------------------------------------------------------*/
     /**
@@ -144,7 +168,7 @@ namespace SCXSystemLib
         const string cPortAttributeName("port");
         
         string xmlcontent;
-        SCXFilePath filename(m_diskPath);
+        SCXFilePath filename(returnProfileDiskPath(m_diskPath));        
 
         filename.AppendDirectory(L"config");
         filename.AppendDirectory(L"cells");
@@ -276,8 +300,8 @@ namespace SCXSystemLib
     */
     SCXFilePath WebSphereAppServerInstance::GetProfileVersionXml() const
     {
-        SCXFilePath filename(m_diskPath);
-
+        SCXFilePath filename(returnProfileDiskPath(m_diskPath));
+       
         filename.AppendDirectory(L"properties");
         filename.AppendDirectory(L"version");
         filename.SetFilename(L"profile.version");

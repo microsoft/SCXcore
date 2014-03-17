@@ -13,6 +13,7 @@
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/scxlog.h>
+#include <scxcorelib/scxregex.h>
 
 #include <scxcorelib/scxcondition.h>
 #include <scxcorelib/scxlog.h>
@@ -66,7 +67,7 @@ namespace SCXSystemLib
     {
         WebLogicAppServerEnumeration weblogicEnum(
                 SCXCoreLib::SCXHandle<IWebLogicFileReader> (new WebLogicFileReader()));
-        
+         
         weblogicEnum.GetInstances(weblogicProcesses,newInst);
     }
 
@@ -279,19 +280,50 @@ namespace SCXSystemLib
               SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotParams");
            }
         }
-        instDir = ParseOutCommandLineArg(params, "-Dserver.root",true,true);
-        if ( !instDir.empty() )
-        {
-             SCXFilePath sf(StrFromUTF8(instDir));
-             wasProfile = sf.GetFilename();
-             gotInstPath=true;
-             SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotInstPath");
-        }
+        // If there are multiple servers per profile use -Dosgi.configuration.area instead of -Dserver.root
+        // This will maintain unique disk paths for multiple servers within a single profile
+        instDir = ParseOutCommandLineArg(params, "-Dosgi.configuration.area",true,true);
+        SCXRegex re(L"(.*)/(.*)/(.*)/(.*)/(.*)");
+        vector<wstring> v_profileDiskPath;
         
+        // Run Regex Matching to ensure minimum directory structure is present
+        // Check directory structure to ensure no match for single server profile configuration
+        // Example of single server profile configuration "-Dosgi.configuration.area = /usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/configuration"
+        if ( !instDir.empty() 
+             && re.ReturnMatch(StrFromUTF8(instDir),v_profileDiskPath, 0)
+             &&  v_profileDiskPath[3].compare(L"profiles") != 0)
+        {
+            // From previous regex, if disk path matched minimum directory structure and is not a single server profile
+            // the vector v_profileDiskPath will be populated with the following
+            // 
+            // Example of serverDiskPath ../usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/servers/<server name>/configuration
+            //
+            // v_profileDiskPath[1] will include disk path until profile name <../../../../profiles>
+            // v_profileDiskPath[2] will include profile name <AppSrv01>
+            // v_profileDiskPath[3] will include the text "servers"
+            // v_profileDiskPath[4] will include server name <server name>
+            instDir  =StrToUTF8( v_profileDiskPath[1].append(L"/").append(v_profileDiskPath[2]).append(L"/").append(v_profileDiskPath[3]).append(L"/").append(v_profileDiskPath[4]));     
+            wasProfile=v_profileDiskPath[2];
+            gotInstPath=true;
+            SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotInstPath");
+        }     
+        else
+        {
+            // If -Dosgi.configuration.area is empty or only one server under profile 
+            // then default to -Dserver.root
+            instDir = ParseOutCommandLineArg(params, "-Dserver.root", true, true);
+            if ( !instDir.empty() )
+            {
+                SCXFilePath sf(StrFromUTF8(instDir));
+                wasProfile = sf.GetFilename();
+                gotInstPath=true;
+                SCX_LOGTRACE(m_log, L"AppServerEnumeration::CreateWebSphereInstance gotInstPath");
+            }
+        }
         if(gotInstPath && gotParams)
         {
             SCXCoreLib::SCXHandle<WebSphereAppServerInstance> inst ( 
-                        new WebSphereAppServerInstance(StrFromUTF8(instDir),StrFromUTF8(wasCell),StrFromUTF8(wasNode),wasProfile,StrFromUTF8(wasServer)) );
+                new WebSphereAppServerInstance(StrFromUTF8(instDir),StrFromUTF8(wasCell),StrFromUTF8(wasNode),wasProfile,StrFromUTF8(wasServer)) );
             inst->Update();
             
             SCX_LOGTRACE(m_log, L"Found a running instance of WebSphere");
