@@ -291,6 +291,10 @@ set +e
 %Postinstall_500
 UnconfigureScxPAM
 
+%Postinstall_550
+# Remove SCX_Application_Server cache file; it can be invalid for old versions
+rm -f /var/opt/microsoft/scx/lib/state/AppServerProvider
+
 %Postinstall_600
 
 %Postinstall_700
