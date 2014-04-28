@@ -24,7 +24,7 @@ GROUP:                   'Applications/System'
 LICENSE:                 'none'
 VENDOR:                  'http://www.microsoft.com'
 PROVIDES:                'omproviders'
-DESCRIPTION:             'Providers server for Microsoft System Center 2012 Operations Manager.'
+DESCRIPTION:             'Provides server for Microsoft System Center 2012 Operations Manager.'
 MAINTAINER:              'Microsoft Corporation'
 
 %Defines
