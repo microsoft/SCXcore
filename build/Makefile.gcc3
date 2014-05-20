@@ -25,10 +25,16 @@ CXX_WARN_FLAGS=-Wall  -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wfor
 C_WARN_FLAGS=-Wall -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls -Werror $(C_WARN_STRICT_FLAGS)
 
 IS_REDHAT_4_PLATFORM=0
+IS_REDHAT_7_PLATFORM=0
 
 ifeq ($(PF_DISTRO),REDHAT)
 	ifeq ($(PF_MAJOR),4)
 		IS_REDHAT_4_PLATFORM=1
+	endif
+endif
+ifeq ($(PF_DISTRO),REDHAT)
+	ifeq ($(PF_MAJOR),7)
+		IS_REDHAT_7_PLATFORM=1
 	endif
 endif
 
@@ -36,8 +42,10 @@ ifeq ($(IS_REDHAT_4_PLATFORM),1)
   CXX_WARN_STRICT_FLAGS += -Wcast-qual
   C_WARN_STRICT_FLAGS += -Wcast-qual
 else
-  CXX_WARN_FLAGS += -Wcast-qual
-  C_WARN_FLAGS += -Wcast-qual
+  ifneq ($(IS_REDHAT_7_PLATFORM),1)
+    CXX_WARN_FLAGS += -Wcast-qual
+    C_WARN_FLAGS += -Wcast-qual
+  endif
 endif
 
 # Compiler code-generation options

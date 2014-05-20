@@ -659,13 +659,6 @@ namespace SCXSystemLib {
                 string buffer;
                 getline(*reader, buffer);
                 
-                size_t effectiveEnd = buffer.size();
-                size_t commentLocation = buffer.find(INI_COMMENT);
-                if (string::npos != commentLocation)
-                {
-                    effectiveEnd = commentLocation; 
-                }
-                
                 size_t delimiterLocation = buffer.find(INI_DELIMITER);
                 if (string::npos != delimiterLocation)
                 {

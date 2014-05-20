@@ -47,6 +47,7 @@
 #include <string>
 #include <vector>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <dlfcn.h>
 #include <assert.h>
@@ -479,7 +480,7 @@ void SCXSSLCertificate::DoGenerate()
 
         // The flag 1 denotes that the numeric form of the answer (not long or short name) will be used
         // The return is (apparently) the string length of the converted string (this is undocumented) .. 
-        if(OBJ_obj2txt(serverAuthOIDBuf, sizeof(serverAuthOIDBuf)/sizeof(*serverAuthOIDBuf), serverAuthOBJ, 1) <= 0)
+        if(OBJ_obj2txt(serverAuthOIDBuf, static_cast<int> (sizeof(serverAuthOIDBuf)/sizeof(*serverAuthOIDBuf)), serverAuthOBJ, 1) <= 0)
         {
             throw SCXSSLException(L"Not able to convert OBJ_server_auth to text", SCXSRCLOCATION);
         }
