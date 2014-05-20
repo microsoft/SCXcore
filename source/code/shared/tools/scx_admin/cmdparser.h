@@ -21,7 +21,7 @@
 #include "admin_api.h"
 
 /// helper define that returns number of elements in static array
-#define DIM(x) (sizeof(x)/sizeof((x)[0]))
+#define DIM(x) (static_cast<int>(sizeof(x)/sizeof((x)[0])))
 
 
 namespace SCX_Admin {

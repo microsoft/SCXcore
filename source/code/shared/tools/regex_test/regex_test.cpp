@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <unistd.h>
 
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxexception.h>

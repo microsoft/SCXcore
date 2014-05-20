@@ -154,6 +154,9 @@ CXXFLAGS+=
 PF_DEPENDENT_DATAFILES = Linux.data
 ifeq ($(PF_DISTRO), REDHAT)
 PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_RHEL.data
+  ifeq ($(PF_MAJOR), 7)
+PF_DEPENDENT_DATAFILES += Linux_RHEL_7.data
+  endif
   ifeq ($(PF_MAJOR), 6)
 PF_DEPENDENT_DATAFILES += Linux_RHEL_6.data
   endif
