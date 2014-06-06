@@ -30,6 +30,9 @@ set -e
 #endif
 
 %Postinstall_750
+set +e
+
+%Postinstall_850
 set -e
 
 %Preuninstall_800

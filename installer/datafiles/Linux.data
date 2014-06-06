@@ -53,7 +53,7 @@ if [ $OMI_IS_RUNNING -eq 1 ]; then
     StopOmiServer
 fi
 
-%Postinstall_775
+%Postinstall_875
 set -e
 
 
