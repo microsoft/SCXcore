@@ -101,7 +101,7 @@
 
     <When Condition=" '$(UnixBuildType)'=='HPUX_11.31_pa-risc' ">
       <PropertyGroup>
-        <UnixBuildServer>scxhpr1</UnixBuildServer>
+        <UnixBuildServer>ostcbldpa-hp1131-01</UnixBuildServer>
         <UnixWorkSpaceName>ScxCore_SCXDEV_HPUX1131_pa-risc</UnixWorkSpaceName>
         <DropPath>HPUX11.31_pa-risc</DropPath>
       </PropertyGroup>
