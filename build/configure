@@ -1,7 +1,7 @@
 #!/bin/bash
 
 scxpal_dir="../../pal"
-scxomi_dir=`(cd ../../omi/distro; pwd -P)`
+scxomi_dir=`(cd ../../omi/Unix; pwd -P)`
 build_type="Release"
 enable_debug=""
 enable_purify_agent=""
@@ -99,7 +99,7 @@ fi
 
 (cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye)
 
-omi_configure_quals="--enable-dir-creation ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
+omi_configure_quals="--enable-preexec ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
 
 cat <<EOF > config.mak
 LOCAL_OMI=$local_omi

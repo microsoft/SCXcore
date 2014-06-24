@@ -254,29 +254,9 @@ static MI_CONST MI_Qualifier CIM_ManagedSystemElement_OperationalStatus_ArrayTyp
     &CIM_ManagedSystemElement_OperationalStatus_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ManagedSystemElement.StatusDescriptions"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual_value =
-{
-    CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_ManagedSystemElement_OperationalStatus_quals[] =
 {
     &CIM_ManagedSystemElement_OperationalStatus_ArrayType_qual,
-    &CIM_ManagedSystemElement_OperationalStatus_ModelCorrespondence_qual,
 };
 
 /* property CIM_ManagedSystemElement.OperationalStatus */
@@ -306,29 +286,9 @@ static MI_CONST MI_Qualifier CIM_ManagedSystemElement_StatusDescriptions_ArrayTy
     &CIM_ManagedSystemElement_StatusDescriptions_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ManagedSystemElement.OperationalStatus"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual_value =
-{
-    CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_ManagedSystemElement_StatusDescriptions_quals[] =
 {
     &CIM_ManagedSystemElement_StatusDescriptions_ArrayType_qual,
-    &CIM_ManagedSystemElement_StatusDescriptions_ModelCorrespondence_qual,
 };
 
 /* property CIM_ManagedSystemElement.StatusDescriptions */
@@ -434,39 +394,14 @@ static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_CommunicationStatus_pro
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.PrimaryStatus"),
-    MI_T("CIM_ManagedSystemElement.HealthState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual_value =
-{
-    CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_ManagedSystemElement_DetailedStatus_quals[] =
-{
-    &CIM_ManagedSystemElement_DetailedStatus_ModelCorrespondence_qual,
-};
-
 /* property CIM_ManagedSystemElement.DetailedStatus */
 static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_DetailedStatus_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0064730E, /* code */
     MI_T("DetailedStatus"), /* name */
-    CIM_ManagedSystemElement_DetailedStatus_quals, /* qualifiers */
-    MI_COUNT(CIM_ManagedSystemElement_DetailedStatus_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -476,38 +411,14 @@ static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_DetailedStatus_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.EnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual_value =
-{
-    CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_ManagedSystemElement_OperatingStatus_quals[] =
-{
-    &CIM_ManagedSystemElement_OperatingStatus_ModelCorrespondence_qual,
-};
-
 /* property CIM_ManagedSystemElement.OperatingStatus */
 static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_OperatingStatus_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F730F, /* code */
     MI_T("OperatingStatus"), /* name */
-    CIM_ManagedSystemElement_OperatingStatus_quals, /* qualifiers */
-    MI_COUNT(CIM_ManagedSystemElement_OperatingStatus_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -517,39 +428,14 @@ static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_OperatingStatus_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ManagedSystemElement.DetailedStatus"),
-    MI_T("CIM_ManagedSystemElement.HealthState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual_value =
-{
-    CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_ManagedSystemElement_PrimaryStatus_quals[] =
-{
-    &CIM_ManagedSystemElement_PrimaryStatus_ModelCorrespondence_qual,
-};
-
 /* property CIM_ManagedSystemElement.PrimaryStatus */
 static MI_CONST MI_PropertyDecl CIM_ManagedSystemElement_PrimaryStatus_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0070730D, /* code */
     MI_T("PrimaryStatus"), /* name */
-    CIM_ManagedSystemElement_PrimaryStatus_quals, /* qualifiers */
-    MI_COUNT(CIM_ManagedSystemElement_PrimaryStatus_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -1753,38 +1639,14 @@ MI_CONST MI_ClassDecl SCX_Application_Server_rtti =
 **==============================================================================
 */
 
-static MI_CONST MI_Char* CIM_Job_JobStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ManagedSystemElement.OperationalStatus"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_JobStatus_ModelCorrespondence_qual_value =
-{
-    CIM_Job_JobStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_JobStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_JobStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_JobStatus_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_JobStatus_quals[] =
-{
-    &CIM_Job_JobStatus_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.JobStatus */
 static MI_CONST MI_PropertyDecl CIM_Job_JobStatus_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006A7309, /* code */
     MI_T("JobStatus"), /* name */
-    CIM_Job_JobStatus_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_JobStatus_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -1908,40 +1770,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_JobRunTimes_prop =
     &CIM_Job_JobRunTimes_value,
 };
 
-static MI_CONST MI_Char* CIM_Job_RunMonth_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.RunDay"),
-    MI_T("CIM_Job.RunDayOfWeek"),
-    MI_T("CIM_Job.RunStartInterval"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_RunMonth_ModelCorrespondence_qual_value =
-{
-    CIM_Job_RunMonth_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_RunMonth_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_RunMonth_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_RunMonth_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_RunMonth_quals[] =
-{
-    &CIM_Job_RunMonth_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.RunMonth */
 static MI_CONST MI_PropertyDecl CIM_Job_RunMonth_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00726808, /* code */
     MI_T("RunMonth"), /* name */
-    CIM_Job_RunMonth_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_RunMonth_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT8, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -1971,32 +1807,10 @@ static MI_CONST MI_Qualifier CIM_Job_RunDay_MaxValue_qual =
     &CIM_Job_RunDay_MaxValue_qual_value
 };
 
-static MI_CONST MI_Char* CIM_Job_RunDay_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.RunMonth"),
-    MI_T("CIM_Job.RunDayOfWeek"),
-    MI_T("CIM_Job.RunStartInterval"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_RunDay_ModelCorrespondence_qual_value =
-{
-    CIM_Job_RunDay_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_RunDay_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_RunDay_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_RunDay_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_Job_RunDay_quals[] =
 {
     &CIM_Job_RunDay_MinValue_qual,
     &CIM_Job_RunDay_MaxValue_qual,
-    &CIM_Job_RunDay_ModelCorrespondence_qual,
 };
 
 /* property CIM_Job.RunDay */
@@ -2016,40 +1830,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_RunDay_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_RunDayOfWeek_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.RunMonth"),
-    MI_T("CIM_Job.RunDay"),
-    MI_T("CIM_Job.RunStartInterval"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_RunDayOfWeek_ModelCorrespondence_qual_value =
-{
-    CIM_Job_RunDayOfWeek_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_RunDayOfWeek_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_RunDayOfWeek_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_RunDayOfWeek_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_RunDayOfWeek_quals[] =
-{
-    &CIM_Job_RunDayOfWeek_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.RunDayOfWeek */
 static MI_CONST MI_PropertyDecl CIM_Job_RunDayOfWeek_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00726B0C, /* code */
     MI_T("RunDayOfWeek"), /* name */
-    CIM_Job_RunDayOfWeek_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_RunDayOfWeek_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_SINT8, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2059,41 +1847,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_RunDayOfWeek_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_RunStartInterval_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.RunMonth"),
-    MI_T("CIM_Job.RunDay"),
-    MI_T("CIM_Job.RunDayOfWeek"),
-    MI_T("CIM_Job.RunStartInterval"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_RunStartInterval_ModelCorrespondence_qual_value =
-{
-    CIM_Job_RunStartInterval_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_RunStartInterval_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_RunStartInterval_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_RunStartInterval_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_RunStartInterval_quals[] =
-{
-    &CIM_Job_RunStartInterval_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.RunStartInterval */
 static MI_CONST MI_PropertyDecl CIM_Job_RunStartInterval_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00726C10, /* code */
     MI_T("RunStartInterval"), /* name */
-    CIM_Job_RunStartInterval_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_RunStartInterval_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_DATETIME, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2120,38 +1881,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_LocalOrUtcTime_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_UntilTime_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.LocalOrUtcTime"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_UntilTime_ModelCorrespondence_qual_value =
-{
-    CIM_Job_UntilTime_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_UntilTime_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_UntilTime_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_UntilTime_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_UntilTime_quals[] =
-{
-    &CIM_Job_UntilTime_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.UntilTime */
 static MI_CONST MI_PropertyDecl CIM_Job_UntilTime_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00756509, /* code */
     MI_T("UntilTime"), /* name */
-    CIM_Job_UntilTime_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_UntilTime_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_DATETIME, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2178,38 +1915,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_Notify_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_Owner_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_OwningJobElement"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_Owner_ModelCorrespondence_qual_value =
-{
-    CIM_Job_Owner_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_Owner_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_Owner_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_Owner_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_Owner_quals[] =
-{
-    &CIM_Job_Owner_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.Owner */
 static MI_CONST MI_PropertyDecl CIM_Job_Owner_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F7205, /* code */
     MI_T("Owner"), /* name */
-    CIM_Job_Owner_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_Owner_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2318,38 +2031,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_DeleteOnCompletion_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_ErrorCode_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.ErrorDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_ErrorCode_ModelCorrespondence_qual_value =
-{
-    CIM_Job_ErrorCode_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_ErrorCode_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_ErrorCode_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_ErrorCode_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_ErrorCode_quals[] =
-{
-    &CIM_Job_ErrorCode_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.ErrorCode */
 static MI_CONST MI_PropertyDecl CIM_Job_ErrorCode_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00656509, /* code */
     MI_T("ErrorCode"), /* name */
-    CIM_Job_ErrorCode_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_ErrorCode_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2359,38 +2048,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_ErrorCode_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_ErrorDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.ErrorCode"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_ErrorDescription_ModelCorrespondence_qual_value =
-{
-    CIM_Job_ErrorDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_ErrorDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_ErrorDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_ErrorDescription_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_ErrorDescription_quals[] =
-{
-    &CIM_Job_ErrorDescription_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.ErrorDescription */
 static MI_CONST MI_PropertyDecl CIM_Job_ErrorDescription_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00656E10, /* code */
     MI_T("ErrorDescription"), /* name */
-    CIM_Job_ErrorDescription_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_ErrorDescription_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2400,38 +2065,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_ErrorDescription_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_RecoveryAction_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.OtherRecoveryAction"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_RecoveryAction_ModelCorrespondence_qual_value =
-{
-    CIM_Job_RecoveryAction_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_RecoveryAction_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_RecoveryAction_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_RecoveryAction_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_RecoveryAction_quals[] =
-{
-    &CIM_Job_RecoveryAction_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.RecoveryAction */
 static MI_CONST MI_PropertyDecl CIM_Job_RecoveryAction_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00726E0E, /* code */
     MI_T("RecoveryAction"), /* name */
-    CIM_Job_RecoveryAction_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_RecoveryAction_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2441,38 +2082,14 @@ static MI_CONST MI_PropertyDecl CIM_Job_RecoveryAction_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Job.RecoveryAction"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual_value =
-{
-    CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Job_OtherRecoveryAction_quals[] =
-{
-    &CIM_Job_OtherRecoveryAction_ModelCorrespondence_qual,
-};
-
 /* property CIM_Job.OtherRecoveryAction */
 static MI_CONST MI_PropertyDecl CIM_Job_OtherRecoveryAction_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F6E13, /* code */
     MI_T("OtherRecoveryAction"), /* name */
-    CIM_Job_OtherRecoveryAction_quals, /* qualifiers */
-    MI_COUNT(CIM_Job_OtherRecoveryAction_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2680,38 +2297,14 @@ MI_CONST MI_ClassDecl CIM_Job_rtti =
 **==============================================================================
 */
 
-static MI_CONST MI_Char* CIM_Error_ErrorType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.OtherErrorType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_ErrorType_ModelCorrespondence_qual_value =
-{
-    CIM_Error_ErrorType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_ErrorType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_ErrorType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_ErrorType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_ErrorType_quals[] =
-{
-    &CIM_Error_ErrorType_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.ErrorType */
 static MI_CONST MI_PropertyDecl CIM_Error_ErrorType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00656509, /* code */
     MI_T("ErrorType"), /* name */
-    CIM_Error_ErrorType_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_ErrorType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2721,38 +2314,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_ErrorType_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_OtherErrorType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ErrorType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_OtherErrorType_ModelCorrespondence_qual_value =
-{
-    CIM_Error_OtherErrorType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_OtherErrorType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_OtherErrorType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_OtherErrorType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_OtherErrorType_quals[] =
-{
-    &CIM_Error_OtherErrorType_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.OtherErrorType */
 static MI_CONST MI_PropertyDecl CIM_Error_OtherErrorType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F650E, /* code */
     MI_T("OtherErrorType"), /* name */
-    CIM_Error_OtherErrorType_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_OtherErrorType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2779,39 +2348,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_OwningEntity_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_MessageID_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.Message"),
-    MI_T("CIM_Error.MessageArguments"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_MessageID_ModelCorrespondence_qual_value =
-{
-    CIM_Error_MessageID_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_MessageID_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_MessageID_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_MessageID_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_MessageID_quals[] =
-{
-    &CIM_Error_MessageID_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.MessageID */
 static MI_CONST MI_PropertyDecl CIM_Error_MessageID_prop =
 {
     MI_FLAG_PROPERTY|MI_FLAG_REQUIRED, /* flags */
     0x006D6409, /* code */
     MI_T("MessageID"), /* name */
-    CIM_Error_MessageID_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_MessageID_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2821,39 +2365,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_MessageID_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_Message_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.MessageID"),
-    MI_T("CIM_Error.MessageArguments"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_Message_ModelCorrespondence_qual_value =
-{
-    CIM_Error_Message_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_Message_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_Message_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_Message_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_Message_quals[] =
-{
-    &CIM_Error_Message_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.Message */
 static MI_CONST MI_PropertyDecl CIM_Error_Message_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006D6507, /* code */
     MI_T("Message"), /* name */
-    CIM_Error_Message_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_Message_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2863,39 +2382,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_Message_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_MessageArguments_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.MessageID"),
-    MI_T("CIM_Error.Message"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_MessageArguments_ModelCorrespondence_qual_value =
-{
-    CIM_Error_MessageArguments_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_MessageArguments_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_MessageArguments_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_MessageArguments_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_MessageArguments_quals[] =
-{
-    &CIM_Error_MessageArguments_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.MessageArguments */
 static MI_CONST MI_PropertyDecl CIM_Error_MessageArguments_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006D7310, /* code */
     MI_T("MessageArguments"), /* name */
-    CIM_Error_MessageArguments_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_MessageArguments_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRINGA, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2922,38 +2416,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_PerceivedSeverity_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_ProbableCause_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ProbableCauseDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_ProbableCause_ModelCorrespondence_qual_value =
-{
-    CIM_Error_ProbableCause_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_ProbableCause_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_ProbableCause_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_ProbableCause_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_ProbableCause_quals[] =
-{
-    &CIM_Error_ProbableCause_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.ProbableCause */
 static MI_CONST MI_PropertyDecl CIM_Error_ProbableCause_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0070650D, /* code */
     MI_T("ProbableCause"), /* name */
-    CIM_Error_ProbableCause_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_ProbableCause_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -2963,38 +2433,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_ProbableCause_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ProbableCause"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual_value =
-{
-    CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_ProbableCauseDescription_quals[] =
-{
-    &CIM_Error_ProbableCauseDescription_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.ProbableCauseDescription */
 static MI_CONST MI_PropertyDecl CIM_Error_ProbableCauseDescription_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00706E18, /* code */
     MI_T("ProbableCauseDescription"), /* name */
-    CIM_Error_ProbableCauseDescription_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_ProbableCauseDescription_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3021,38 +2467,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_RecommendedActions_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_ErrorSource_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ErrorSourceFormat"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_ErrorSource_ModelCorrespondence_qual_value =
-{
-    CIM_Error_ErrorSource_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_ErrorSource_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_ErrorSource_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_ErrorSource_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_ErrorSource_quals[] =
-{
-    &CIM_Error_ErrorSource_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.ErrorSource */
 static MI_CONST MI_PropertyDecl CIM_Error_ErrorSource_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0065650B, /* code */
     MI_T("ErrorSource"), /* name */
-    CIM_Error_ErrorSource_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_ErrorSource_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3060,31 +2482,6 @@ static MI_CONST MI_PropertyDecl CIM_Error_ErrorSource_prop =
     MI_T("CIM_Error"), /* origin */
     MI_T("CIM_Error"), /* propagator */
     NULL,
-};
-
-static MI_CONST MI_Char* CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ErrorSource"),
-    MI_T("CIM_Error.OtherErrorSourceFormat"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual_value =
-{
-    CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_ErrorSourceFormat_quals[] =
-{
-    &CIM_Error_ErrorSourceFormat_ModelCorrespondence_qual,
 };
 
 static MI_CONST MI_Uint16 CIM_Error_ErrorSourceFormat_value = 0;
@@ -3095,8 +2492,8 @@ static MI_CONST MI_PropertyDecl CIM_Error_ErrorSourceFormat_prop =
     MI_FLAG_PROPERTY, /* flags */
     0x00657411, /* code */
     MI_T("ErrorSourceFormat"), /* name */
-    CIM_Error_ErrorSourceFormat_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_ErrorSourceFormat_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3106,38 +2503,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_ErrorSourceFormat_prop =
     &CIM_Error_ErrorSourceFormat_value,
 };
 
-static MI_CONST MI_Char* CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.ErrorSourceFormat"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual_value =
-{
-    CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_OtherErrorSourceFormat_quals[] =
-{
-    &CIM_Error_OtherErrorSourceFormat_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.OtherErrorSourceFormat */
 static MI_CONST MI_PropertyDecl CIM_Error_OtherErrorSourceFormat_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F7416, /* code */
     MI_T("OtherErrorSourceFormat"), /* name */
-    CIM_Error_OtherErrorSourceFormat_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_OtherErrorSourceFormat_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3147,38 +2520,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_OtherErrorSourceFormat_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_CIMStatusCode_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.CIMStatusCodeDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_CIMStatusCode_ModelCorrespondence_qual_value =
-{
-    CIM_Error_CIMStatusCode_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_CIMStatusCode_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_CIMStatusCode_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_CIMStatusCode_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_CIMStatusCode_quals[] =
-{
-    &CIM_Error_CIMStatusCode_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.CIMStatusCode */
 static MI_CONST MI_PropertyDecl CIM_Error_CIMStatusCode_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0063650D, /* code */
     MI_T("CIMStatusCode"), /* name */
-    CIM_Error_CIMStatusCode_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_CIMStatusCode_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3188,38 +2537,14 @@ static MI_CONST MI_PropertyDecl CIM_Error_CIMStatusCode_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Error.CIMStatusCode"),
-};
-
-static MI_CONST MI_ConstStringA CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual_value =
-{
-    CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_Error_CIMStatusCodeDescription_quals[] =
-{
-    &CIM_Error_CIMStatusCodeDescription_ModelCorrespondence_qual,
-};
-
 /* property CIM_Error.CIMStatusCodeDescription */
 static MI_CONST MI_PropertyDecl CIM_Error_CIMStatusCodeDescription_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00636E18, /* code */
     MI_T("CIMStatusCodeDescription"), /* name */
-    CIM_Error_CIMStatusCodeDescription_quals, /* qualifiers */
-    MI_COUNT(CIM_Error_CIMStatusCodeDescription_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3803,30 +3128,6 @@ MI_CONST MI_ClassDecl CIM_ConcreteJob_rtti =
 **==============================================================================
 */
 
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.OtherEnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_EnabledState_quals[] =
-{
-    &CIM_EnabledLogicalElement_EnabledState_ModelCorrespondence_qual,
-};
-
 static MI_CONST MI_Uint16 CIM_EnabledLogicalElement_EnabledState_value = 5;
 
 /* property CIM_EnabledLogicalElement.EnabledState */
@@ -3835,8 +3136,8 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_EnabledState_prop =
     MI_FLAG_PROPERTY, /* flags */
     0x0065650C, /* code */
     MI_T("EnabledState"), /* name */
-    CIM_EnabledLogicalElement_EnabledState_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_EnabledState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3846,38 +3147,14 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_EnabledState_prop =
     &CIM_EnabledLogicalElement_EnabledState_value,
 };
 
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.EnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_OtherEnabledState_quals[] =
-{
-    &CIM_EnabledLogicalElement_OtherEnabledState_ModelCorrespondence_qual,
-};
-
 /* property CIM_EnabledLogicalElement.OtherEnabledState */
 static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_OtherEnabledState_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F6511, /* code */
     MI_T("OtherEnabledState"), /* name */
-    CIM_EnabledLogicalElement_OtherEnabledState_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_OtherEnabledState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3885,30 +3162,6 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_OtherEnabledState_prop
     MI_T("CIM_EnabledLogicalElement"), /* origin */
     MI_T("CIM_EnabledLogicalElement"), /* propagator */
     NULL,
-};
-
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.EnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_RequestedState_quals[] =
-{
-    &CIM_EnabledLogicalElement_RequestedState_ModelCorrespondence_qual,
 };
 
 static MI_CONST MI_Uint16 CIM_EnabledLogicalElement_RequestedState_value = 12;
@@ -3919,8 +3172,8 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_RequestedState_prop =
     MI_FLAG_PROPERTY, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    CIM_EnabledLogicalElement_RequestedState_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -3966,39 +3219,14 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_TimeOfLastStateChange_
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestStateChange"),
-    MI_T("CIM_EnabledLogicalElementCapabilities.RequestedStatesSupported"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_AvailableRequestedStates_quals[] =
-{
-    &CIM_EnabledLogicalElement_AvailableRequestedStates_ModelCorrespondence_qual,
-};
-
 /* property CIM_EnabledLogicalElement.AvailableRequestedStates */
 static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_AvailableRequestedStates_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00617318, /* code */
     MI_T("AvailableRequestedStates"), /* name */
-    CIM_EnabledLogicalElement_AvailableRequestedStates_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_AvailableRequestedStates_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16A, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -4006,32 +3234,6 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_AvailableRequestedStat
     MI_T("CIM_EnabledLogicalElement"), /* origin */
     MI_T("CIM_EnabledLogicalElement"), /* propagator */
     NULL,
-};
-
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestStateChange"),
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-    MI_T("CIM_EnabledLogicalElement.EnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_TransitioningToState_quals[] =
-{
-    &CIM_EnabledLogicalElement_TransitioningToState_ModelCorrespondence_qual,
 };
 
 static MI_CONST MI_Uint16 CIM_EnabledLogicalElement_TransitioningToState_value = 12;
@@ -4042,8 +3244,8 @@ static MI_CONST MI_PropertyDecl CIM_EnabledLogicalElement_TransitioningToState_p
     MI_FLAG_PROPERTY, /* flags */
     0x00746514, /* code */
     MI_T("TransitioningToState"), /* name */
-    CIM_EnabledLogicalElement_TransitioningToState_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_TransitioningToState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -4078,62 +3280,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST CIM_EnabledLogicalElement_props[] =
     &CIM_EnabledLogicalElement_TransitioningToState_prop,
 };
 
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_RequestStateChange_quals[] =
-{
-    &CIM_EnabledLogicalElement_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_RequestStateChange_RequestedState_quals[] =
-{
-    &CIM_EnabledLogicalElement_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter CIM_EnabledLogicalElement.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl CIM_EnabledLogicalElement_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    CIM_EnabledLogicalElement_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -4168,38 +3322,14 @@ static MI_CONST MI_ParameterDecl CIM_EnabledLogicalElement_RequestStateChange_Ti
     offsetof(CIM_EnabledLogicalElement_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_EnabledLogicalElement_RequestStateChange_MIReturn_quals[] =
-{
-    &CIM_EnabledLogicalElement_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter CIM_EnabledLogicalElement.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl CIM_EnabledLogicalElement_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    CIM_EnabledLogicalElement_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -4220,8 +3350,8 @@ MI_CONST MI_MethodDecl CIM_EnabledLogicalElement_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    CIM_EnabledLogicalElement_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     CIM_EnabledLogicalElement_RequestStateChange_params, /* parameters */
     MI_COUNT(CIM_EnabledLogicalElement_RequestStateChange_params), /* numParameters */
     sizeof(CIM_EnabledLogicalElement_RequestStateChange), /* size */
@@ -4523,38 +3653,14 @@ static MI_CONST MI_PropertyDecl CIM_LogicalDevice_PowerManagementCapabilities_pr
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_LogicalDevice_Availability_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LogicalDevice.AdditionalAvailability"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LogicalDevice_Availability_ModelCorrespondence_qual_value =
-{
-    CIM_LogicalDevice_Availability_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LogicalDevice_Availability_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LogicalDevice_Availability_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LogicalDevice_Availability_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_LogicalDevice_Availability_quals[] =
-{
-    &CIM_LogicalDevice_Availability_ModelCorrespondence_qual,
-};
-
 /* property CIM_LogicalDevice.Availability */
 static MI_CONST MI_PropertyDecl CIM_LogicalDevice_Availability_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0061790C, /* code */
     MI_T("Availability"), /* name */
-    CIM_LogicalDevice_Availability_quals, /* qualifiers */
-    MI_COUNT(CIM_LogicalDevice_Availability_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -4748,30 +3854,10 @@ static MI_CONST MI_Qualifier CIM_LogicalDevice_OtherIdentifyingInfo_MaxLen_qual 
     &CIM_LogicalDevice_OtherIdentifyingInfo_MaxLen_qual_value
 };
 
-static MI_CONST MI_Char* CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LogicalDevice.IdentifyingDescriptions"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual_value =
-{
-    CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_LogicalDevice_OtherIdentifyingInfo_quals[] =
 {
     &CIM_LogicalDevice_OtherIdentifyingInfo_ArrayType_qual,
     &CIM_LogicalDevice_OtherIdentifyingInfo_MaxLen_qual,
-    &CIM_LogicalDevice_OtherIdentifyingInfo_ModelCorrespondence_qual,
 };
 
 /* property CIM_LogicalDevice.OtherIdentifyingInfo */
@@ -4865,29 +3951,9 @@ static MI_CONST MI_Qualifier CIM_LogicalDevice_IdentifyingDescriptions_ArrayType
     &CIM_LogicalDevice_IdentifyingDescriptions_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LogicalDevice.OtherIdentifyingInfo"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual_value =
-{
-    CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_LogicalDevice_IdentifyingDescriptions_quals[] =
 {
     &CIM_LogicalDevice_IdentifyingDescriptions_ArrayType_qual,
-    &CIM_LogicalDevice_IdentifyingDescriptions_ModelCorrespondence_qual,
 };
 
 /* property CIM_LogicalDevice.IdentifyingDescriptions */
@@ -4907,38 +3973,14 @@ static MI_CONST MI_PropertyDecl CIM_LogicalDevice_IdentifyingDescriptions_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LogicalDevice.Availability"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual_value =
-{
-    CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_LogicalDevice_AdditionalAvailability_quals[] =
-{
-    &CIM_LogicalDevice_AdditionalAvailability_ModelCorrespondence_qual,
-};
-
 /* property CIM_LogicalDevice.AdditionalAvailability */
 static MI_CONST MI_PropertyDecl CIM_LogicalDevice_AdditionalAvailability_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00617916, /* code */
     MI_T("AdditionalAvailability"), /* name */
-    CIM_LogicalDevice_AdditionalAvailability_quals, /* qualifiers */
-    MI_COUNT(CIM_LogicalDevice_AdditionalAvailability_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16A, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -5644,29 +4686,9 @@ static MI_CONST MI_Qualifier CIM_MediaAccessDevice_Capabilities_ArrayType_qual =
     &CIM_MediaAccessDevice_Capabilities_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_MediaAccessDevice.CapabilityDescriptions"),
-};
-
-static MI_CONST MI_ConstStringA CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual_value =
-{
-    CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_MediaAccessDevice_Capabilities_quals[] =
 {
     &CIM_MediaAccessDevice_Capabilities_ArrayType_qual,
-    &CIM_MediaAccessDevice_Capabilities_ModelCorrespondence_qual,
 };
 
 /* property CIM_MediaAccessDevice.Capabilities */
@@ -5696,29 +4718,9 @@ static MI_CONST MI_Qualifier CIM_MediaAccessDevice_CapabilityDescriptions_ArrayT
     &CIM_MediaAccessDevice_CapabilityDescriptions_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_MediaAccessDevice.Capabilities"),
-};
-
-static MI_CONST MI_ConstStringA CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual_value =
-{
-    CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_MediaAccessDevice_CapabilityDescriptions_quals[] =
 {
     &CIM_MediaAccessDevice_CapabilityDescriptions_ArrayType_qual,
-    &CIM_MediaAccessDevice_CapabilityDescriptions_ModelCorrespondence_qual,
 };
 
 /* property CIM_MediaAccessDevice.CapabilityDescriptions */
@@ -6226,39 +5228,14 @@ static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_TotalMountTime_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_MediaAccessDevice.MaxUnitsBeforeCleaning"),
-    MI_T("CIM_MediaAccessDevice.UnitsUsed"),
-};
-
-static MI_CONST MI_ConstStringA CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual_value =
-{
-    CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_MediaAccessDevice_UnitsDescription_quals[] =
-{
-    &CIM_MediaAccessDevice_UnitsDescription_ModelCorrespondence_qual,
-};
-
 /* property CIM_MediaAccessDevice.UnitsDescription */
 static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_UnitsDescription_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00756E10, /* code */
     MI_T("UnitsDescription"), /* name */
-    CIM_MediaAccessDevice_UnitsDescription_quals, /* qualifiers */
-    MI_COUNT(CIM_MediaAccessDevice_UnitsDescription_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -6268,38 +5245,14 @@ static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_UnitsDescription_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_MediaAccessDevice.UnitsDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual_value =
-{
-    CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_quals[] =
-{
-    &CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_ModelCorrespondence_qual,
-};
-
 /* property CIM_MediaAccessDevice.MaxUnitsBeforeCleaning */
 static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006D6716, /* code */
     MI_T("MaxUnitsBeforeCleaning"), /* name */
-    CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_quals, /* qualifiers */
-    MI_COUNT(CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT64, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -6309,39 +5262,14 @@ static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_MaxUnitsBeforeCleaning_pro
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_MediaAccessDevice.UnitsDescription"),
-    MI_T("CIM_MediaAccessDevice.MaxUnitsBeforeCleaning"),
-};
-
-static MI_CONST MI_ConstStringA CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual_value =
-{
-    CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_MediaAccessDevice_UnitsUsed_quals[] =
-{
-    &CIM_MediaAccessDevice_UnitsUsed_ModelCorrespondence_qual,
-};
-
 /* property CIM_MediaAccessDevice.UnitsUsed */
 static MI_CONST MI_PropertyDecl CIM_MediaAccessDevice_UnitsUsed_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00756409, /* code */
     MI_T("UnitsUsed"), /* name */
-    CIM_MediaAccessDevice_UnitsUsed_quals, /* qualifiers */
-    MI_COUNT(CIM_MediaAccessDevice_UnitsUsed_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT64, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -6990,62 +5918,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_DiskDrive_props[] =
     &SCX_DiskDrive_TracksPerCylinder_prop,
 };
 
-static MI_CONST MI_Char* SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_DiskDrive_RequestStateChange_quals[] =
-{
-    &SCX_DiskDrive_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_DiskDrive_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_DiskDrive_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_DiskDrive.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_DiskDrive_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_DiskDrive_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -7080,38 +5960,14 @@ static MI_CONST MI_ParameterDecl SCX_DiskDrive_RequestStateChange_TimeoutPeriod_
     offsetof(SCX_DiskDrive_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_DiskDrive_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_DiskDrive_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_DiskDrive.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_DiskDrive_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_DiskDrive_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -7132,8 +5988,8 @@ MI_CONST MI_MethodDecl SCX_DiskDrive_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_DiskDrive_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_DiskDrive_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_DiskDrive_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_DiskDrive_RequestStateChange_params), /* numParameters */
     sizeof(SCX_DiskDrive_RequestStateChange), /* size */
@@ -9040,38 +7896,14 @@ static MI_CONST MI_PropertyDecl CIM_FileSystem_FileSystemType_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_FileSystem_PersistenceType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_FileSystem.OtherPersistenceType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_FileSystem_PersistenceType_ModelCorrespondence_qual_value =
-{
-    CIM_FileSystem_PersistenceType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_FileSystem_PersistenceType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_FileSystem_PersistenceType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_FileSystem_PersistenceType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_FileSystem_PersistenceType_quals[] =
-{
-    &CIM_FileSystem_PersistenceType_ModelCorrespondence_qual,
-};
-
 /* property CIM_FileSystem.PersistenceType */
 static MI_CONST MI_PropertyDecl CIM_FileSystem_PersistenceType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0070650F, /* code */
     MI_T("PersistenceType"), /* name */
-    CIM_FileSystem_PersistenceType_quals, /* qualifiers */
-    MI_COUNT(CIM_FileSystem_PersistenceType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -9081,38 +7913,14 @@ static MI_CONST MI_PropertyDecl CIM_FileSystem_PersistenceType_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_FileSystem.PersistenceType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual_value =
-{
-    CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_FileSystem_OtherPersistenceType_quals[] =
-{
-    &CIM_FileSystem_OtherPersistenceType_ModelCorrespondence_qual,
-};
-
 /* property CIM_FileSystem.OtherPersistenceType */
 static MI_CONST MI_PropertyDecl CIM_FileSystem_OtherPersistenceType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F6514, /* code */
     MI_T("OtherPersistenceType"), /* name */
-    CIM_FileSystem_OtherPersistenceType_quals, /* qualifiers */
-    MI_COUNT(CIM_FileSystem_OtherPersistenceType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -9393,62 +8201,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_FileSystem_props[] =
     &SCX_FileSystem_FreeInodes_prop,
 };
 
-static MI_CONST MI_Char* SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_FileSystem_RequestStateChange_quals[] =
-{
-    &SCX_FileSystem_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_FileSystem_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_FileSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_FileSystem.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_FileSystem_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_FileSystem_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_FileSystem_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -9483,38 +8243,14 @@ static MI_CONST MI_ParameterDecl SCX_FileSystem_RequestStateChange_TimeoutPeriod
     offsetof(SCX_FileSystem_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_FileSystem_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_FileSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_FileSystem.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_FileSystem_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_FileSystem_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_FileSystem_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -9535,8 +8271,8 @@ MI_CONST MI_MethodDecl SCX_FileSystem_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_FileSystem_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_FileSystem_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_FileSystem_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_FileSystem_RequestStateChange_params), /* numParameters */
     sizeof(SCX_FileSystem_RequestStateChange), /* size */
@@ -11821,25 +10557,6 @@ static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OperationalStatus_ArrayType_qu
     &CIM_ProtocolEndpoint_OperationalStatus_ArrayType_qual_value
 };
 
-static MI_CONST MI_Char* CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ManagedSystemElement.StatusDescriptions"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual_value =
-{
-    CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual_value
-};
-
 static MI_CONST MI_Char* CIM_ProtocolEndpoint_OperationalStatus_Override_qual_value = MI_T("OperationalStatus");
 
 static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OperationalStatus_Override_qual =
@@ -11853,7 +10570,6 @@ static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OperationalStatus_Override_qua
 static MI_Qualifier MI_CONST* MI_CONST CIM_ProtocolEndpoint_OperationalStatus_quals[] =
 {
     &CIM_ProtocolEndpoint_OperationalStatus_ArrayType_qual,
-    &CIM_ProtocolEndpoint_OperationalStatus_ModelCorrespondence_qual,
     &CIM_ProtocolEndpoint_OperationalStatus_Override_qual,
 };
 
@@ -11874,25 +10590,6 @@ static MI_CONST MI_PropertyDecl CIM_ProtocolEndpoint_OperationalStatus_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.OtherEnabledState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual_value =
-{
-    CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual_value
-};
-
 static MI_CONST MI_Char* CIM_ProtocolEndpoint_EnabledState_Override_qual_value = MI_T("EnabledState");
 
 static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_EnabledState_Override_qual =
@@ -11905,7 +10602,6 @@ static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_EnabledState_Override_qual =
 
 static MI_Qualifier MI_CONST* MI_CONST CIM_ProtocolEndpoint_EnabledState_quals[] =
 {
-    &CIM_ProtocolEndpoint_EnabledState_ModelCorrespondence_qual,
     &CIM_ProtocolEndpoint_EnabledState_Override_qual,
 };
 
@@ -12009,29 +10705,9 @@ static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_ProtocolType_Deprecated_qual =
     &CIM_ProtocolEndpoint_ProtocolType_Deprecated_qual_value
 };
 
-static MI_CONST MI_Char* CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ProtocolEndpoint.OtherTypeDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual_value =
-{
-    CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_ProtocolEndpoint_ProtocolType_quals[] =
 {
     &CIM_ProtocolEndpoint_ProtocolType_Deprecated_qual,
-    &CIM_ProtocolEndpoint_ProtocolType_ModelCorrespondence_qual,
 };
 
 /* property CIM_ProtocolEndpoint.ProtocolType */
@@ -12051,38 +10727,14 @@ static MI_CONST MI_PropertyDecl CIM_ProtocolEndpoint_ProtocolType_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ProtocolEndpoint.OtherTypeDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_value =
-{
-    CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_ProtocolEndpoint_ProtocolIFType_quals[] =
-{
-    &CIM_ProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual,
-};
-
 /* property CIM_ProtocolEndpoint.ProtocolIFType */
 static MI_CONST MI_PropertyDecl CIM_ProtocolEndpoint_ProtocolIFType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0070650E, /* code */
     MI_T("ProtocolIFType"), /* name */
-    CIM_ProtocolEndpoint_ProtocolIFType_quals, /* qualifiers */
-    MI_COUNT(CIM_ProtocolEndpoint_ProtocolIFType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -12102,30 +10754,9 @@ static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OtherTypeDescription_MaxLen_qu
     &CIM_ProtocolEndpoint_OtherTypeDescription_MaxLen_qual_value
 };
 
-static MI_CONST MI_Char* CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ProtocolEndpoint.ProtocolType"),
-    MI_T("CIM_ProtocolEndpoint.ProtocolIFType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual_value =
-{
-    CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_ProtocolEndpoint_OtherTypeDescription_quals[] =
 {
     &CIM_ProtocolEndpoint_OtherTypeDescription_MaxLen_qual,
-    &CIM_ProtocolEndpoint_OtherTypeDescription_ModelCorrespondence_qual,
 };
 
 /* property CIM_ProtocolEndpoint.OtherTypeDescription */
@@ -12236,39 +10867,14 @@ MI_CONST MI_ClassDecl CIM_ProtocolEndpoint_rtti =
 **==============================================================================
 */
 
-static MI_CONST MI_Char* CIM_LANEndpoint_LANID_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LANConnectivitySegment.LANID"),
-    MI_T("CIM_LANSegment.LANID"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LANEndpoint_LANID_ModelCorrespondence_qual_value =
-{
-    CIM_LANEndpoint_LANID_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LANEndpoint_LANID_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LANEndpoint_LANID_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LANEndpoint_LANID_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_LANEndpoint_LANID_quals[] =
-{
-    &CIM_LANEndpoint_LANID_ModelCorrespondence_qual,
-};
-
 /* property CIM_LANEndpoint.LANID */
 static MI_CONST MI_PropertyDecl CIM_LANEndpoint_LANID_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006C6405, /* code */
     MI_T("LANID"), /* name */
-    CIM_LANEndpoint_LANID_quals, /* qualifiers */
-    MI_COUNT(CIM_LANEndpoint_LANID_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -12297,30 +10903,9 @@ static MI_CONST MI_Qualifier CIM_LANEndpoint_LANType_Deprecated_qual =
     &CIM_LANEndpoint_LANType_Deprecated_qual_value
 };
 
-static MI_CONST MI_Char* CIM_LANEndpoint_LANType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LANConnectivitySegment.ConnectivityType"),
-    MI_T("CIM_LANSegment.LANType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LANEndpoint_LANType_ModelCorrespondence_qual_value =
-{
-    CIM_LANEndpoint_LANType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LANEndpoint_LANType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LANEndpoint_LANType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LANEndpoint_LANType_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_LANEndpoint_LANType_quals[] =
 {
     &CIM_LANEndpoint_LANType_Deprecated_qual,
-    &CIM_LANEndpoint_LANType_ModelCorrespondence_qual,
 };
 
 /* property CIM_LANEndpoint.LANType */
@@ -12359,30 +10944,9 @@ static MI_CONST MI_Qualifier CIM_LANEndpoint_OtherLANType_Deprecated_qual =
     &CIM_LANEndpoint_OtherLANType_Deprecated_qual_value
 };
 
-static MI_CONST MI_Char* CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_LANConnectivitySegment.OtherTypeDescription"),
-    MI_T("CIM_LANEndpoint.LANType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual_value =
-{
-    CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_LANEndpoint_OtherLANType_quals[] =
 {
     &CIM_LANEndpoint_OtherLANType_Deprecated_qual,
-    &CIM_LANEndpoint_OtherLANType_ModelCorrespondence_qual,
 };
 
 /* property CIM_LANEndpoint.OtherLANType */
@@ -12708,62 +11272,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_LANEndpoint_props[] =
     &SCX_LANEndpoint_FormattedMACAddress_prop,
 };
 
-static MI_CONST MI_Char* SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_LANEndpoint_RequestStateChange_quals[] =
-{
-    &SCX_LANEndpoint_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_LANEndpoint_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_LANEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_LANEndpoint.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_LANEndpoint_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_LANEndpoint_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -12798,38 +11314,14 @@ static MI_CONST MI_ParameterDecl SCX_LANEndpoint_RequestStateChange_TimeoutPerio
     offsetof(SCX_LANEndpoint_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_LANEndpoint_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_LANEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_LANEndpoint.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_LANEndpoint_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_LANEndpoint_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -12850,8 +11342,8 @@ MI_CONST MI_MethodDecl SCX_LANEndpoint_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_LANEndpoint_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_LANEndpoint_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_LANEndpoint_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_LANEndpoint_RequestStateChange_params), /* numParameters */
     sizeof(SCX_LANEndpoint_RequestStateChange), /* size */
@@ -12939,25 +11431,6 @@ MI_CONST MI_ClassDecl SCX_LANEndpoint_rtti =
 **==============================================================================
 */
 
-static MI_CONST MI_Char* CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_ProtocolEndpoint.OtherTypeDescription"),
-};
-
-static MI_CONST MI_ConstStringA CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_value =
-{
-    CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual_value
-};
-
 static MI_CONST MI_Char* CIM_IPProtocolEndpoint_ProtocolIFType_Override_qual_value = MI_T("ProtocolIFType");
 
 static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_ProtocolIFType_Override_qual =
@@ -12970,7 +11443,6 @@ static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_ProtocolIFType_Override_qual
 
 static MI_Qualifier MI_CONST* MI_CONST CIM_IPProtocolEndpoint_ProtocolIFType_quals[] =
 {
-    &CIM_IPProtocolEndpoint_ProtocolIFType_ModelCorrespondence_qual,
     &CIM_IPProtocolEndpoint_ProtocolIFType_Override_qual,
 };
 
@@ -13010,39 +11482,14 @@ static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_IPv4Address_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_IPProtocolEndpoint.IPv6AddressType"),
-    MI_T("CIM_IPProtocolEndpoint.IPv6SubnetPrefixLength"),
-};
-
-static MI_CONST MI_ConstStringA CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual_value =
-{
-    CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_IPProtocolEndpoint_IPv6Address_quals[] =
-{
-    &CIM_IPProtocolEndpoint_IPv6Address_ModelCorrespondence_qual,
-};
-
 /* property CIM_IPProtocolEndpoint.IPv6Address */
 static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_IPv6Address_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0069730B, /* code */
     MI_T("IPv6Address"), /* name */
-    CIM_IPProtocolEndpoint_IPv6Address_quals, /* qualifiers */
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6Address_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -13229,38 +11676,14 @@ static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_AddressOrigin_prop =
     &CIM_IPProtocolEndpoint_AddressOrigin_value,
 };
 
-static MI_CONST MI_Char* CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_IPProtocolEndpoint.IPv6Address"),
-};
-
-static MI_CONST MI_ConstStringA CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual_value =
-{
-    CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_IPProtocolEndpoint_IPv6AddressType_quals[] =
-{
-    &CIM_IPProtocolEndpoint_IPv6AddressType_ModelCorrespondence_qual,
-};
-
 /* property CIM_IPProtocolEndpoint.IPv6AddressType */
 static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_IPv6AddressType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x0069650F, /* code */
     MI_T("IPv6AddressType"), /* name */
-    CIM_IPProtocolEndpoint_IPv6AddressType_quals, /* qualifiers */
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6AddressType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -13270,38 +11693,14 @@ static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_IPv6AddressType_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_IPProtocolEndpoint.IPv6Address"),
-};
-
-static MI_CONST MI_ConstStringA CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual_value =
-{
-    CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_quals[] =
-{
-    &CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_ModelCorrespondence_qual,
-};
-
 /* property CIM_IPProtocolEndpoint.IPv6SubnetPrefixLength */
 static MI_CONST MI_PropertyDecl CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00696816, /* code */
     MI_T("IPv6SubnetPrefixLength"), /* name */
-    CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_quals, /* qualifiers */
-    MI_COUNT(CIM_IPProtocolEndpoint_IPv6SubnetPrefixLength_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -13525,62 +11924,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_IPProtocolEndpoint_props[] =
     &SCX_IPProtocolEndpoint_IPv4BroadcastAddress_prop,
 };
 
-static MI_CONST MI_Char* SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_IPProtocolEndpoint_RequestStateChange_quals[] =
-{
-    &SCX_IPProtocolEndpoint_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_IPProtocolEndpoint.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -13615,38 +11966,14 @@ static MI_CONST MI_ParameterDecl SCX_IPProtocolEndpoint_RequestStateChange_Timeo
     offsetof(SCX_IPProtocolEndpoint_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_IPProtocolEndpoint.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -13667,8 +11994,8 @@ MI_CONST MI_MethodDecl SCX_IPProtocolEndpoint_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_IPProtocolEndpoint_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_IPProtocolEndpoint_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_IPProtocolEndpoint_RequestStateChange_params), /* numParameters */
     sizeof(SCX_IPProtocolEndpoint_RequestStateChange), /* size */
@@ -15247,39 +13574,14 @@ static MI_CONST MI_PropertyDecl CIM_OperatingSystem_CreationClassName_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_OperatingSystem_OSType_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_OperatingSystem.OtherTypeDescription"),
-    MI_T("CIM_SoftwareElement.TargetOperatingSystem"),
-};
-
-static MI_CONST MI_ConstStringA CIM_OperatingSystem_OSType_ModelCorrespondence_qual_value =
-{
-    CIM_OperatingSystem_OSType_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_OperatingSystem_OSType_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_OperatingSystem_OSType_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_OperatingSystem_OSType_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_OperatingSystem_OSType_quals[] =
-{
-    &CIM_OperatingSystem_OSType_ModelCorrespondence_qual,
-};
-
 /* property CIM_OperatingSystem.OSType */
 static MI_CONST MI_PropertyDecl CIM_OperatingSystem_OSType_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x006F6506, /* code */
     MI_T("OSType"), /* name */
-    CIM_OperatingSystem_OSType_quals, /* qualifiers */
-    MI_COUNT(CIM_OperatingSystem_OSType_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -15299,29 +13601,9 @@ static MI_CONST MI_Qualifier CIM_OperatingSystem_OtherTypeDescription_MaxLen_qua
     &CIM_OperatingSystem_OtherTypeDescription_MaxLen_qual_value
 };
 
-static MI_CONST MI_Char* CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_OperatingSystem.OSType"),
-};
-
-static MI_CONST MI_ConstStringA CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual_value =
-{
-    CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual_value
-};
-
 static MI_Qualifier MI_CONST* MI_CONST CIM_OperatingSystem_OtherTypeDescription_quals[] =
 {
     &CIM_OperatingSystem_OtherTypeDescription_MaxLen_qual,
-    &CIM_OperatingSystem_OtherTypeDescription_ModelCorrespondence_qual,
 };
 
 /* property CIM_OperatingSystem.OtherTypeDescription */
@@ -16064,62 +14346,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_OperatingSystem_props[] =
     &SCX_OperatingSystem_SystemUpTime_prop,
 };
 
-static MI_CONST MI_Char* SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_OperatingSystem_RequestStateChange_quals[] =
-{
-    &SCX_OperatingSystem_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_OperatingSystem_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_OperatingSystem_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_OperatingSystem.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_OperatingSystem_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_OperatingSystem_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -16154,38 +14388,14 @@ static MI_CONST MI_ParameterDecl SCX_OperatingSystem_RequestStateChange_TimeoutP
     offsetof(SCX_OperatingSystem_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_OperatingSystem_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_OperatingSystem_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_OperatingSystem.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_OperatingSystem_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_OperatingSystem_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -16206,8 +14416,8 @@ MI_CONST MI_MethodDecl SCX_OperatingSystem_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_OperatingSystem_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_OperatingSystem_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_OperatingSystem_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_OperatingSystem_RequestStateChange_params), /* numParameters */
     sizeof(SCX_OperatingSystem_RequestStateChange), /* size */
@@ -16503,6 +14713,20 @@ static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteShellCommand_Elevati
     offsetof(SCX_OperatingSystem_ExecuteShellCommand, ElevationType), /* offset */
 };
 
+/* parameter SCX_OperatingSystem.ExecuteShellCommand(): b64encoded */
+static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteShellCommand_b64encoded_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x0062640A, /* code */
+    MI_T("b64encoded"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_BOOLEAN, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_OperatingSystem_ExecuteShellCommand, b64encoded), /* offset */
+};
+
 /* parameter SCX_OperatingSystem.ExecuteShellCommand(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteShellCommand_MIReturn_param =
 {
@@ -16526,6 +14750,7 @@ static MI_ParameterDecl MI_CONST* MI_CONST SCX_OperatingSystem_ExecuteShellComma
     &SCX_OperatingSystem_ExecuteShellCommand_StdErr_param,
     &SCX_OperatingSystem_ExecuteShellCommand_timeout_param,
     &SCX_OperatingSystem_ExecuteShellCommand_ElevationType_param,
+    &SCX_OperatingSystem_ExecuteShellCommand_b64encoded_param,
 };
 
 /* method SCX_OperatingSystem.ExecuteShellCommand() */
@@ -16644,6 +14869,20 @@ static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteScript_ElevationType
     offsetof(SCX_OperatingSystem_ExecuteScript, ElevationType), /* offset */
 };
 
+/* parameter SCX_OperatingSystem.ExecuteScript(): b64encoded */
+static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteScript_b64encoded_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x0062640A, /* code */
+    MI_T("b64encoded"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_BOOLEAN, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_OperatingSystem_ExecuteScript, b64encoded), /* offset */
+};
+
 /* parameter SCX_OperatingSystem.ExecuteScript(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_OperatingSystem_ExecuteScript_MIReturn_param =
 {
@@ -16668,6 +14907,7 @@ static MI_ParameterDecl MI_CONST* MI_CONST SCX_OperatingSystem_ExecuteScript_par
     &SCX_OperatingSystem_ExecuteScript_StdErr_param,
     &SCX_OperatingSystem_ExecuteScript_timeout_param,
     &SCX_OperatingSystem_ExecuteScript_ElevationType_param,
+    &SCX_OperatingSystem_ExecuteScript_b64encoded_param,
 };
 
 /* method SCX_OperatingSystem.ExecuteScript() */
@@ -17906,38 +16146,14 @@ static MI_CONST MI_PropertyDecl CIM_UnixProcess_ProcessNiceValue_prop =
     NULL,
 };
 
-static MI_CONST MI_Char* CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_Process.ExecutionState"),
-};
-
-static MI_CONST MI_ConstStringA CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual_value =
-{
-    CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual_data_value,
-    MI_COUNT(CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST CIM_UnixProcess_ProcessWaitingForEvent_quals[] =
-{
-    &CIM_UnixProcess_ProcessWaitingForEvent_ModelCorrespondence_qual,
-};
-
 /* property CIM_UnixProcess.ProcessWaitingForEvent */
 static MI_CONST MI_PropertyDecl CIM_UnixProcess_ProcessWaitingForEvent_prop =
 {
     MI_FLAG_PROPERTY, /* flags */
     0x00707416, /* code */
     MI_T("ProcessWaitingForEvent"), /* name */
-    CIM_UnixProcess_ProcessWaitingForEvent_quals, /* qualifiers */
-    MI_COUNT(CIM_UnixProcess_ProcessWaitingForEvent_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_STRING, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -18155,62 +16371,14 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_UnixProcess_props[] =
     &CIM_UnixProcess_ProcessWaitingForEvent_prop,
 };
 
-static MI_CONST MI_Char* SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual_value =
-{
-    SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_UnixProcess_RequestStateChange_quals[] =
-{
-    &SCX_UnixProcess_RequestStateChange_ModelCorrespondence_qual,
-};
-
-static MI_CONST MI_Char* SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual_value =
-{
-    SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_UnixProcess_RequestStateChange_RequestedState_quals[] =
-{
-    &SCX_UnixProcess_RequestStateChange_RequestedState_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_UnixProcess.RequestStateChange(): RequestedState */
 static MI_CONST MI_ParameterDecl SCX_UnixProcess_RequestStateChange_RequestedState_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
     0x0072650E, /* code */
     MI_T("RequestedState"), /* name */
-    SCX_UnixProcess_RequestStateChange_RequestedState_quals, /* qualifiers */
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_RequestedState_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT16, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -18245,38 +16413,14 @@ static MI_CONST MI_ParameterDecl SCX_UnixProcess_RequestStateChange_TimeoutPerio
     offsetof(SCX_UnixProcess_RequestStateChange, TimeoutPeriod), /* offset */
 };
 
-static MI_CONST MI_Char* SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value[] =
-{
-    MI_T("CIM_EnabledLogicalElement.RequestedState"),
-};
-
-static MI_CONST MI_ConstStringA SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual_value =
-{
-    SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value,
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual_data_value),
-};
-
-static MI_CONST MI_Qualifier SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual =
-{
-    MI_T("ModelCorrespondence"),
-    MI_STRINGA,
-    0,
-    &SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual_value
-};
-
-static MI_Qualifier MI_CONST* MI_CONST SCX_UnixProcess_RequestStateChange_MIReturn_quals[] =
-{
-    &SCX_UnixProcess_RequestStateChange_MIReturn_ModelCorrespondence_qual,
-};
-
 /* parameter SCX_UnixProcess.RequestStateChange(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_UnixProcess_RequestStateChange_MIReturn_param =
 {
     MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
     0x006D6E08, /* code */
     MI_T("MIReturn"), /* name */
-    SCX_UnixProcess_RequestStateChange_MIReturn_quals, /* qualifiers */
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_MIReturn_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     MI_UINT32, /* type */
     NULL, /* className */
     0, /* subscript */
@@ -18297,8 +16441,8 @@ MI_CONST MI_MethodDecl SCX_UnixProcess_RequestStateChange_rtti =
     MI_FLAG_METHOD, /* flags */
     0x00726512, /* code */
     MI_T("RequestStateChange"), /* name */
-    SCX_UnixProcess_RequestStateChange_quals, /* qualifiers */
-    MI_COUNT(SCX_UnixProcess_RequestStateChange_quals), /* numQualifiers */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
     SCX_UnixProcess_RequestStateChange_params, /* parameters */
     MI_COUNT(SCX_UnixProcess_RequestStateChange_params), /* numParameters */
     sizeof(SCX_UnixProcess_RequestStateChange), /* size */

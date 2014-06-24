@@ -220,12 +220,30 @@ $(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX): \
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(REGEX_TEST_OBJFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_TESTRUNNER) $(LDFLAGS_EXECUTABLE)
 
 #================================================================================
+# OMI Pre-exec Directory Creation Tool
+#================================================================================
+
+OMI_PREEXEC_DIR=$(SCX_SRC_ROOT)/shared/tools/omi_preexec
+
+OMI_PREEXEC_SRCFILES=\
+	$(OMI_PREEXEC_DIR)/omi_preexec.cpp
+
+OMI_PREEXEC_OBJFILES = $(call src_to_obj,$(OMI_PREEXEC_SRCFILES))
+
+OMI_PREEXEC_DEPFILES=$(OMI_PREEXEC_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
+
+$(TARGET_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX): $(OMI_PREEXEC_OBJFILES) $(OMI_PREEXEC_DEPFILES)
+	-$(MKPATH) $(TARGET_DIR)/tools
+	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(OMI_PREEXEC_OBJFILES) $(LDFLAGS_EXECUTABLE)
+
+#================================================================================
 # Development Convenience Targets
 #================================================================================
 
 logfilereader-tool: $(TARGET_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX)
 admin-tool: $(TARGET_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX)
 regex-test: $(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX)
+omi-preexec: $(TARGET_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX)
 
 ifeq ($(PF_DISTRO),ULINUX)
 ssl-tool: $(TARGET_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(TARGET_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
@@ -234,7 +252,7 @@ ssl-tool: $(TARGET_DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
 endif
 
 # All SCX tools
-scx-tools: logfilereader-tool admin-tool regex-test ssl-tool
+scx-tools: logfilereader-tool admin-tool regex-test omi-preexec ssl-tool
 
 coreprovider: \
 	$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
@@ -283,7 +301,7 @@ ifeq ($(PF_DISTRO),ULINUX)
 	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
-	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_0.9.8"
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_0.9.8"
 
 	$(ECHO) "========================= Performing make omi (1.0.0)"
 
@@ -297,13 +315,13 @@ ifeq ($(PF_DISTRO),ULINUX)
 	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
-	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_1.0.0"
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_1.0.0"
 
 else
 
 	$(ECHO) "========================= Performing make omi"
 	$(MAKE) -C $(SCXOMI_DIR) all
-	$(MAKE) -C $(SCXOMI_DIR)/../installbuilder
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder
 
 endif
 

@@ -22,7 +22,7 @@ C_WARN_FLAGS=-qformat -qhalt=w -qflag=w:w -qsuppress=1540-2864
 
 # Common compiler flags (sent to compile command and link commands)
 # (-qthreaded is implied by using the _r version of xlc++)
-#64bit: COMMONFLAGS=-q64 -qlanglvl=strict98 -qrtti -qpic
+#64bit: COMMONFLAGS=-q64 -qlanglvl=stdc99 -qrtti -qpic
 #
 # Note: We used to use -qextchk , but this doesn't work well
 # with OMI.  Defaul;t is off, and documentation says:
@@ -30,7 +30,7 @@ C_WARN_FLAGS=-qformat -qhalt=w -qflag=w:w -qsuppress=1540-2864
 #    checks for compile-time consistency.
 # Since it's not clear if this ever helped us, is gone for now
 
-COMMONFLAGS=-q32 -qlanglvl=strict98 -qrtti -qpic
+COMMONFLAGS=-q32 -qlanglvl=stdc99 -qrtti -qpic
 
 
 # CXX Compiler flags 

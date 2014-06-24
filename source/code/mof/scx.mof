@@ -411,7 +411,8 @@ class SCX_OperatingSystem : CIM_OperatingSystem {
         [OUT] string StdOut, 
         [OUT] string StdErr, 
         [IN] uint32 timeout,
-        [IN] string ElevationType);
+        [IN] string ElevationType,
+        [IN] boolean b64encoded);
     
     [   Description ( 
             "Execute a script, with the option of terminating the script "
@@ -425,7 +426,8 @@ class SCX_OperatingSystem : CIM_OperatingSystem {
         [OUT] string StdOut, 
         [OUT] string StdErr, 
         [IN] uint32 timeout, 
-        [IN] string ElevationType);
+        [IN] string ElevationType,
+        [IN] boolean b64encoded);
 };
 
 

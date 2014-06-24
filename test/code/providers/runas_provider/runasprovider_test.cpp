@@ -19,6 +19,7 @@
 #include <scxcorelib/scxdirectoryinfo.h>
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/stringaid.h>
+#include <util/Base64Helper.h>
 #include <testutils/scxunit.h>
 #include <testutils/providertestutils.h>
 #include "support/scxrunasconfigurator.h"
@@ -45,10 +46,12 @@ class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( TestDoInvokeMethodCommandOKWithInvalidElevationType );
     CPPUNIT_TEST( TestDoInvokeMethodCommandFailed );
     CPPUNIT_TEST( TestDoInvokeMethodShellCommandOK );
+    CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithBase64 );
     CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithSudoElevationType );
     CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithEmptyElevationType );
     CPPUNIT_TEST( TestDoInvokeMethodShellCommandOKWithInvalidElevationType );
     CPPUNIT_TEST( TestDoInvokeMethodScriptOK );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithBase64 );
     CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithSudoElevation );
     CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation );
     CPPUNIT_TEST( TestDoInvokeMethodScriptOKWithEmptyElevation );
@@ -65,10 +68,12 @@ class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandOKWithInvalidElevationType, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodCommandFailed, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOK, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithBase64, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithSudoElevationType, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithEmptyElevationType, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodShellCommandOKWithInvalidElevationType, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOK, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithBase64, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithSudoElevation, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithUpperCaseSudoElevation, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(TestDoInvokeMethodScriptOKWithEmptyElevation, SLOW);
@@ -155,6 +160,7 @@ public:
         mi::Module Module;
         mi::SCX_OperatingSystem_Class_Provider agent(&Module);
         agent.Invoke_ExecuteCommand(context, NULL, instanceName, param);
+        context.WaitForResult();
         VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
     }
 
@@ -166,6 +172,7 @@ public:
         mi::Module Module;
         mi::SCX_OperatingSystem_Class_Provider agent(&Module);
         agent.Invoke_ExecuteShellCommand(context, NULL, instanceName, param);
+        context.WaitForResult();
         VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
     }
 
@@ -177,6 +184,7 @@ public:
         mi::Module Module;
         mi::SCX_OperatingSystem_Class_Provider agent(&Module);
         agent.Invoke_ExecuteScript(context, NULL, instanceName, param);
+        context.WaitForResult();
         VerifyInvokeResult(context, result, returnData, CALL_LOCATION(errMsg));
     }
 
@@ -293,6 +301,22 @@ public:
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"", returnData.stdErr);
     }
 
+
+    void TestDoInvokeMethodShellCommandOKWithBase64()
+    {
+        std::wstring errMsg;
+        mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
+        // Command is: "echo 'Howdy&There<Partner'"  (without quotes)
+        param.Command_value("ZWNobyAnSG93ZHkmVGhlcmU8UGFydG5lcic=");
+        param.timeout_value(100);
+        param.b64encoded_value(true);
+        InvokeReturnData returnData;
+        ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, std::wstring(L"Howdy&There<Partner\n"), returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, std::wstring(L""), returnData.stdErr);
+    }
+
     void TestDoInvokeMethodShellCommandOKWithSudoElevationType()
     {
         std::wstring errMsg;
@@ -351,6 +375,23 @@ public:
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
         param.timeout_value(100);
+        InvokeReturnData returnData;
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
+    }
+
+    void TestDoInvokeMethodScriptOKWithBase64()
+    {
+        std::wstring errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        std::string command(GetScript());
+        util::Base64Helper::Encode(command, command);
+        param.Script_value(command.c_str());
+        param.Arguments_value("unit test run");
+        param.timeout_value(100);
+        param.b64encoded_value(true);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);

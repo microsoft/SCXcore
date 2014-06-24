@@ -39,11 +39,11 @@ MI_EXTERN_C void MI_CALL SCX_Agent_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_Agent_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_Agent_Unload(
@@ -56,7 +56,7 @@ MI_EXTERN_C void MI_CALL SCX_Agent_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_Agent_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_Agent_EnumerateInstances(
@@ -158,11 +158,11 @@ MI_EXTERN_C void MI_CALL SCX_Application_Server_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_Application_Server_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_Application_Server_Unload(
@@ -175,7 +175,7 @@ MI_EXTERN_C void MI_CALL SCX_Application_Server_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_Application_Server_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_Application_Server_EnumerateInstances(
@@ -294,11 +294,11 @@ MI_EXTERN_C void MI_CALL SCX_DiskDrive_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_DiskDrive_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_DiskDrive_Unload(
@@ -311,7 +311,7 @@ MI_EXTERN_C void MI_CALL SCX_DiskDrive_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_DiskDrive_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_DiskDrive_EnumerateInstances(
@@ -583,11 +583,11 @@ MI_EXTERN_C void MI_CALL SCX_DiskDriveStatisticalInformation_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_DiskDriveStatisticalInformation_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_DiskDriveStatisticalInformation_Unload(
@@ -600,7 +600,7 @@ MI_EXTERN_C void MI_CALL SCX_DiskDriveStatisticalInformation_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_DiskDriveStatisticalInformation_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_DiskDriveStatisticalInformation_EnumerateInstances(
@@ -702,11 +702,11 @@ MI_EXTERN_C void MI_CALL SCX_FileSystem_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_FileSystem_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_FileSystem_Unload(
@@ -719,7 +719,7 @@ MI_EXTERN_C void MI_CALL SCX_FileSystem_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_FileSystem_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_FileSystem_EnumerateInstances(
@@ -855,11 +855,11 @@ MI_EXTERN_C void MI_CALL SCX_FileSystemStatisticalInformation_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_FileSystemStatisticalInformation_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_FileSystemStatisticalInformation_Unload(
@@ -872,7 +872,7 @@ MI_EXTERN_C void MI_CALL SCX_FileSystemStatisticalInformation_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_FileSystemStatisticalInformation_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_FileSystemStatisticalInformation_EnumerateInstances(
@@ -974,11 +974,11 @@ MI_EXTERN_C void MI_CALL SCX_EthernetPortStatistics_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_EthernetPortStatistics_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_EthernetPortStatistics_Unload(
@@ -991,7 +991,7 @@ MI_EXTERN_C void MI_CALL SCX_EthernetPortStatistics_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_EthernetPortStatistics_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_EthernetPortStatistics_EnumerateInstances(
@@ -1110,11 +1110,11 @@ MI_EXTERN_C void MI_CALL SCX_LANEndpoint_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_LANEndpoint_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_LANEndpoint_Unload(
@@ -1127,7 +1127,7 @@ MI_EXTERN_C void MI_CALL SCX_LANEndpoint_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_LANEndpoint_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_LANEndpoint_EnumerateInstances(
@@ -1246,11 +1246,11 @@ MI_EXTERN_C void MI_CALL SCX_IPProtocolEndpoint_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_IPProtocolEndpoint_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_IPProtocolEndpoint_Unload(
@@ -1263,7 +1263,7 @@ MI_EXTERN_C void MI_CALL SCX_IPProtocolEndpoint_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_IPProtocolEndpoint_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_IPProtocolEndpoint_EnumerateInstances(
@@ -1382,11 +1382,11 @@ MI_EXTERN_C void MI_CALL SCX_LogFile_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_LogFile_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_LogFile_Unload(
@@ -1399,7 +1399,7 @@ MI_EXTERN_C void MI_CALL SCX_LogFile_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_LogFile_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_LogFile_EnumerateInstances(
@@ -1518,11 +1518,11 @@ MI_EXTERN_C void MI_CALL SCX_MemoryStatisticalInformation_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_MemoryStatisticalInformation_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_MemoryStatisticalInformation_Unload(
@@ -1535,7 +1535,7 @@ MI_EXTERN_C void MI_CALL SCX_MemoryStatisticalInformation_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_MemoryStatisticalInformation_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_MemoryStatisticalInformation_EnumerateInstances(
@@ -1637,11 +1637,11 @@ MI_EXTERN_C void MI_CALL SCX_OperatingSystem_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_OperatingSystem_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_OperatingSystem_Unload(
@@ -1654,7 +1654,7 @@ MI_EXTERN_C void MI_CALL SCX_OperatingSystem_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_OperatingSystem_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_OperatingSystem_EnumerateInstances(
@@ -1858,11 +1858,11 @@ MI_EXTERN_C void MI_CALL SCX_ProcessorStatisticalInformation_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_ProcessorStatisticalInformation_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_ProcessorStatisticalInformation_Unload(
@@ -1875,7 +1875,7 @@ MI_EXTERN_C void MI_CALL SCX_ProcessorStatisticalInformation_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_ProcessorStatisticalInformation_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_ProcessorStatisticalInformation_EnumerateInstances(
@@ -1977,11 +1977,11 @@ MI_EXTERN_C void MI_CALL SCX_UnixProcess_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_UnixProcess_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_UnixProcess_Unload(
@@ -1994,7 +1994,7 @@ MI_EXTERN_C void MI_CALL SCX_UnixProcess_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_UnixProcess_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_UnixProcess_EnumerateInstances(
@@ -2130,11 +2130,11 @@ MI_EXTERN_C void MI_CALL SCX_UnixProcessStatisticalInformation_Load(
     if (MI_RESULT_OK != r)
     {
         delete prov;
-        MI_PostResult(context, r);
+        MI_Context_PostResult(context, r);
         return;
     }
     *self = (SCX_UnixProcessStatisticalInformation_Self*)prov;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C void MI_CALL SCX_UnixProcessStatisticalInformation_Unload(
@@ -2147,7 +2147,7 @@ MI_EXTERN_C void MI_CALL SCX_UnixProcessStatisticalInformation_Unload(
 
     prov->Unload(ctx);
     delete ((SCX_UnixProcessStatisticalInformation_Class_Provider*)self);
-    MI_PostResult(context, r);
+    MI_Context_PostResult(context, r);
 }
 
 MI_EXTERN_C void MI_CALL SCX_UnixProcessStatisticalInformation_EnumerateInstances(
@@ -2242,14 +2242,14 @@ MI_EXTERN_C MI_SchemaDecl schemaDecl;
 void MI_CALL Load(MI_Module_Self** self, struct _MI_Context* context)
 {
     *self = (MI_Module_Self*)new Module;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 void MI_CALL Unload(MI_Module_Self* self, struct _MI_Context* context)
 {
     Module* module = (Module*)self;
     delete module;
-    MI_PostResult(context, MI_RESULT_OK);
+    MI_Context_PostResult(context, MI_RESULT_OK);
 }
 
 MI_EXTERN_C MI_EXPORT MI_Module* MI_MAIN_CALL MI_Main(MI_Server* server)
@@ -2262,7 +2262,7 @@ MI_EXTERN_C MI_EXPORT MI_Module* MI_MAIN_CALL MI_Main(MI_Server* server)
     module.flags |= MI_MODULE_FLAG_CPLUSPLUS;
     module.charSize = sizeof(MI_Char);
     module.version = MI_VERSION;
-    module.generatorVersion = MI_MAKE_VERSION(1,0,0);
+    module.generatorVersion = MI_MAKE_VERSION(1,0,8);
     module.schemaDecl = &schemaDecl;
     module.Load = Load;
     module.Unload = Unload;
