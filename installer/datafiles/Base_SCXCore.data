@@ -37,6 +37,7 @@ MAINTAINER:              'Microsoft Corporation'
 /opt/microsoft/scx/bin/tools/scxsslconfig;                              intermediate/${{BUILD_CONFIGURATION}}/scxsslconfig.sh;            755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/tools/.scxsslconfig;                             target/${{BUILD_CONFIGURATION}}${{ULINUX_POSTFIX}}/scxsslconfig;  755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/tools/.scxadmin;                                 target/${{BUILD_CONFIGURATION}}/scxadmin;                         755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/bin/omi_preexec;                                     target/${{BUILD_CONFIGURATION}}/omi_preexec;                      755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/scxlogfilereader;                                target/${{BUILD_CONFIGURATION}}/scxlogfilereader;                 755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}};         target/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.${{SHLIB_EXT}}; 755; root; ${{ROOT_GROUP_NAME}}
 

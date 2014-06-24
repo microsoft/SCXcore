@@ -27,6 +27,7 @@
 #include <scxsystemlib/processenumeration.h>
 #include <scxsystemlib/scxostypeinfo.h>
 #include <scxsystemlib/scxsysteminfo.h>
+#include <util/Base64Helper.h>
 
 #include "support/scxcimutils.h"
 #include "support/scxrunasconfigurator.h"
@@ -47,6 +48,74 @@ namespace
 }
 
 MI_BEGIN_NAMESPACE
+
+/**
+   Class that represents values passed between the threads for OMI methods
+*/
+class SCX_OperatingSystem_ThreadParam : public SCXThreadParam
+{
+public:
+    /*----------------------------------------------------------------------------*/
+    /**
+       Constructor
+
+       \param[in]     context  Context pointer from OMI server
+    */
+    SCX_OperatingSystem_ThreadParam(MI_Context* context)
+        : SCXThreadParam(), m_context(context)
+    {
+    }
+
+    /*----------------------------------------------------------------------------*/
+    /**
+       Retrieves the context pointer for this thread to use
+
+       \returns  Pointer to context for this thread to use
+    */
+    Context& GetContext()
+    {
+        return m_context;
+    }
+
+private:
+    Context m_context; //!< Context from OMI server
+};
+
+class SCX_OperatingSystem_Command_ThreadParam : public SCX_OperatingSystem_ThreadParam
+{
+public:
+    SCX_OperatingSystem_Command_ThreadParam(MI_Context* context, const SCX_OperatingSystem_ExecuteCommand_Class in)
+        : SCX_OperatingSystem_ThreadParam(context), m_input(in)
+    {}
+    const SCX_OperatingSystem_ExecuteCommand_Class& GetInput() { return m_input; }
+
+private:
+    const SCX_OperatingSystem_ExecuteCommand_Class m_input;
+};
+
+class SCX_OperatingSystem_ShellCommand_ThreadParam : public SCX_OperatingSystem_ThreadParam
+{
+public:
+    SCX_OperatingSystem_ShellCommand_ThreadParam(MI_Context* context, const SCX_OperatingSystem_ExecuteShellCommand_Class in)
+        : SCX_OperatingSystem_ThreadParam(context), m_input(in)
+    {}
+    const SCX_OperatingSystem_ExecuteShellCommand_Class& GetInput() { return m_input; }
+
+private:
+    const SCX_OperatingSystem_ExecuteShellCommand_Class m_input;
+};
+
+class SCX_OperatingSystem_Script_ThreadParam : public SCX_OperatingSystem_ThreadParam
+{
+public:
+    SCX_OperatingSystem_Script_ThreadParam(MI_Context* context, const SCX_OperatingSystem_ExecuteScript_Class in)
+        : SCX_OperatingSystem_ThreadParam(context), m_input(in)
+    {}
+    const SCX_OperatingSystem_ExecuteScript_Class& GetInput() { return m_input; }
+
+private:
+    const SCX_OperatingSystem_ExecuteScript_Class m_input;
+};
 
 static void EnumerateOneInstance(
     Context& context,
@@ -409,17 +478,28 @@ void SCX_OperatingSystem_Class_Provider::Invoke_Shutdown(
     context.Post(MI_RESULT_NOT_SUPPORTED);
 }
 
-void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand(
-    Context& context,
-    const String& nameSpace,
-    const SCX_OperatingSystem_Class& instanceName,
-    const SCX_OperatingSystem_ExecuteCommand_Class& in)
+static void Invoke_ExecuteCommand_ThreadBody(SCXCoreLib::SCXThreadParamHandle& param)
 {
+    if (param == 0)
+    {
+        SCXASSERT( ! "No parameters to Invoke_ExecuteCommand_ThreadBody");
+        return;
+    }
+
+    SCX_OperatingSystem_Command_ThreadParam* params = static_cast<SCX_OperatingSystem_Command_ThreadParam*> (param.GetData());
+    if (params == 0)
+    {
+        SCXASSERT( ! "Invalid parameters to Invoke_ExecuteCommand_ThreadBody");
+        return;
+    }
+
     SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
+    Context& context = params->GetContext();
+    const SCX_OperatingSystem_ExecuteCommand_Class& in = params->GetInput();
 
     SCX_PEX_BEGIN
     {
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::RunAsProvider::Lock"));
+        // We specifically do not lock here; we want multiple instances to run
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand" )
 
         // Parameters (from MOF file):
@@ -471,21 +551,48 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand(
         inst.MIReturn_value( cmdok );
         context.Post(inst);
         context.Post(MI_RESULT_OK);
-    }
+    } 
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand", log );
 }
 
-void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
+void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand(
     Context& context,
     const String& nameSpace,
     const SCX_OperatingSystem_Class& instanceName,
-    const SCX_OperatingSystem_ExecuteShellCommand_Class& in)
+    const SCX_OperatingSystem_ExecuteCommand_Class& in)
 {
     SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
 
     SCX_PEX_BEGIN
     {
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::RunAsProvider::Lock"));
+        SCX_OperatingSystem_Command_ThreadParam* params = new SCX_OperatingSystem_Command_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteCommand_ThreadBody, params);
+    }
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand", log );
+}
+
+static void Invoke_ExecuteShellCommand_ThreadBody(SCXCoreLib::SCXThreadParamHandle& param)
+{
+    if (param == 0)
+    {
+        SCXASSERT( ! "No parameters to Invoke_ExecuteShellCommand_ThreadBody");
+        return;
+    }
+
+    SCX_OperatingSystem_ShellCommand_ThreadParam* params = static_cast<SCX_OperatingSystem_ShellCommand_ThreadParam*> (param.GetData());
+    if (params == 0)
+    {
+        SCXASSERT( ! "Invalid parameters to Invoke_ExecuteShellCommand_ThreadBody");
+        return;
+    }
+
+    SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
+    Context& context = params->GetContext();
+    const SCX_OperatingSystem_ExecuteShellCommand_Class& in = params->GetInput();
+
+    SCX_PEX_BEGIN
+    {
+        // We specifically do not lock here; we want multiple instances to run
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand" )
 
         // Parameters (from MOF file):
@@ -495,6 +602,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
         //   [OUT] string StdErr, 
         //   [IN] uint32 timeout,
         //   [IN] string ElevationType (optional)
+        //   [IN] boolean b64encoded (optional)
 
         // Validate that we have mandatory arguments
         if ( !in.Command_exists() || 0 == strlen(in.Command_value().Str()) || !in.timeout_exists() )
@@ -504,8 +612,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
             return;
         }
 
-        std::wstring command = StrFromMultibyte( in.Command_value().Str() );
-        std::wstring return_out, return_err;
+        std::string commandNarrow = in.Command_value().Str();
 
         std::wstring elevation = L"";
         if ( in.ElevationType_exists() )
@@ -520,6 +627,19 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
             }
         }
 
+        // If we need to decode a Base64-encoded string, do so
+        if ( in.b64encoded_exists() && in.b64encoded_value() )
+        {
+            bool result = util::Base64Helper::Decode(commandNarrow, commandNarrow);
+            if ( ! result )
+            {
+                // Base64 conversion error - return failure
+                context.Post(MI_RESULT_FAILED);
+                return;
+            }
+        }
+
+        std::wstring command = StrFromMultibyte( commandNarrow );
         std::wstring returnOut, returnErr;
         int returnCode;
         bool cmdok;
@@ -541,17 +661,42 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", log );
 }
 
-void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
+void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
     Context& context,
     const String& nameSpace,
     const SCX_OperatingSystem_Class& instanceName,
-    const SCX_OperatingSystem_ExecuteScript_Class& in)
+    const SCX_OperatingSystem_ExecuteShellCommand_Class& in)
 {
+    SCX_PEX_BEGIN
+    {
+        SCX_OperatingSystem_ShellCommand_ThreadParam* params = new SCX_OperatingSystem_ShellCommand_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteShellCommand_ThreadBody, params);
+    }
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", SCXCore::g_RunAsProvider.GetLogHandle() );
+}
+
+static void Invoke_ExecuteScript_ThreadBody(SCXCoreLib::SCXThreadParamHandle& param)
+{
+    if (param == 0)
+    {
+        SCXASSERT( ! "No parameters to Invoke_ExecuteScript_ThreadBody");
+        return;
+    }
+
+    SCX_OperatingSystem_Script_ThreadParam* params = static_cast<SCX_OperatingSystem_Script_ThreadParam*> (param.GetData());
+    if (params == 0)
+    {
+        SCXASSERT( ! "Invalid parameters to Invoke_ExecuteScript_ThreadBody");
+        return;
+    }
+
     SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
+    Context& context = params->GetContext();
+    const SCX_OperatingSystem_ExecuteScript_Class& in = params->GetInput();
 
     SCX_PEX_BEGIN
     {
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::RunAsProvider::Lock"));
+        // We specifically do not lock here; we want multiple instances to run
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript" )
 
         // Parameters (from MOF file):
@@ -562,6 +707,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
         //   [OUT] string StdErr, 
         //   [IN] uint32 timeout, 
         //   [IN] string ElevationType (optional)
+        //   [in] string b64encoded (optional)
 
         // Validate that we have mandatory arguments
         if ( !in.Script_exists() || 0 == strlen(in.Script_value().Str())
@@ -585,10 +731,24 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
             }
         }
 
-        std::wstring strScript = StrFromMultibyte(in.Script_value().Str());
+        std::string strScriptNarrow = in.Script_value().Str();
         std::wstring strArgs = StrFromMultibyte(in.Arguments_value().Str());
         std::wstring returnOut, returnErr;
         int returnCode;
+
+        // If we need to decode a Base64-encoded script, do so (just the script, not the arguments)
+        if ( in.b64encoded_exists() && in.b64encoded_value() )
+        {
+            bool result = util::Base64Helper::Decode(strScriptNarrow, strScriptNarrow);
+            if ( ! result )
+            {
+                // Base64 conversion error - return failure
+                context.Post(MI_RESULT_FAILED);
+                return;
+            }
+        }
+
+        std::wstring strScript = StrFromMultibyte( strScriptNarrow );
 
         // Historically, sometimes WSman/Pegasus removed '\r' characters, sometimes not.
         // (Depended on the product.)  Do so here to play it safe.
@@ -612,7 +772,23 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
         context.Post(inst);
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", log );
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript", log );
+}
+
+void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
+    Context& context,
+    const String& nameSpace,
+    const SCX_OperatingSystem_Class& instanceName,
+    const SCX_OperatingSystem_ExecuteScript_Class& in)
+{
+    SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
+
+    SCX_PEX_BEGIN
+    {
+        SCX_OperatingSystem_Script_ThreadParam* params = new SCX_OperatingSystem_Script_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteScript_ThreadBody, params);
+    }
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript", log );
 }
 
 MI_END_NAMESPACE

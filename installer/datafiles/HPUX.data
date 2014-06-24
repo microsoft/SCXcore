@@ -3,7 +3,7 @@ PF: 'HPUX'
 HPUX_COPYRIGHT: 'Copyright (c) Microsoft Corporation.  All rights reserved.'
 
 %Dependencies
-omi,r>=1.0.6.5
+omi,r>=1.0.8
 
 %OmiService_funcs
 StopOmiServer() {

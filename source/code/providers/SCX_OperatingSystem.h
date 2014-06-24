@@ -1712,6 +1712,7 @@ typedef struct _SCX_OperatingSystem_ExecuteShellCommand
     /*OUT*/ MI_ConstStringField StdErr;
     /*IN*/ MI_ConstUint32Field timeout;
     /*IN*/ MI_ConstStringField ElevationType;
+    /*IN*/ MI_ConstBooleanField b64encoded;
 }
 SCX_OperatingSystem_ExecuteShellCommand;
 
@@ -1928,6 +1929,22 @@ MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteShellCommand_Clear_Elevat
         6);
 }
 
+MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteShellCommand_Set_b64encoded(
+    SCX_OperatingSystem_ExecuteShellCommand* self,
+    MI_Boolean x)
+{
+    ((MI_BooleanField*)&self->b64encoded)->value = x;
+    ((MI_BooleanField*)&self->b64encoded)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteShellCommand_Clear_b64encoded(
+    SCX_OperatingSystem_ExecuteShellCommand* self)
+{
+    memset((void*)&self->b64encoded, 0, sizeof(self->b64encoded));
+    return MI_RESULT_OK;
+}
+
 /*
 **==============================================================================
 **
@@ -1947,6 +1964,7 @@ typedef struct _SCX_OperatingSystem_ExecuteScript
     /*OUT*/ MI_ConstStringField StdErr;
     /*IN*/ MI_ConstUint32Field timeout;
     /*IN*/ MI_ConstStringField ElevationType;
+    /*IN*/ MI_ConstBooleanField b64encoded;
 }
 SCX_OperatingSystem_ExecuteScript;
 
@@ -2193,6 +2211,22 @@ MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteScript_Clear_ElevationTyp
     return self->__instance.ft->ClearElementAt(
         (MI_Instance*)&self->__instance,
         7);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteScript_Set_b64encoded(
+    SCX_OperatingSystem_ExecuteScript* self,
+    MI_Boolean x)
+{
+    ((MI_BooleanField*)&self->b64encoded)->value = x;
+    ((MI_BooleanField*)&self->b64encoded)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_OperatingSystem_ExecuteScript_Clear_b64encoded(
+    SCX_OperatingSystem_ExecuteScript* self)
+{
+    memset((void*)&self->b64encoded, 0, sizeof(self->b64encoded));
+    return MI_RESULT_OK;
 }
 
 /*
@@ -3509,6 +3543,46 @@ public:
         const size_t n = offsetof(Self, ElevationType);
         GetField<String>(n).Clear();
     }
+
+    //
+    // SCX_OperatingSystem_ExecuteShellCommand_Class.b64encoded
+    //
+    
+    const Field<Boolean>& b64encoded() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n);
+    }
+    
+    void b64encoded(const Field<Boolean>& x)
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n) = x;
+    }
+    
+    const Boolean& b64encoded_value() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n).value;
+    }
+    
+    void b64encoded_value(const Boolean& x)
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n).Set(x);
+    }
+    
+    bool b64encoded_exists() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n).exists ? true : false;
+    }
+    
+    void b64encoded_clear()
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n).Clear();
+    }
 };
 
 typedef Array<SCX_OperatingSystem_ExecuteShellCommand_Class> SCX_OperatingSystem_ExecuteShellCommand_ClassA;
@@ -3879,6 +3953,46 @@ public:
     {
         const size_t n = offsetof(Self, ElevationType);
         GetField<String>(n).Clear();
+    }
+
+    //
+    // SCX_OperatingSystem_ExecuteScript_Class.b64encoded
+    //
+    
+    const Field<Boolean>& b64encoded() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n);
+    }
+    
+    void b64encoded(const Field<Boolean>& x)
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n) = x;
+    }
+    
+    const Boolean& b64encoded_value() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n).value;
+    }
+    
+    void b64encoded_value(const Boolean& x)
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n).Set(x);
+    }
+    
+    bool b64encoded_exists() const
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        return GetField<Boolean>(n).exists ? true : false;
+    }
+    
+    void b64encoded_clear()
+    {
+        const size_t n = offsetof(Self, b64encoded);
+        GetField<Boolean>(n).Clear();
     }
 };
 

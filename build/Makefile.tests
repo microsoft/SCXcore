@@ -123,12 +123,8 @@ POSIX_UNITTESTS_CORE_LINK_STATICLIBS = \
 	$(addprefix -l, $(POSIX_UNITTESTS_CORE_STATICLIB_DEPS)) \
 	-lProductDependencies \
 	-lmicxx \
-	-lbase
-
-# For some reason, only AIX needs OMI's libio.a library
-ifeq ($(PF),AIX)
-POSIX_UNITTESTS_CORE_LINK_STATICLIBS += -lio
-endif
+	-lbase \
+	-lpal
 
 #--------------------------------------------------------------------------------
 # Check if user has requested a subset of the unit tests only 
@@ -186,6 +182,7 @@ testrun_copy : $(TARGET_DIR)/closefiledescriptors
 	chmod u+wx $(TARGET_DIR)/testfiles/scxlogfilereader-test
 	$(COPY) $(TARGET_DIR)/closefiledescriptors $(TARGET_DIR)/testfiles/
 	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(TARGET_DIR)
+	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(TARGET_DIR))
 
 create_environment_sh : 
  ifeq ($(PF_DISTRO),ULINUX)

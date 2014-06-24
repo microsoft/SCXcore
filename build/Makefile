@@ -13,7 +13,7 @@ PF_POSIX=true
 
 # Get the root of the SCXPAL directory (and other easy locations)
 SCXPAL_DIR := $(shell cd ../../pal; pwd)
-SCXOMI_DIR := $(shell cd ../../omi/distro; pwd -P)
+SCXOMI_DIR := $(shell cd ../../omi/Unix; pwd -P)
 
 SCXOMI_DEV_ROOT := $(SCXOMI_DIR)/output
 SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include

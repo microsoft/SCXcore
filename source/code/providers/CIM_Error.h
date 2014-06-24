@@ -126,9 +126,11 @@ MI_INLINE MI_Result MI_CALL CIM_Error_Delete(CIM_Error* self)
 
 MI_INLINE MI_Result MI_CALL CIM_Error_Post(
     const CIM_Error* self,
-    MI_Context* context)
+    MI_Context* context,
+    MI_Uint32 subscriptionIDCount,
+    const MI_Char* bookmark)
 {
-    return MI_PostInstance(context, &self->__instance);
+    return MI_Context_PostIndication(context, &self->__instance, subscriptionIDCount, bookmark);
 }
 
 MI_INLINE MI_Result MI_CALL CIM_Error_Set_ErrorType(

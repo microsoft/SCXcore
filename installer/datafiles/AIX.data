@@ -8,7 +8,7 @@ COPYRIGHT_FILE:  'For copyright and license information please refer to\n/opt/mi
 /usr/lpp/scx.rte; 755; root; ${{ROOT_GROUP_NAME}}
 
 %Dependencies
-*prereq omi.rte 1.0.6.5
+*prereq omi.rte 1.0.8
 
 %OmiService_funcs
 StopOmiServer() {
