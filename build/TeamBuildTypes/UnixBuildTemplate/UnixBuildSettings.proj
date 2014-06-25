@@ -61,7 +61,7 @@
 
     <When Condition=" '$(UnixBuildType)'=='AIX_6.1_ppc' ">
       <PropertyGroup>
-        <UnixBuildServer>scxaix3-4</UnixBuildServer>
+        <UnixBuildServer>scxbld-aix61-01</UnixBuildServer>
         <UnixWorkSpaceName>ScxCore_SCXDEV_AIX61_ppc</UnixWorkSpaceName>
         <DropPath>AIX6.1_ppc</DropPath>
       </PropertyGroup>
