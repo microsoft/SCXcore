@@ -81,6 +81,7 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx;                                 755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx/conf;                            755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/microsoft/scx/ssl;                             755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx/conf/.baseconf;                  755; root; ${{ROOT_GROUP_NAME}}
 
 /etc/opt/microsoft/omi;                                 755; root; ${{ROOT_GROUP_NAME}}
@@ -310,6 +311,12 @@ RemoveConfBackupTemp
 %Postinstall_1000
 GenerateCertificate
 
+# Create link from SSL_DIR/scx.pem to OMI_SSL_DIR/omi.pem
+if [ -f ${{SSL_DIR}}/scx.pem ]; then
+    mv ${{SSL_DIR}}/scx.pem ${{SSL_DIR}}/scx.pem_backup
+fi
+ln -s ${{OMI_SSL_DIR}}/omi.pem ${{SSL_DIR}}/scx.pem
+
 %Preuninstall_10
 #include UnconfigureScxPAM
 RemoveConfigFiles() {
@@ -331,6 +338,8 @@ RemoveAdditionalFiles() {
 
 %Preuninstall_300
 RemoveConfigFiles
+
+rm -f ${{SSL_DIR}}/scx.pem_backup ${{SSL_DIR}}/scx.pem
 
 %Preuninstall_400
 UnconfigureScxPAM
