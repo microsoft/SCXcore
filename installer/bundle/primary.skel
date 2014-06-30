@@ -464,6 +464,48 @@ fi
 
 EXIT_STATUS=0
 
+force_stop_omi_service() {
+    # For any installation or upgrade, we should be shutting down omiserver (and it will be started after install/upgrade).
+    case "$PLATFORM" in
+        Linux_ULINUX*)
+            if [ -x /usr/sbin/invoke-rc.d ]; then
+                /usr/sbin/invoke-rc.d scx-cimd stop 1> /dev/null 2> /dev/null
+                /usr/sbin/invoke-rc.d omiserverd stop 1> /dev/null 2> /dev/null
+            elif [ -x /sbin/service ]; then
+                service scx-cimd stop 1> /dev/null 2> /dev/null
+                service omiserverd stop 1> /dev/null 2> /dev/null
+            fi
+            ;;
+        
+        Linux_REDHAT|Linux_SUSE)
+            service scx-cimd stop 1> /dev/null 2> /dev/null
+            service omiserverd stop 1> /dev/null 2> /dev/null
+            ;;
+        
+        AIX)
+            stopsrc -s scx-cimd 1> /dev/null 2> /dev/null
+            stopsrc -s omiserverd 1> /dev/null 2> /dev/null
+            ;;
+        
+        HPUX)
+            /sbin/init.d/scx-cimd stop 1> /dev/null 2> /dev/null
+            /sbin/init.d/omiserverd stop 1> /dev/null 2> /dev/null
+            ;;
+        
+        SunOS)
+            svcadm disable -s svc:/application/management/scx-cimd 1> /dev/null 2> /dev/null
+            svcadm disable -s svc:/application/management/omiserverd 1> /dev/null 2> /dev/null
+            ;;
+        
+    esac
+    # Catchall for stopping omiserver/scx-cimd
+    /etc/init.d/scx-cimd stop 1> /dev/null 2> /dev/null
+    /etc/init.d/omiserverd stop 1> /dev/null 2> /dev/null
+    /sbin/init.d/scx-cimd stop 1> /dev/null 2> /dev/null
+    /sbin/init.d/omiserverd stop 1> /dev/null 2> /dev/null
+
+}
+
 case "$installMode" in
     I)
 	echo "Installing cross-platform agent ..."
@@ -477,6 +519,7 @@ case "$installMode" in
 	fi	
 
 	check_if_pkg_is_installed omi
+	force_stop_omi_service
 	if [ $? -eq 0 ]; then
 	    pkg_upd $OMI_PKG omi
 	    # It is acceptable that this fails due to the new omi being 
@@ -494,6 +537,7 @@ case "$installMode" in
     U)
 	echo "Updating cross-platform agent ..."
 	check_if_pkg_is_installed omi
+	force_stop_omi_service
 	if [ $? -eq 0 ]; then
 	    pkg_upd $OMI_PKG omi
 	    # It is acceptable that this fails due to the new omi being 
