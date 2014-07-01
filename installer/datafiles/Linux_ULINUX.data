@@ -3,6 +3,9 @@ PFDISTRO: 'ULINUX'
 PFMAJOR: '1'
 PFMINOR: '0'
 
+%Files
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh; target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh; 755; root; root
+
 %Defines
 ULINUX
 
