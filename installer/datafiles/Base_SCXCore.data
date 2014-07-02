@@ -168,20 +168,6 @@ UnconfigureScxPAM_dir() {
     fi
 }
 
-%CreateConfBackupTemp
-CreateConfBackupTemp() {
-    if [ -f /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup ]; then
-        cp /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup_tmp
-    fi
-    if [ -f /etc/opt/microsoft/scx/conf/cimserver_current.conf${{SUNOS_PKGSAVE}} ]; then
-        cp /etc/opt/microsoft/scx/conf/cimserver_current.conf${{SUNOS_PKGSAVE}} /etc/opt/microsoft/scx/conf/cimserver_current.conf_tmp
-    fi
-}
-
-%Preinstall_100
-#include CreateConfBackupTemp
-CreateConfBackupTemp
-
 %Postinstall_10
 #include UnconfigureScxPAM
 CreateSoftLinkToSudo() {
@@ -202,29 +188,22 @@ ConfigureRunAs() {
 }
 
 HandleConfigFiles() {
-    if [ -f /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave ]; then
-        mv /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave /etc/opt/microsoft/scx/conf/omiserver.conf
-    elif [ -f /etc/opt/microsoft/scx/conf/omiserver.conf -a -f /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup_tmp ]; then
-        diff /etc/opt/microsoft/scx/conf/omiserver.conf /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup_tmp > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            cp /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup /etc/opt/microsoft/scx/conf/omiserver.conf
-        fi
-    elif [ ! -f /etc/opt/microsoft/scx/conf/omiserver.conf -a -f /etc/opt/microsoft/scx/conf/cimserver_current.conf_tmp ]; then
-        cp /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup /etc/opt/microsoft/scx/conf/omiserver.conf
-        echo `grep sslCipherSuite /etc/opt/microsoft/scx/conf/cimserver_current.conf_tmp` | sed "s@sslCipherSuite@sslciphersuite@" >> /etc/opt/microsoft/scx/conf/omiserver.conf
-    else
-        cp /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup /etc/opt/microsoft/scx/conf/omiserver.conf
+    grep -i "sslciphersuite" /etc/opt/microsoft/omi/conf/omiserver.conf 1> /dev/null 2> /dev/null
+    # if there is no sslCipherSuite defined in omiserver.conf, check the previous omiserver/cimserver OM conf files for an sslCipherSuite defined
+    if [ $? -ne 0 ]; then
+	if [ -f /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave ]; then
+	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave` >> /etc/opt/microsoft/omi/conf/omiserver.conf
+	elif [ -f /etc/opt/microsoft/scx/conf/omiserver.conf ]; then
+	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf` >> /etc/opt/microsoft/omi/conf/omiserver.conf
+	elif [ -f /etc/opt/microsoft/scx/conf/cimserver_current.conf ]; then
+            echo `grep sslCipherSuite /etc/opt/microsoft/scx/conf/cimserver_current.conf` | sed "s@sslCipherSuite@sslciphersuite@" >> /etc/opt/microsoft/omi/conf/omiserver.conf
+	fi
     fi
-    rm -f /etc/opt/microsoft/scx/conf/cimserver_current.conf* /etc/opt/microsoft/scx/conf/cimserver_planned.conf*
-}
+    rm -f /etc/opt/microsoft/scx/conf/cimserver_current.conf* /etc/opt/microsoft/scx/conf/cimserver_planned.conf* /etc/opt/microsoft/scx/conf/omiserver.conf*
 
-RemoveConfBackupTemp() {
-    if [ -f /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup_tmp ]; then
-        rm /etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup_tmp
-    fi
-    if [ -f /etc/opt/microsoft/scx/conf/cimserver_current.conf_tmp ]; then
-        rm /etc/opt/microsoft/scx/conf/cimserver_current.conf_tmp
-    fi
+    # Set port to 1270
+    cat /etc/opt/microsoft/omi/conf/omiserver.conf | sed "s@httpsport=0@httpsport=1270@" > /etc/opt/microsoft/omi/conf/omiserver.conf_temp
+    mv /etc/opt/microsoft/omi/conf/omiserver.conf_temp /etc/opt/microsoft/omi/conf/omiserver.conf
 }
 
 GenerateCertificate() {
@@ -304,9 +283,6 @@ ConfigureRunAs
 
 %Postinstall_800
 HandleConfigFiles
-
-%Postinstall_900
-RemoveConfBackupTemp
 
 %Postinstall_1000
 GenerateCertificate
