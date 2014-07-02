@@ -26,10 +26,6 @@ if [ $OMI_IS_RUNNING -eq 1 ]; then
     StopOmiServer
 fi
 
-%Preupgrade_1000
-#include CreateConfBackupTemp
-CreateConfBackupTemp
-
 %Postinstall_650
 # If this is not an upgrade, ConfigureRunas
 if [ "$INSTALLED_LIST" = "" ]; then
