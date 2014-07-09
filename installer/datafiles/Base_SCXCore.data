@@ -42,7 +42,6 @@ MAINTAINER:              'Microsoft Corporation'
 /opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}};         target/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.${{SHLIB_EXT}}; 755; root; ${{ROOT_GROUP_NAME}}
 
 /etc/opt/microsoft/scx/pf_file.sh;                                      intermediate/${{BUILD_CONFIGURATION}}/pf_file.sh;                 444; root; sys
-/etc/opt/microsoft/scx/conf/.baseconf/omiserver.backup;                 installer/conf/omi/omiserver.conf;                                444; root; sys
 /etc/opt/microsoft/scx/conf/scxlog.conf;                                installer/conf/scxlog.conf;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
 /etc/opt/microsoft/scx/conf/scxrunas.conf;                              installer/conf/scxrunas.conf;                                     644; root; ${{ROOT_GROUP_NAME}}; conffile
 /etc/opt/microsoft/scx/conf/installinfo.txt;                            installer/conf/installinfo.txt;                                   644; root; ${{ROOT_GROUP_NAME}}

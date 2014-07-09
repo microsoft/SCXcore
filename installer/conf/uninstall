@@ -1,5 +1,10 @@
 #!/bin/sh
 
+uninstallMode=R
+if [ -n "$1" ]; then
+    uninstallMode=$1
+fi
+
 PATH=/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
@@ -25,7 +30,11 @@ pkg_rm() {
 	    case "$PF_DISTRO" in
 		ULINUX)
 		    if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
-			dpkg --remove $1 1> /dev/null 2> /dev/null
+                        if [ "$uninstallMode" = "P" ]; then
+	                    dpkg --purge $1 1> /dev/null 2> /dev/null
+                        else
+		            dpkg --remove $1 1> /dev/null 2> /dev/null
+	                fi
 		    elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
 		       	rpm --erase $1 1> /dev/null 2> /dev/null
 		    fi
