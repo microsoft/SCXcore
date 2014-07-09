@@ -390,7 +390,7 @@ set +e
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
     if [ -f /opt/microsoft/scx/bin/uninstall ]; then
-	/opt/microsoft/scx/bin/uninstall
+	/opt/microsoft/scx/bin/uninstall $installMode
     else
 	# This is an old kit.  Let's just simply pkg_rm scx
 	pkg_rm scx
