@@ -192,7 +192,7 @@ start_omiserver() {
 
 # Create installation administrative file for Solaris platform if needed
 CLEANUP=""
-if [ "$PLATFORM" = "SunOS" ]; then
+if [ "$PF" = "SunOS" ]; then
     CLEANUP='rm -f scx-admin'
     echo "mail=" > scx-admin
     echo "instance=overwrite" >> scx-admin
