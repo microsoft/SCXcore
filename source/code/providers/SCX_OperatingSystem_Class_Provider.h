@@ -6,6 +6,7 @@
 #ifdef __cplusplus
 # include <micxx/micxx.h>
 # include "module.h"
+#include <scxcorelib/scxthreadpool.h>
 
 MI_BEGIN_NAMESPACE
 
@@ -22,6 +23,7 @@ class SCX_OperatingSystem_Class_Provider
 /* @MIGEN.BEGIN@ CAUTION: PLEASE DO NOT EDIT OR DELETE THIS LINE. */
 private:
     Module* m_Module;
+    SCXCoreLib::SCXThreadPool m_ThreadPool;
 
 public:
     SCX_OperatingSystem_Class_Provider(
