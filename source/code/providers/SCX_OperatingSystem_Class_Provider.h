@@ -23,7 +23,6 @@ class SCX_OperatingSystem_Class_Provider
 /* @MIGEN.BEGIN@ CAUTION: PLEASE DO NOT EDIT OR DELETE THIS LINE. */
 private:
     Module* m_Module;
-    SCXCoreLib::SCXThreadPool m_ThreadPool;
 
 public:
     SCX_OperatingSystem_Class_Provider(
