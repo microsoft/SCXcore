@@ -36,6 +36,23 @@ namespace SCXCore
                 m_Configurator = SCXCoreLib::SCXHandle<RunAsConfigurator> (new RunAsConfigurator());
             }
 
+            if ( NULL == m_ThreadPoolHandle)
+            {
+                SCX_LOGTRACE(m_log, L"Starting ThreadPool");
+                m_ThreadPoolHandle = SCXHandle<SCXThreadPool> (new SCXThreadPool());
+
+                const long numThreads = 5;
+                m_ThreadPoolHandle->SetThreadLimit(numThreads);
+                m_ThreadPoolHandle->Start();
+                
+                // Wait for a bit for the thread pool to start up
+                int count = 0;
+                while ( !m_ThreadPoolHandle->isRunning() && ++count <= 20 )
+                {
+                    usleep( 50000 );
+                }
+            }
+
             ParseConfiguration();
         }
     }
@@ -48,6 +65,8 @@ namespace SCXCore
         if (0 == --ms_loadCount)
         {
             m_Configurator = NULL;
+            m_ThreadPoolHandle->Shutdown();
+            m_ThreadPoolHandle = NULL;
         }
     }
 
