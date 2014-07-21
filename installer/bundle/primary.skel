@@ -76,12 +76,25 @@ usage()
     echo "  -? | --help            shows this usage text."
 }
 
+cleanup_and_exit()
+{
+    if [ "$PLATFORM" = "SunOS" ]; then
+	rm -f scx-admin scx-admin-upgrade
+    rm -f /tmp/.ai.pkg.zone.lock*
+    fi
+    if [ -n "$1" ]; then
+	exit $1
+    else
+	exit 0
+    fi
+}
+
 
 verifyNoInstallationOption()
 {
     if [ -n "${installMode}" ]; then
 	echo "$0: Conflicting qualifiers, exiting" >&2
-	exit 1
+	cleanup_and_exit 1
     fi
 
     return;
@@ -101,7 +114,7 @@ ulinux_detect_openssl_version() {
         echo "Error: This system does not have a supported version of OpenSSL installed."
         echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
         echo "Supported versions: 0.9.8*, 1.0.*"
-        exit 60
+	cleanup_and_exit 60
     fi
 }
 
@@ -171,12 +184,12 @@ do
 
 	-? | --help)
 	    usage `basename $0` >&2
-	    exit 0
+	    cleanup_and_exit 0
 	    ;;
 
 	*)
 	    usage `basename $0` >&2
-	    exit 1
+	    cleanup_and_exit 1
 	    ;;
     esac
 done
@@ -349,19 +362,13 @@ pkg_upd() {
     esac
 }
 
-cleanup () {
-    if [ "$PLATFORM" = "SunOS" ]; then
-	rm -f scx-admin scx-admin-upgrade
-    fi
-}
-
 case "$PLATFORM" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
 	;;
 
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-	exit 2
+	cleanup_and_exit 2
 esac
 
 # Create installation administrative file for Solaris platform if needed
@@ -412,8 +419,7 @@ fi
 if [ -n "${shouldexit}" ]
 then
     # when extracting script/tarball don't also install
-    cleanup
-    exit 0
+    cleanup_and_exit 0
 fi
 
 #
@@ -442,21 +448,19 @@ case "$PLATFORM" in
 
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-	cleanup
-	exit 2
+	cleanup_and_exit 2
 esac
 
 STATUS=$?
 if [ ${STATUS} -ne 0 ]
 then
     echo "Failed: could not extract the install bundle."
-    cleanup
-    exit ${STATUS}
+    cleanup_and_exit ${STATUS}
 fi
 
 # Default behavior is to extract the bundle and then exit
 
-[ -z "$installMode" ] && cleanup && exit 0
+[ -z "$installMode" ] && cleanup_and_exit 0
 
 #
 # Do stuff after extracting the binary here, such as actually installing the package.
@@ -514,7 +518,7 @@ case "$installMode" in
 	    if [ $? -eq 0 ]; then
 		echo "ERROR: SCX package is already installed"
 		rm $OM_PKG $OMI_PKG $TAR_FILE
-		exit 2
+		cleanup_and_exit 2
 	    fi
 	fi	
 
@@ -554,11 +558,8 @@ case "$installMode" in
 
     *)
 	echo "$0: Invalid setting of variable \$installMode, exiting" >&2
-	cleanup
-	exit 2
+	cleanup_and_exit 2
 esac
-
-cleanup
 
 # Remove the package that was extracted as part of the bundle
 # NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
@@ -573,9 +574,9 @@ case "$PLATFORM" in
 esac
 
 if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" ]; then
-    exit 1
+    cleanup_and_exit 1
 else
-    exit 0
+    cleanup_and_exit 0
 fi
 
 #####>>- This must be the last line of this script, followed by a single empty line. -<<#####
