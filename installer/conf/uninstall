@@ -22,6 +22,19 @@ RPM_EXISTS=$?
 which dpkg 1> /dev/null 2> /dev/null
 DPKG_EXISTS=$?
 
+cleanup_and_exit()
+{
+    if [ "$PLATFORM" = "SunOS" ]; then
+	rm -f scx-admin scx-admin-upgrade
+    rm -f /tmp/.ai.pkg.zone.lock*
+    fi
+    if [ -n "$1" ]; then
+	exit $1
+    else
+	exit 0
+    fi
+}
+
 # $1 - The package name of the package to be uninstalled
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
@@ -92,7 +105,7 @@ stop_omiserver() {
 			service omiserverd stop
 		    else
 			echo "Unrecognized Service Controller to stop OMI Service."
-			exit 1
+			cleanup_and_exit 1
 		    fi
 		    ;;
 		SUSE)
@@ -148,7 +161,7 @@ start_omiserver() {
 			service omiserverd start
 		    else
 			echo "Unrecognized Service Controller to start SCX Service"
-			exit 1
+			cleanup_and_exit 1
 		    fi
 		    ;;
 		SUSE)
@@ -191,9 +204,7 @@ start_omiserver() {
 }
 
 # Create installation administrative file for Solaris platform if needed
-CLEANUP=""
 if [ "$PF" = "SunOS" ]; then
-    CLEANUP='rm -f scx-admin'
     echo "mail=" > scx-admin
     echo "instance=overwrite" >> scx-admin
     echo "partial=nocheck" >> scx-admin
@@ -216,9 +227,8 @@ if [ $OMI_EXIT_STATUS -ne 0 ]; then
     start_omiserver
 fi
 
-${CLEANUP}
 if [ "$SCX_EXIT_STATUS" -ne "0" ]; then
-    exit 1
+    cleanup_and_exit 1
 else
-    exit 0
+    cleanup_and_exit 0
 fi
