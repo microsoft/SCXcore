@@ -1,3 +1,4 @@
+
 /*--------------------------------------------------------------------------------
     Copyright (c) Microsoft Corporation. All rights reserved. See license.txt for license information.
 */
@@ -83,16 +84,68 @@ namespace SCXSystemLib
         return SCXFile::OpenFstream(filename, ios::in);
     }
 
+	/**
+       Returns a stream for reading from hosts.xml
+
+       \param[in]  filename   Name of file to open
+    */
+    SCXHandle<istream> JBossAppServerInstancePALDependencies::OpenDomainHostXmlFile(wstring filename)
+    {
+        return SCXFile::OpenFstream(filename, ios::in);
+    }
+
+	/**
+       Returns a stream for reading from module.xml
+
+       \param[in]  filename   Name of file to open
+    */
+    SCXHandle<istream> JBossAppServerInstancePALDependencies::OpenModuleXmlFile(wstring filename)
+    {
+        return SCXFile::OpenFstream(filename, ios::in);
+    }
+
+
+	/**
+       Returns a stream for reading from domain.xml
+
+       \param[in]  filename   Name of file to open
+    */
+    SCXHandle<istream> JBossAppServerInstancePALDependencies::OpenDomainXmlFile(wstring filename)
+    {
+        return SCXFile::OpenFstream(filename, ios::in);
+    }
+
     /**
-       Returns a command to run
+       Returns a boolean on whether or not a jboss process is version 7 or 8
 
        \param[in] filename Name of file to use
+	   \param[in] enum to modify to specify which file to open
     */
-    wstring JBossAppServerInstancePALDependencies::GetJboss7Command(SCXCoreLib::SCXFilePath filepath)
+    bool JBossAppServerInstancePALDependencies::versionJBossWildfly(SCXCoreLib::SCXFilePath filepath, jboss_version_type &version)
     {
-        SCXCoreLib::SCXFilePath filename(filepath);
-        filename.Append(L"standalone.sh --version");
-        return filename.Get();
+		wstring filePathForJB7 = L"/modules/org/jboss/as/server/main/module.xml";
+		wstring filePathForWF8 = L"/modules/system/layers/base/org/jboss/as/version/main/module.xml";
+
+		SCXCoreLib::SCXFilePath baseFilePathJB7(filepath);
+		SCXCoreLib::SCXFilePath baseFilePathWF8(filepath);
+
+		baseFilePathJB7.Append(filePathForJB7);
+		baseFilePathWF8.Append(filePathForWF8);
+
+		if(SCXFile::Exists(baseFilePathJB7))
+		{
+			version = jboss_version_7;
+			return true;
+		}
+		else if(SCXFile::Exists(baseFilePathWF8))
+		{
+			version = jboss_version_8;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
     }
     
     /*----------------------------------------------------------------------------*/
@@ -110,36 +163,53 @@ namespace SCXSystemLib
         AppServerInstance(id, APP_SERVER_TYPE_JBOSS), 
         m_config(config), m_portsBinding(portsBinding), m_deps(deps)
     {
-        bool fJboss7check = false;
-        SCXRegex re(L"/standalone/configuration");
-        vector<wstring> v_config;
-        // If no config is given, use default
+        bool fJBossStandaloneCheck = false;
+        bool fJBossDomainCheck = false;
+
+        // If we have no config given, we will use default
         if (L"" == config)
         {
             m_config = L"default";
         }
-        //In the case of JBoss AS 7 the configuration files
-        //include the diskPath and also a properties file
-        //This logging.properties is not necesary
-        //From docs.jboss.org "In the future file may go away"
-        else if(re.ReturnMatch(config,v_config,0 ))
+        
+        // If we recieved a standalone instance we will have standalone in the file path
+        // If we recieved a domain instance we will have domain in the file path
+        wstring fJBossStandaloneStr = L"/standalone/";
+        wstring fJBossDomainStr = L"/domain/";
+
+        if (config.find(fJBossStandaloneStr) != std::string::npos) 
         {
-            fJboss7check = true;
-            m_config = (v_config[0]);
+            fJBossStandaloneCheck = true;
+            m_config = L"/standalone/configuration/";
         }
+        else if (config.find(fJBossDomainStr) != std::string::npos)
+        {
+            fJBossDomainCheck = true;
+            m_config = L"/domain/servers/";
 
+            // Since we have a domain configuration we need to extract the server name
+            // With the server name we can determine the associated ports with the server
+            SCXRegex serverRe(L"(.*)/(.*)/data");
+            vector<wstring> v_serverName;
+            if(serverRe.ReturnMatch(config,v_serverName,0))
+            {
+                m_serverName = v_serverName[2];
+                m_config += (m_serverName);                
+            }
+        }
+        
         SCXFilePath installPath;
-
         installPath.SetDirectory(id);
-
         m_basePath = installPath.Get();
         
-        if(!fJboss7check)
+        // If not JBoss Standalone or Domain (v7 and v8)
+        // Then we default to JBoss 4, 5, 6 standard
+        if(!fJBossStandaloneCheck && !fJBossDomainCheck)
         {
             installPath.AppendDirectory(L"server");
         }
-        installPath.AppendDirectory(m_config);
 
+        installPath.AppendDirectory(m_config);
         SetId(installPath.Get());
         m_diskPath = GetId();
 
@@ -193,7 +263,6 @@ namespace SCXSystemLib
             SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::TryReadInteger() - ").append(GetId()).append(L" - ").append(errorText).append(L": ").append(value));
         }
     }
-
 
     /*----------------------------------------------------------------------------*/
     /**
@@ -798,8 +867,11 @@ namespace SCXSystemLib
     /**
        Update ports for JBoss 7
 
-       Load XML file <disk_path>/standalone/standalone.xml
+       If in standalone mode we can load XML file <disk_path>/standalone/standalone.xml
        No need for bindings file, All located in standalone.xml
+
+       If in domain mode we need to Load XML file <disk_path>/domain/host.xml
+       we will then need to match serverName to its respective port-offset
         
        In Standalon.xml navigate to socket-binding group and check for port-offset
        attribute. if not found set to 0. Get list of all socket-binding group's children
@@ -810,114 +882,430 @@ namespace SCXSystemLib
     */
     void JBossAppServerInstance::UpdateJBoss7Ports()
     {
-        const string cServerNodeName("server");
-        const string cSocketBindingGroupNodeName("socket-binding-group");
-        const string cPortOffsetAttributeName("port-offset");
-        const string cSocketBindingNodeName("socket-binding");
-        const string cNameAttributeName("name");
-        const string cHttpName("http");
-        const string cHttpsName("https");
-        const string cPortAttributeName("port");
-
         string xmlcontent;
         SCXFilePath filename(m_basePath);
-    
-        filename.Append(L"standalone/configuration/standalone.xml");
-      
-        try {
-            SCXHandle<istream> mystream = m_deps->OpenXmlPortsFile(filename.Get());
-            GetStringFromStream(mystream, xmlcontent);
 
+        if (m_serverName.length() == 0)
+        {
+			const string cServerNodeName("server");
+			const string cHostNodeName("host");
+			const string cServersNodeName("servers");
+			const string cServerGroupName("server-group");
+			const string cSocketBindingGroupNodeName("socket-binding-group");
+			const string cPortOffsetAttributeName("port-offset");
+			const string cSocketBindingNodeName("socket-binding");
+			const string cNameAttributeName("name");
+			const string cHttpName("http");
+			const string cHttpsName("https");
+			const string cPortAttributeName("port");
+
+            filename.Append(L"standalone/configuration/standalone.xml");
+            try 
+            {
+                SCXHandle<istream> mystream = m_deps->OpenXmlPortsFile(filename.Get());
+                GetStringFromStream(mystream, xmlcontent);
+
+                XElementPtr topNode;
+                XElement::Load(xmlcontent, topNode);
+                if (topNode->GetName() == cServerNodeName)
+                {
+                    XElementPtr socketBindingGroupNode;
+                    if(topNode->GetChild(cSocketBindingGroupNodeName, socketBindingGroupNode))
+                    {
+                        bool httpPortFound = false;
+                        bool httpsPortFound = false;
+                        bool portsFound = false;
+                        bool portOffsetFound = false;
+                        unsigned int baseHttpPort = 0;
+                        unsigned int baseHttpsPort = 0;
+                        unsigned int portOffset = 0;
+                        string HttpPort;
+                        string HttpsPort;
+                        string offset;
+                    
+                        //Regex for port-offset and http/https
+                        SCXRegex re(L"[0-9]+");
+
+                        // chek if port-offset attribute, if not then value is preset to 0
+                        if(socketBindingGroupNode->GetAttributeValue(cPortOffsetAttributeName,offset))
+                        {
+                            // There are two ways to set port-offset, one with port-offset="100",
+                            // and the second with port-offset="${jboss.socket.binding.port-offset:100}";
+                            // check if it includes jboss.socket.bind.port-offset beginning and parse accordingly
+                        
+                            wstring wPortOffset = SCXCoreLib::StrFromUTF8(offset);
+                            std::vector<std::wstring> v_offset;
+                        
+                            if(re.ReturnMatch(wPortOffset,v_offset,0))
+                            {
+                                wPortOffset = v_offset[0];
+                            }
+                            TryReadInteger(portOffset, portOffsetFound, wPortOffset, L"Failed to Parse port offset");
+                        }
+                        // XMl Document Example for Standalone.xml
+                        // <socket-binding-group name="standard sockets>
+                        //   <socket-binding name="http" port="8080"/>
+                        //   <socket-binding name="https" port="8443"/>
+                        //   <socket-binding name="....." port="...."/>
+                        // </socket-binding group>
+                    
+                        XElementList socketBindings;
+                        socketBindingGroupNode->GetChildren(socketBindings);
+                    
+                        // In WildFly (JBoss AS 8 the ports can be set
+                        // using ${jboss.http:8080}
+                        // will use Regex re from above
+                        // to determine the numbers from ports
+                    
+                        std::vector<std::wstring> v_ports;
+
+                        for(size_t idx = 0; !portsFound && idx <socketBindings.size();++idx)
+                        {
+                            string name;
+                            if(socketBindings[idx]->GetName() == cSocketBindingNodeName &&
+                               socketBindings[idx]->GetAttributeValue(cNameAttributeName, name))
+                            {
+                                if(cHttpName == name &&
+                                   socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpPort))
+                                {
+                                    wstring wHttpPort;
+                                    wHttpPort = SCXCoreLib::StrFromUTF8(HttpPort);
+                                    if(re.ReturnMatch(wHttpPort, v_ports,0))
+                                    {
+                                        wHttpPort = v_ports[0];
+                                    }
+                                    TryReadInteger(baseHttpPort, httpPortFound, wHttpPort, L"Failed to parse HTTP port");
+                                }
+                                else if(cHttpsName == name &&
+                                        socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpsPort))
+                                {
+                                    wstring wHttpsPort;
+                                    wHttpsPort = SCXCoreLib::StrFromUTF8(HttpsPort);
+                                
+                                    // Clear port vector for use with https
+                                    v_ports.clear();
+
+                                    if(re.ReturnMatch(wHttpsPort, v_ports,0))
+                                    {
+                                        wHttpsPort = v_ports[0];
+                                    }
+                                    TryReadInteger(baseHttpsPort, httpsPortFound, wHttpsPort, L"Failed to parse HTTPS port");
+                                }
+
+                                if(httpPortFound && httpsPortFound) portsFound = true;
+                            }
+                        }
+                        if(httpPortFound)
+                        {
+                            m_httpPort = StrFrom(baseHttpPort + portOffset);
+                        }
+                        if(httpsPortFound)
+                        {
+                            m_httpsPort = StrFrom(baseHttpsPort + portOffset);
+                        }
+                    }
+                }
+            }
+            catch (SCXFilePathNotFoundException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+            }
+            catch (SCXUnauthorizedFileSystemAccessException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+            }
+            catch (XmlException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
+            }
+        }
+        else
+        {
+            try
+            {
+				vector<wstring> a = GetJBossWildflyServerHostXmlInformation();
+				
+
+				const string cDomainNodeName = "domain";
+				const string cServerGroupsNodeName = "server-groups";
+				const string cServerGroupNodeName = "server-group";
+				const string cNameAttributeName = "name";
+				const string cSocketBindingGroupNodeName = "socket-binding-group";
+				const string cRefAttributeName = "ref";
+
+				const string cSocketBindingGroupsNodeName = "socket-binding-groups";
+				const string cSocketBindingNodeName = "socket-binding";
+				const string cPortAttributeName = "port";
+				const string cHttpName = "http";
+				const string cHttpsName = "https";
+
+				unsigned int baseHttpPort = 0;
+                unsigned int baseHttpsPort = 0;
+                unsigned int portOffset = 0;
+				
+				bool httpPortFound = false;
+                bool httpsPortFound = false;
+                bool portsFound = false;
+                bool portOffsetFound = false;
+				bool socketReferenceFound = false;
+
+				wstring varServerGroupName = a[0];
+				wstring varPortOffset = a[1];
+				wstring wSocketReference = L""; 
+
+				// Convert retrieved port offset to integer if exists
+				if(varPortOffset != L"")
+				{
+					TryReadInteger(portOffset, portOffsetFound, varPortOffset, L"Failed to parse HTTPS port");
+				}
+
+				filename.Append(L"domain/configuration/domain.xml");
+
+				SCXHandle<istream> mystream = m_deps->OpenDomainXmlFile(filename.Get());
+				SCXRegex re(L"[0-9]+");
+				GetStringFromStream(mystream, xmlcontent);
+
+				XElementPtr topNode;
+				XElement::Load(xmlcontent, topNode);
+
+				if(topNode->GetName() == cDomainNodeName)
+				{
+					XElementPtr serverGroupsNode;
+					if(topNode->GetChild(cServerGroupsNodeName, serverGroupsNode))
+					{
+						XElementList serverGroups;
+						serverGroupsNode->GetChildren(serverGroups);
+						// Iterate through the server-group tags to find node 
+						// associated with groupName retrieved from GetJBossWildflyServerHostXmlInformation()
+						// ex: <server-group name="main-server-group" profile="full">
+						for(size_t idx = 0; idx<serverGroups.size(); ++idx)
+						{
+							string name;
+							if(serverGroups[idx]->GetName() == cServerGroupNodeName &&
+							   serverGroups[idx]->GetAttributeValue(cNameAttributeName, name))
+							{	
+								if(StrFromUTF8(name) == varServerGroupName)
+								{
+									XElementList socketBindingGroups;
+									serverGroups[idx]->GetChildren(socketBindingGroups);
+									// Find server-group node and iterate through children
+									// to find the socket-binding-group child
+									// and retrieve the socket reference attribute
+									// ex:
+									// <server-group name="main-server-group" profile="full">
+									//		<jvm name="default">
+									//			<heap size="64m" max-size="512m"/>
+									//		</jvm>
+									//		<socket-binding-group ref="full-sockets"/>
+									// </server-group>
+									for(size_t jdx = 0; jdx<socketBindingGroups.size(); ++jdx)
+									{
+										string ref;
+										if(socketBindingGroups[jdx]->GetName() == cSocketBindingGroupNodeName &&
+										   socketBindingGroups[jdx]->GetAttributeValue(cRefAttributeName, ref))
+										{
+											wSocketReference = StrFromUTF8(ref);
+											socketReferenceFound = true;
+										}
+									}
+								}
+							}
+						}
+						// If we found the socket reference in domain.xml then we can proceed with determining the port values
+						if(socketReferenceFound)
+						{
+							XElementPtr socketBindingParentGroup;
+							if(topNode->GetChild(cSocketBindingGroupsNodeName, socketBindingParentGroup))
+							{
+								XElementList socketBindingGroups;
+								socketBindingParentGroup->GetChildren(socketBindingGroups);
+								// Iterate through the socket-binding-group and determine if the name matches the socket reference
+								// We can then retrieve ports from the child class
+								// ex:
+								// <socket-binding-groups name = "socket reference" >
+								//		<socket-binding name = "http" port = "${jboss.http.port:8080}"/>
+								// </socket-binding-groups>
+								for(size_t idx = 0; idx < socketBindingGroups.size(); ++idx)
+								{
+									string socketRef;
+									if(socketBindingGroups[idx]->GetName() == cSocketBindingGroupNodeName &&
+									   socketBindingGroups[idx]->GetAttributeValue(cNameAttributeName, socketRef))
+									{
+										if(StrFromUTF8(socketRef) == wSocketReference)
+										{
+											XElementList socketBindings;
+											socketBindingGroups[idx]->GetChildren(socketBindings);
+
+											std::vector<std::wstring> v_ports;
+											for(size_t jdx = 0; !portsFound && jdx < socketBindings.size(); ++jdx)
+											{
+												string name;
+												if(socketBindings[jdx]->GetName() == cSocketBindingNodeName &&
+												   socketBindings[jdx]->GetAttributeValue(cNameAttributeName, name))
+												{
+													string HttpPort, HttpsPort;
+													if(cHttpName == name &&
+													   socketBindings[jdx]->GetAttributeValue(cPortAttributeName, HttpPort))
+													{
+														wstring wHttpPort;
+														wHttpPort = SCXCoreLib::StrFromUTF8(HttpPort);
+														if(re.ReturnMatch(wHttpPort, v_ports,0))
+														{
+															wHttpPort = v_ports[0];
+														}
+														TryReadInteger(baseHttpPort, httpPortFound, wHttpPort, L"Failed to parse HTTP port");
+													}
+													else if(cHttpsName == name &&
+															socketBindings[jdx]->GetAttributeValue(cPortAttributeName, HttpsPort))
+													{
+														wstring wHttpsPort;
+														wHttpsPort = SCXCoreLib::StrFromUTF8(HttpsPort);
+                                
+														// Clear port vector for use with https
+														v_ports.clear();
+
+														if(re.ReturnMatch(wHttpsPort, v_ports,0))
+														{
+															wHttpsPort = v_ports[0];
+														}
+														TryReadInteger(baseHttpsPort, httpsPortFound, wHttpsPort, L"Failed to parse HTTPS port");
+													}
+
+													if(httpPortFound && httpsPortFound) portsFound = true;
+												}
+											}
+										}
+									}
+								}
+							}
+							if(httpPortFound)
+							{
+								m_httpPort = StrFrom(baseHttpPort + portOffset);
+							}
+							if(httpsPortFound)
+							{
+								m_httpsPort = StrFrom(baseHttpsPort + portOffset);
+							}
+						}
+					}
+				}
+			}
+            catch (SCXFilePathNotFoundException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+            }
+            catch (SCXUnauthorizedFileSystemAccessException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+            }
+            catch (XmlException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
+            }
+        }
+    }
+    
+    /*----------------------------------------------------------------------------*/
+    /**
+       Get server associated Server Group Name for JBoss and Wildfly servers 
+       running in Domain mode
+       
+       Load XML file <DiskPath>/domain/configuration/host.xml
+       Get value of attribute group.
+	   <host>
+		  <severs>
+			<server name="server-one" group="main-server-group">
+				<socket-bindings port-offset="150">
+			</server>
+		  </servers>
+	   </host>
+
+	   vector[0] will contain a wstring for the server group name
+	   vector[1] will contain a wstring for the port offset
+    */
+    vector<wstring> JBossAppServerInstance::GetJBossWildflyServerHostXmlInformation()
+    {
+        const string cHostNodeName = "host";
+        const string cServersNodeName = "servers";
+        const string cServerNodeName = "server";
+        const string cGroupAttributeName = "group";
+        const string cNameAttributeName = "name";
+		const string cSocketBindingsName = "socket-bindings";
+		const string cPortOffsetName = "port-offset";
+        
+        string xmlcontent;
+
+		vector<wstring> hostXmlVector;
+        
+		wstring wGroupName = L"";
+        wstring wPortOffset = L"0";
+
+		SCXFilePath filename(m_basePath);
+        filename.Append(L"/domain/configuration/host.xml");
+        try
+        {
+            SCXHandle<istream> mystream = m_deps->OpenDomainHostXmlFile(filename.Get());
+            GetStringFromStream(mystream, xmlcontent);
+			
             XElementPtr topNode;
             XElement::Load(xmlcontent, topNode);
-            if (topNode->GetName() == cServerNodeName)
+			
+            if (topNode->GetName() == cHostNodeName)
             {
-                XElementPtr socketBindingGroupNode;
-                if(topNode->GetChild(cSocketBindingGroupNodeName, socketBindingGroupNode))
+                XElementPtr serversNode;
+                if(topNode->GetChild(cServersNodeName, serversNode))
                 {
-                    bool httpPortFound = false;
-                    bool httpsPortFound = false;
-                    bool portsFound = false;
-                    bool portOffsetFound = false;
-                    unsigned int baseHttpPort = 0;
-                    unsigned int baseHttpsPort = 0;
-                    unsigned int portOffset = 0;
-                    string HttpPort;
-                    string HttpsPort;
-                    string offset;
-             
-                    //chek if port-offset attribute, if not then value is preset to 0
-                    if(socketBindingGroupNode->GetAttributeValue(cPortOffsetAttributeName,offset))
+                    XElementList servers;
+                    serversNode->GetChildren(servers);
+					// Iterate through the server tags to determine group attribute value for
+					// discovered server
+					// ex: <server name="server-one" group="main-server-group">
+                    for(size_t idx = 0; idx<servers.size(); ++idx)
                     {
-                        //There are two ways to set port-offset, one with port-offset="100",
-                        //and the second with port-offset="${jboss.socket.binding.port-offset:100}";
-                        //check if it includes jboss.socket.bind.port-offset beginning and parse accordingly
-                        wstring wPortOffset = SCXCoreLib::StrFromUTF8(offset);
-                        std::vector<std::wstring> v_offset;
-                        SCXRegex re(L"([0-9]*)");
-                        if(re.ReturnMatch(wPortOffset,v_offset,0))
+						string name;
+                        if(servers[idx]->GetName() == cServerNodeName &&
+                           servers[idx]->GetAttributeValue(cNameAttributeName, name))
                         {
-                            wPortOffset = v_offset[1];
-                        }
-                        TryReadInteger(portOffset, portOffsetFound, wPortOffset, L"Failed to Parse port offset");
-                    }
-                    //XMl Document Example for Standalone.xml
-                    //<socket-binding-group name="standard sockets>
-                    //  <socket-binding name="http" port="8080"/>
-                    //  <socket-binding name="https" port="8443"/>
-                    //  <socket-binding name="....." port="...."/>
-                    //</socket-binding group>
-                    XElementList socketBindings;
-                    socketBindingGroupNode->GetChildren(socketBindings);
-            
-                    for(size_t idx = 0; !portsFound && idx <socketBindings.size();++idx)
-                    {
-                        string name;
-                        if(socketBindings[idx]->GetName() == cSocketBindingNodeName &&
-                           socketBindings[idx]->GetAttributeValue(cNameAttributeName, name))
-                        {
-                            if(cHttpName == name &&
-                               socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpPort))
+                            string groupName;
+                            if(m_serverName == StrFromUTF8(name) &&
+                               servers[idx]->GetAttributeValue(cGroupAttributeName, groupName))
                             {
-                                wstring wHttpPort;
-                                wHttpPort = SCXCoreLib::StrFromUTF8(HttpPort);
-                                TryReadInteger(baseHttpPort, httpPortFound, wHttpPort, L"Failed to parse HTTP port");
+                               wGroupName = StrFromUTF8(groupName);
+							   XElementPtr socketBindingsNode;
+							   // If there is a socket-bindings we can then check for port-offset attribute
+							   if(servers[idx]->GetChild(cSocketBindingsName, socketBindingsNode))
+							   {
+								   string portOffset;
+								   if(socketBindingsNode->GetAttributeValue(cPortOffsetName, portOffset))
+								   {
+									   wPortOffset = StrFromUTF8(portOffset);
+								   }
+							   }
                             }
-                            else if(cHttpsName == name &&
-                                    socketBindings[idx]->GetAttributeValue(cPortAttributeName, HttpsPort))
-                            {
-                                wstring wHttpsPort;
-                                wHttpsPort = SCXCoreLib::StrFromUTF8(HttpsPort);
-                                TryReadInteger(baseHttpsPort, httpsPortFound, wHttpsPort, L"Failed to parse HTTPS port");
-                            }
-
-                            if(httpPortFound && httpsPortFound) portsFound = true;
                         }
-                    }
-                    if(httpPortFound)
-                    {
-                        m_httpPort = StrFrom(baseHttpPort + portOffset);
-                    }
-                    if(httpsPortFound)
-                    {
-                        m_httpsPort = StrFrom(baseHttpsPort + portOffset);
                     }
                 }
             }
         }
         catch (SCXFilePathNotFoundException&)
         {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::GetJBossWildflyServerHostXmlInformation() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
         }
         catch (SCXUnauthorizedFileSystemAccessException&)
         {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::GetJBossWildflyServerHostXmlInformation() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
         }
         catch (XmlException&)
         {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateJBoss7Ports() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
+            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::GetJBossWildflyServerHostXmlInformation() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
         }
+
+		hostXmlVector.push_back(wGroupName);
+		hostXmlVector.push_back(wPortOffset);
+
+        return hostXmlVector;
     }
+
     /*----------------------------------------------------------------------------*/
     /**
        Update version
@@ -933,12 +1321,17 @@ namespace SCXSystemLib
         const string cNameAttributeName("name");
         const string cJbossJarName("jboss.jar");
         const string cSpecVersionAttributeName("specVersion");
-        
-        bool fJboss7Check = false;
+		const string cModuleNodeName("module");
+		const string cResourcesNodeName("resources");
+		const string cResourcesRootNodeName("resource-root");
+		const string cPathAttributeName("path");
+
+		bool fJboss7Check = false;
 
         string xmlcontent;
         SCXFilePath filename(m_basePath);
-        SCXFilePath filename2(m_basePath);
+		SCXFilePath moduleFilename(m_basePath);
+        
 
         filename.Append(L"jar-versions.xml");
 
@@ -984,60 +1377,95 @@ namespace SCXSystemLib
         }
         
         if(fJboss7Check)
-        {            
+        {
+
             try {
-                
-                filename2.Append(L"bin/");
-                
-                std::istringstream in;
-                std::ostringstream out;
-                std::ostringstream err;
-                
-                // Get command line from function
-                // Determine parse full string to only get filepath/standalone.sh
-                // Determine if SCXFileExists(..filepath/standalone.sh)
-                // Only use SCXProcess::Run If standalone.sh exists
+				// For JBoss 7.x we can traverse the java package files and retrieve the
+				// module.xml file that contains the name of the server jar file needed
+				// This server jar file contains the version number
+				// e.g
+				// <module xmlns="urn:jboss:module:1.0" name="org.jboss.as.server">
+				//    <main-class name="org.jboss.as.server.DomainServerMain"/>
+				//    <resources>
+				//			<resource-root path="jboss-as-server-7.0.0.Final.jar"/>
+				//    </resources>
+                //	</module>
+				//
+				// From this resource node, we can retrieve the name
 
-                wstring cli = m_deps->GetJboss7Command(filename2);
+				// For Wildfly and JBoss Enterprise Application Server the module file
+				// can be found inside a version folder, with the same xml format
 
-                std::size_t found = cli.find( L" --version");
-                bool jboss7StandaloneFilePathExist = false;
-                
-                if(found!=std::wstring::npos)
-                {
-                    SCXFilePath standaloneFileInJB7(cli.substr(0,found));
-                    jboss7StandaloneFilePathExist = SCXFile::Exists(standaloneFileInJB7); 
-                }
+				
+				// For JBoss 7 the module xml file is located at
+				// <server dir>/modules/org/jboss/as/server/main/module.xml
+				// For Wildfly and JBoss EAS the module xml file is located at
+				// <server dir>/modules/system/layers/base/org/jboss/as/version/main/module.xml
 
-                if(cli.length() && jboss7StandaloneFilePathExist)
-                {
-                    int exitStatus = SCXCoreLib::SCXProcess::Run(cli,in,out,err,10000);
-            
-                    if(exitStatus != 0 || err.str().length())
-                    {
-                        wstring werr = SCXCoreLib::StrFromUTF8(err.str());
-                        SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - error in command line: ").append(werr));
-                    }
-                    else
-                    {
-                        wstring commandOutput = SCXCoreLib::StrFromUTF8(out.str());
-                        vector<wstring> v_version;
-                         
-                        SCXRegex re(L"JBoss (Application Server|AS) ([^ ?]*)");
-                        if(re.ReturnMatch(commandOutput,v_version,0))
-                        {
-                            SetVersion(v_version[2]);
-                        }
-                    }
-                }
+				wstring filePathForJB7 = L"/modules/org/jboss/as/server/main/module.xml";
+				wstring filePathForWF8 = L"/modules/system/layers/base/org/jboss/as/version/main/module.xml";
+
+				// If version returned we load the procedure
+				// Else report error in Log for no file found
+				jboss_version_type vers;
+
+				if(m_deps->versionJBossWildfly(moduleFilename, vers))
+				{
+					if(vers == jboss_version_7)
+					{
+						moduleFilename.Append(filePathForJB7);
+					}
+					else if(vers == jboss_version_8)
+					{
+						moduleFilename.Append(filePathForWF8);
+					}
+					SCXHandle<istream> mystream = m_deps->OpenModuleXmlFile(moduleFilename.Get());
+					GetStringFromStream(mystream, xmlcontent);
+					XElementPtr topNode;
+					XElement::Load(xmlcontent, topNode);
+					if(topNode->GetName() == cModuleNodeName)
+					{
+						XElementList resourcesNodes;
+						topNode->GetChildren(resourcesNodes);
+						bool found = false;
+						for (size_t idx = 0; !found && idx < resourcesNodes.size(); ++idx)
+						{
+							string name;
+							if (resourcesNodes[idx]->GetName() == cResourcesNodeName)
+							{
+								XElementList resourcesRootNodes;
+								resourcesNodes[idx]->GetChildren(resourcesRootNodes);
+								for(size_t jdx = 0; jdx < resourcesRootNodes.size(); ++jdx)
+								{
+									string version;
+									if (resourcesRootNodes[jdx]->GetName() == cResourcesRootNodeName &&
+										resourcesRootNodes[jdx]->GetAttributeValue(cPathAttributeName, version))
+									{
+										vector<wstring> v_version;
+										SCXRegex re(L"([0-9].[0-9].[0-9]..*)(.jar)");
+										if(re.ReturnMatch(StrFromUTF8(version), v_version,0))
+										{
+											SetVersion(v_version[1]);
+											found = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename).append(filePathForJB7).append(L"- Or find file: ").append(moduleFilename).append(filePathForWF8));
+				}
             }
             catch (SCXFilePathNotFoundException&)
             {
-                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(filename2));
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename));
             }
             catch (SCXUnauthorizedFileSystemAccessException&)
             {
-                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename2));
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(moduleFilename));
             }
         }
     }

@@ -250,6 +250,7 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( JBoss_Process_Good_Params_Using_ServerNameProperty );
     CPPUNIT_TEST( JBoss_Process_Good_Params_3_Running );
     CPPUNIT_TEST( JBoss_Process_Good_Params_22_Running );
+    CPPUNIT_TEST( JBoss_Domain_Process_Good_Params );
     CPPUNIT_TEST( testReadInstancesMethodCalledAtInit );
     CPPUNIT_TEST( testWriteInstancesMethodCalledAtCleanup );
     CPPUNIT_TEST( Tomcat_Process_Good_Params );
@@ -838,6 +839,49 @@ public:
             CPPUNIT_ASSERT((*it)->GetIsRunning());
         }
 
+        asEnum.CleanUp();
+    }
+    
+    void JBoss_Domain_Process_Good_Params()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("-D[Server:server-one]");
+        inst->AddParameter("-XX:PermSize=256m");
+        inst->AddParameter("-XX:MaxPermSize=256m");
+        inst->AddParameter("-Xms64m");
+        inst->AddParameter("-Xmx512m");
+        inst->AddParameter("-server");
+        inst->AddParameter("-Djava.awt.headless=true");
+        inst->AddParameter("-Djava.net.preferIPv4Stack=true");
+        inst->AddParameter("-Djboss.bind.address=0.0.0.0");
+        inst->AddParameter("-Djboss.home.dir=/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2");
+        inst->AddParameter("-Djboss.modules.system.pkgs=org.jboss.byteman");
+        inst->AddParameter("-Djboss.server.log.dir=/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/log");
+        inst->AddParameter("-Djboss.server.temp.dir=/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/tmp");
+        inst->AddParameter("-Djboss.server.data.dir=/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/data");
+        inst->AddParameter("-Dlogging.configuration=file:/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/data/logging.properties");
+        inst->AddParameter("-jar");
+        inst->AddParameter("/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/jboss-modules.jar");
+        inst->AddParameter("-mp");
+        inst->AddParameter("/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/modules");
+        inst->AddParameter("org.jboss.as.server");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 1);
+        
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        
+        CPPUNIT_ASSERT_EQUAL(L"/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/",(*it)->GetId());
+        
         asEnum.CleanUp();
     }
 

@@ -33,11 +33,30 @@ public:
         m_noBindingFile(false), m_emptyPortsFile(false), m_emptyVersionFile(false), m_emptyServiceFile(false), 
         m_emptyServerFile(false), m_emptyBindingFile(false), m_badPortsXml(false), m_badVersionXml(false), 
         m_badHttpPortValue(false), m_badPortOffsetValue(false), m_serviceBinding(true),
-        m_noPortOffsetValue(false), m_badPortOffsetValueWithSocket(false),
-        m_portBindingName("${jboss.service.binding.set:ports-default}")
+        m_noPortOffsetValue(false), m_badPortOffsetValueWithSocket(false), m_hasEnterpriseVersionFile(false),
+		m_domainMode(false), m_domainPortOffset(false),
+		m_portBindingName("${jboss.service.binding.set:ports-default}")
     {}
+    
+	// Should the JBoss Instance be a Enterpise Application Server
+	void SetHasEnterpriseVersionFile(bool hasEnterpriseVersionFile)
+	{
+		m_hasEnterpriseVersionFile = hasEnterpriseVersionFile;
+	}
 
-    // Should there be an Port Offset Value attribute in socket-binding-group tag(JBoss 7)
+	// Should the JBoss Domain instance have a port offset (JBoss 7 + Wildfly)
+	void SetDomainPortOffset(bool domainPortOffset)
+	{
+		m_domainPortOffset = domainPortOffset;
+	}
+
+    // Should the JBoss instance be running in Domain mode (JBoss 7 + Wildfly)
+    void SetDomainMode(bool domainMode)
+    {
+        m_domainMode = domainMode;
+    }
+
+    // Should there be an Port Offset Value attribute in socket-binding-group tag (JBoss 7)
     void SetNoPortOffsetValue(bool noPortOffsetValue)
     {
         m_noPortOffsetValue = noPortOffsetValue;
@@ -230,23 +249,191 @@ public:
         return xmlcontent;
     }
 
-    virtual wstring GetJboss7Command(SCXCoreLib::SCXFilePath filepath)
+	virtual SCXHandle<std::istream> OpenModuleXmlFile(wstring filename)
+	{
+		SCXHandle<stringstream> xmlcontent( new stringstream );
+
+		if(m_version7 && !m_hasEnterpriseVersionFile)
+		{
+			*xmlcontent << "<module xmlns=\"urn:jboss:module:1.0\" name=\"org.jboss.as.server\">"<<endl;
+			*xmlcontent << "    <main-class name=\"org.jboss.as.server.DomainServerMain\"/>"<<endl;
+			*xmlcontent << "    <resources>"<<endl;
+			*xmlcontent << "        <resource-root path=\"jboss-as-server-7.0.0.Final.jar\"/>"<<endl;
+			*xmlcontent << "    </resources>"<<endl;
+			*xmlcontent << "</module>"<<endl;
+		}
+		else if(m_hasEnterpriseVersionFile)
+		{
+			*xmlcontent << "<module xmlns=\"urn:jboss:module:1.1\" name=\"org.jboss.as.version\">"<<endl;
+			*xmlcontent << "    <main-class name=\"org.jboss.as.server.DomainServerMain\"/>"<<endl;
+			*xmlcontent << "    <resources>"<<endl;
+			*xmlcontent << "        <resource-root path=\"jboss-as-version-7.2.0.Final-redhat-8.jar\"/>"<<endl;
+			*xmlcontent << "    </resources>"<<endl;
+			*xmlcontent << "</module>"<<endl;
+		}
+		return xmlcontent;
+	}
+
+    virtual bool versionJBossWildfly(SCXCoreLib::SCXFilePath filepath, jboss_version_type &version)
     {
-        wstring cli;
-        if(m_hasBadJboss7File)
-        {
-            cli = L"./testfiles/Jboss7VersionCheck.sh --version -b";
-        }
-        else if(m_hasJboss7File)
-        {
-            cli = L"./testfiles/Jboss7VersionCheck.sh --version";
-        }
-        else
-        {
-            cli = L"";
-        }
-        return cli;
+		if(m_hasBadJboss7File)
+		{
+			return false;
+		}
+		else if(m_hasEnterpriseVersionFile)
+		{
+			version = jboss_version_8;
+			return true;
+		}
+		else if(m_hasJboss7File)
+		{
+			version = jboss_version_7;
+			return true;
+		}
+		else
+			return false;
     }
+
+	virtual SCXHandle<std::istream> OpenDomainHostXmlFile(wstring filename)
+	{
+		SCXHandle<stringstream> xmlcontent( new stringstream );
+
+        *xmlcontent <<"<host name=\"master\" xmlns=\"urn:jboss:domain:1.2\">"<<endl;
+        *xmlcontent <<"    <management/>"<<endl;
+        *xmlcontent <<"    <interfaces/>"<<endl;
+        *xmlcontent <<"    <servers>"<<endl;
+        *xmlcontent <<"        <server name=\"server-one\" group=\"main-server-group\">"<<endl;
+		if(m_domainPortOffset)
+        {
+			*xmlcontent <<"     <socket-bindings port-offset=\"100\"/>"<<endl; 
+        }
+		*xmlcontent <<"            <!-- Remote JPDA debugging for a specific server"<<endl;
+        *xmlcontent <<"            <jvm name=\"default\">"<<endl;
+        *xmlcontent <<"              <jvm-options>"<<endl;
+        *xmlcontent <<"                <option value=\"-Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n\"/>"<<endl;
+        *xmlcontent <<"              </jvm-options>"<<endl;
+        *xmlcontent <<"           </jvm>"<<endl;
+        *xmlcontent <<"           -->"<<endl;
+		*xmlcontent <<"        </server>"<<endl;
+        *xmlcontent <<"        <server name=\"server-two\" group=\"main-server-group\" auto-start=\"true\">"<<endl;
+        *xmlcontent <<"            <!-- server-two avoids port conflicts by incrementing the ports in"<<endl;
+        *xmlcontent <<"                 the default socket-group declared in the server-group -->"<<endl;
+		if(m_domainPortOffset)
+        {
+			*xmlcontent <<"     <socket-bindings port-offset=\"200\"/>"<<endl; 
+        }
+        *xmlcontent <<"        </server>"<<endl;
+        *xmlcontent <<"        <server name=\"server-three\" group=\"other-server-group\" auto-start=\"false\">"<<endl;
+        *xmlcontent <<"            <!-- server-three avoids port conflicts by incrementing the ports in"<<endl;
+        *xmlcontent <<"                 the default socket-group declared in the server-group -->"<<endl;
+		if(m_domainPortOffset)
+        {
+			*xmlcontent <<"     <socket-bindings port-offset=\"300\"/>"<<endl; 
+        }
+        *xmlcontent <<"        </server>"<<endl;
+        *xmlcontent <<"    </servers>"<<endl;
+        *xmlcontent <<"</host>"<<endl; 
+
+		return xmlcontent;
+	}
+
+	virtual SCXHandle<std::istream> OpenDomainXmlFile(wstring filename)
+	{
+		SCXHandle<stringstream> xmlcontent( new stringstream );
+
+		*xmlcontent<<"<domain xmlns=\"urn:jboss:domain:2.1\">"<<endl;
+		*xmlcontent<<"    <extensions>"<<endl;
+		*xmlcontent<<"    </extensions>"<<endl;
+		*xmlcontent<<"    <system-properties>"<<endl;
+		*xmlcontent<<"    </system-properties>"<<endl;
+		*xmlcontent<<"    <management>"<<endl;
+		*xmlcontent<<"    </management>"<<endl;
+		*xmlcontent<<"    <profiles>"<<endl;
+		*xmlcontent<<"    </profiles>"<<endl;
+		*xmlcontent<<"    <interfaces>"<<endl;
+		*xmlcontent<<"    </interfaces>"<<endl;
+		*xmlcontent<<"    <socket-binding-groups>"<<endl;
+		*xmlcontent<<"        <socket-binding-group name=\"standard-sockets\" default-interface=\"public\">"<<endl;
+		*xmlcontent<<"            <!-- Needed for server groups using the 'default' profile  -->"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"ajp\" port=\"${jboss.ajp.port:8009}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"http\" port=\"${jboss.http.port:8080}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"https\" port=\"${jboss.https.port:8443}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-recovery-environment\" port=\"4712\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-status-manager\" port=\"4713\"/>"<<endl;
+		*xmlcontent<<"            <outbound-socket-binding name=\"mail-smtp\">"<<endl;
+		*xmlcontent<<"                <remote-destination host=\"localhost\" port=\"25\"/>"<<endl;
+		*xmlcontent<<"            </outbound-socket-binding>"<<endl;
+		*xmlcontent<<"        </socket-binding-group>"<<endl;
+		*xmlcontent<<"        <socket-binding-group name=\"ha-sockets\" default-interface=\"public\">"<<endl;
+		*xmlcontent<<"            <!-- Needed for server groups using the 'ha' profile  -->"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"ajp\" port=\"${jboss.ajp.port:8009}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"http\" port=\"${jboss.http.port:8080}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"https\" port=\"${jboss.https.port:8443}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-mping\" port=\"0\" multicast-address=\"${jboss.default.multicast.address:230.0.0.4}\" multicast-port=\"45700\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-tcp\" port=\"7600\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-tcp-fd\" port=\"57600\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-udp\" port=\"55200\" multicast-address=\"${jboss.default.multicast.address:230.0.0.4}\" multicast-port=\"45688\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-udp-fd\" port=\"54200\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"modcluster\" port=\"0\" multicast-address=\"224.0.1.105\" multicast-port=\"23364\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-recovery-environment\" port=\"4712\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-status-manager\" port=\"4713\"/>"<<endl;
+		*xmlcontent<<"            <outbound-socket-binding name=\"mail-smtp\">"<<endl;
+		*xmlcontent<<"                <remote-destination host=\"localhost\" port=\"25\"/>"<<endl;
+		*xmlcontent<<"            </outbound-socket-binding>"<<endl;
+		*xmlcontent<<"        </socket-binding-group>"<<endl;
+		*xmlcontent<<"        <socket-binding-group name=\"full-sockets\" default-interface=\"public\">"<<endl;
+		*xmlcontent<<"            <!-- Needed for server groups using the 'full' profile  -->"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"ajp\" port=\"${jboss.ajp.port:8009}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"http\" port=\"${jboss.http.port:8080}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"https\" port=\"${jboss.https.port:8443}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jacorb\" interface=\"unsecure\" port=\"3528\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jacorb-ssl\" interface=\"unsecure\" port=\"3529\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"messaging-group\" port=\"0\" multicast-address=\"${jboss.messaging.group.address:231.7.7.7}\" multicast-port=\"${jboss.messaging.group.port:9876}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-recovery-environment\" port=\"4712\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-status-manager\" port=\"4713\"/>"<<endl;
+		*xmlcontent<<"            <outbound-socket-binding name=\"mail-smtp\">"<<endl;
+		*xmlcontent<<"                <remote-destination host=\"localhost\" port=\"25\"/>"<<endl;
+		*xmlcontent<<"            </outbound-socket-binding>"<<endl;
+		*xmlcontent<<"        </socket-binding-group>"<<endl;
+		*xmlcontent<<"        <socket-binding-group name=\"full-ha-sockets\" default-interface=\"public\">"<<endl;
+		*xmlcontent<<"            <!-- Needed for server groups using the 'full-ha' profile  -->"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"ajp\" port=\"${jboss.ajp.port:8009}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"http\" port=\"${jboss.http.port:8080}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"https\" port=\"${jboss.https.port:8443}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jacorb\" interface=\"unsecure\" port=\"3528\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jacorb-ssl\" interface=\"unsecure\" port=\"3529\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-mping\" port=\"0\" multicast-address=\"${jboss.default.multicast.address:230.0.0.4}\" multicast-port=\"45700\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-tcp\" port=\"7600\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-tcp-fd\" port=\"57600\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-udp\" port=\"55200\" multicast-address=\"${jboss.default.multicast.address:230.0.0.4}\" multicast-port=\"45688\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"jgroups-udp-fd\" port=\"54200\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"messaging-group\" port=\"0\" multicast-address=\"${jboss.messaging.group.address:231.7.7.7}\" multicast-port=\"${jboss.messaging.group.port:9876}\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"modcluster\" port=\"0\" multicast-address=\"224.0.1.105\" multicast-port=\"23364\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-recovery-environment\" port=\"4712\"/>"<<endl;
+		*xmlcontent<<"            <socket-binding name=\"txn-status-manager\" port=\"4713\"/>"<<endl;
+		*xmlcontent<<"            <outbound-socket-binding name=\"mail-smtp\">"<<endl;
+		*xmlcontent<<"                <remote-destination host=\"localhost\" port=\"25\"/>"<<endl;
+		*xmlcontent<<"            </outbound-socket-binding>"<<endl;
+		*xmlcontent<<"        </socket-binding-group>"<<endl;
+		*xmlcontent<<"    </socket-binding-groups>"<<endl;
+		*xmlcontent<<"    <server-groups>"<<endl;
+		*xmlcontent<<"        <server-group name=\"main-server-group\" profile=\"full\">"<<endl;
+		*xmlcontent<<"            <jvm name=\"default\">"<<endl;
+		*xmlcontent<<"                <heap size=\"64m\" max-size=\"512m\"/>"<<endl;
+		*xmlcontent<<"            </jvm>"<<endl;
+		*xmlcontent<<"            <socket-binding-group ref=\"full-sockets\"/>"<<endl;
+		*xmlcontent<<"        </server-group>"<<endl;
+		*xmlcontent<<"        <server-group name=\"other-server-group\" profile=\"full-ha\">"<<endl;
+		*xmlcontent<<"            <jvm name=\"default\">"<<endl;
+		*xmlcontent<<"                <heap size=\"64m\" max-size=\"512m\"/>"<<endl;
+		*xmlcontent<<"            </jvm>"<<endl;
+		*xmlcontent<<"            <socket-binding-group ref=\"full-ha-sockets\"/>"<<endl;
+		*xmlcontent<<"        </server-group>"<<endl;
+		*xmlcontent<<"    </server-groups>"<<endl;
+		*xmlcontent<<"</domain>"<<endl;
+
+		return xmlcontent;
+	}
 
     virtual SCXHandle<std::istream> OpenXmlPortsFile(wstring filename)
     {
@@ -264,7 +451,8 @@ public:
             return xmlcontent;
         }
         
-        if(!m_version5 && m_version7)
+		// Standalone JBoss Version 7 and Wildfly 8
+        if(!m_version5 && m_version7 && !m_domainMode)
         {
             *xmlcontent << " <server xmlns=\"urn:jboss:domain:1.0\">"<<endl;
           
@@ -588,7 +776,10 @@ public:
     bool m_serviceBinding;
     bool m_noPortOffsetValue;
     bool m_badPortOffsetValueWithSocket;
-  
+	bool m_hasEnterpriseVersionFile;
+    bool m_domainMode;
+	bool m_domainPortOffset;
+
     string m_portBindingName;
 };
 
@@ -625,6 +816,10 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testJBoss7WithBadHttpProperty );
     CPPUNIT_TEST( testJBoss7WithBadPortOffsetValue );
     CPPUNIT_TEST( testJBoss7WithBadPortOffsetValueSocketBindingValue );
+    CPPUNIT_TEST( testJBossDomainModeGoodGroupServerName );
+	CPPUNIT_TEST( testJBossDomainMultipleServers );
+	CPPUNIT_TEST( testJBossDomainModePorts );
+	CPPUNIT_TEST( testJBossEnterpriseVersion );
   
     CPPUNIT_TEST_SUITE_END();
 
@@ -637,6 +832,124 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     void tearDown(void)
     {
     }
+    
+	// Test Enterprise Version Parsing when using the command line
+	void testJBossEnterpriseVersion()
+	{
+		SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+        deps->SetHasEnterpriseVersionFile(true);
+        deps->SetBadHttpPortValue(true);
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/logging.properties", L"", deps) );
+ 
+        asInstance->Update();
+
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.2.0.Final-redhat-8", asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7", asInstance->GetMajorVersion());
+	}
+
+	// Test proper parsing for domain id and diskpath
+    void testJBossDomainModeGoodGroupServerName()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+		deps->SetDomainMode(true);
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id", L"id/domain/servers/server-one/data", L"", deps) );
+
+        asInstance->Update();
+        
+		// We only want to verify that the ID and diskpath is being parsed properly from AppServer Instance
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", asInstance->GetDiskPath());
+    }
+
+	// Test multiple functions for retrieving domain ports
+	void testJBossDomainModePorts()
+	{
+		SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+
+		deps->SetDomainMode(true);
+		deps->SetDomainPortOffset(true);
+
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id", L"id/domain/servers/server-one/data", L"", deps) );
+
+        asInstance->Update();
+
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL( L"8180", asInstance->GetHttpPort());
+		CPPUNIT_ASSERT_EQUAL( L"8543", asInstance->GetHttpsPort());
+		CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.0.0.Final",asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7",asInstance->GetMajorVersion());
+	}
+
+	// Test JBoss domain mode with multiple servers
+	void testJBossDomainMultipleServers()
+	{
+		SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+
+		deps->SetDomainMode(true);
+		deps->SetDomainPortOffset(true);
+
+		SCXHandle<JBossAppServerInstance> serverOne( new JBossAppServerInstance(L"id", L"id/domain/servers/server-one/data", L"", deps) );
+		SCXHandle<JBossAppServerInstance> serverTwo( new JBossAppServerInstance(L"id", L"id/domain/servers/server-two/data", L"", deps) );
+		SCXHandle<JBossAppServerInstance> serverThree( new JBossAppServerInstance(L"id", L"id/domain/servers/server-three/data", L"", deps) );
+
+		serverOne->Update();
+		// Assertions for server-one of domain mode
+		CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", serverOne->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-one/", serverOne->GetDiskPath());
+		CPPUNIT_ASSERT_EQUAL( L"8180", serverOne->GetHttpPort());
+		CPPUNIT_ASSERT_EQUAL( L"8543", serverOne->GetHttpsPort());
+		CPPUNIT_ASSERT_EQUAL( L"JBoss", serverOne->GetType());
+
+		serverTwo->Update();
+		// Assertions for server-two of domain mode
+		CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-two/", serverTwo->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-two/", serverTwo->GetDiskPath());
+		CPPUNIT_ASSERT_EQUAL( L"8280", serverTwo->GetHttpPort());
+		CPPUNIT_ASSERT_EQUAL( L"8643", serverTwo->GetHttpsPort());
+		CPPUNIT_ASSERT_EQUAL( L"JBoss", serverTwo->GetType());
+		
+		serverThree->Update();
+		// Assertions for server-three of domain mode
+		CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-three/", serverThree->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/domain/servers/server-three/", serverThree->GetDiskPath());
+		CPPUNIT_ASSERT_EQUAL( L"8380", serverThree->GetHttpPort());
+		CPPUNIT_ASSERT_EQUAL( L"8743", serverThree->GetHttpsPort());
+		CPPUNIT_ASSERT_EQUAL( L"JBoss", serverThree->GetType());
+		
+	}
 
     // Test with command running a parse on a bad script
     void testJBoss7WithBadVersionFile()

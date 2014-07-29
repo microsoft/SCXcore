@@ -143,7 +143,8 @@ namespace SCXSystemLib
         string config;
         string configFromDashC;
         string configFromJBossProperty;
-        string configFromJBossAS7Property;
+        string configFromJBossDomainProperty;
+        string configFromJBossStandaloneProperty;
         string ports;
         
         
@@ -158,7 +159,8 @@ namespace SCXSystemLib
            }
         }
         
-        //If still do not have JBoss instance check if JBoss AS 7 Instance
+        // If we still do not have a JBoss instance check if JBoss AS 7 / Wildfly 8 Server
+        // This property exists for both Standalone versions and Domain versions of JBoss/Wildfly
         if(!gotInstPath)
         {
             string arg2 = ParseOutCommandLineArg(params,"-Djboss.home.dir",true,true);
@@ -168,10 +170,14 @@ namespace SCXSystemLib
                 gotInstPath = true;
             }
         }
-
         configFromDashC = ParseOutCommandLineArg(params, "-c",false,true);
         configFromJBossProperty = ParseOutCommandLineArg(params, "-Djboss.server.name",true,false);
-        configFromJBossAS7Property = ParseOutCommandLineArg(params, "-Dlogging.configuration",true,false);
+        
+        // These properties are specific for JBoss 7 and Wildfly
+        // The Logging property is optional when running in domain mode, thus the server data directory is used
+        configFromJBossDomainProperty = ParseOutCommandLineArg(params, "-Djboss.server.data.dir", true, false);
+        configFromJBossStandaloneProperty = ParseOutCommandLineArg(params, "-Dlogging.configuration",true,false);
+
         if ( configFromDashC.length() != 0 )
         {
             config = configFromDashC;
@@ -180,9 +186,15 @@ namespace SCXSystemLib
         {
             config = configFromJBossProperty;
         }
-        else if ( configFromJBossAS7Property.length() != 0 )
+        else if ( configFromJBossDomainProperty.length() != 0 )
         {
-            config = configFromJBossAS7Property;
+            // Sample domain value: /root/wildfly-8.1.0.CR2/domain/servers/server-one/data
+            config = configFromJBossDomainProperty;
+        }
+        else if ( configFromJBossStandaloneProperty.length() != 0 )
+        {
+            // Sample standalone value: /root/wildfly-8.1.0.CR2/standalone/configuration/logging.properties
+            config = configFromJBossStandaloneProperty;
         }
         else // ( configFromDashC.length() == 0 ) && ( configFromJBossProperty.length() == 0 )
         {
@@ -423,7 +435,8 @@ namespace SCXSystemLib
 
              // Loop through each 'java' process and check for 'JBoss' argument on the commandline
              if(CheckProcessCmdLineArgExists(params,"org.jboss.Main") ||
-                CheckProcessCmdLineArgExists(params,"org.jboss.as.standalone"))
+                CheckProcessCmdLineArgExists(params,"org.jboss.as.standalone") ||
+                CheckProcessCmdLineArgExists(params,"org.jboss.as.server"))
              {
                 CreateJBossInstance(&ASInstances, params);
              }
