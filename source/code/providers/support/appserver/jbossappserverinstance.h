@@ -23,6 +23,10 @@ namespace SCXSystemLib
        Class representing all external dependencies from the AppServer PAL.
 
     */
+	typedef enum {
+		jboss_version_7,
+		jboss_version_8
+	} jboss_version_type;
     class JBossAppServerInstancePALDependencies
     {
     public:
@@ -31,7 +35,10 @@ namespace SCXSystemLib
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlServiceFile(std::wstring filename);
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlServerFile(std::wstring filename);
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlBindingFile(std::wstring filename);
-        virtual std::wstring GetJboss7Command(SCXCoreLib::SCXFilePath filename);
+		virtual SCXCoreLib::SCXHandle<std::istream> OpenDomainHostXmlFile(std::wstring filename);
+		virtual SCXCoreLib::SCXHandle<std::istream> OpenDomainXmlFile(std::wstring filename);
+		virtual SCXCoreLib::SCXHandle<std::istream> OpenModuleXmlFile (std::wstring filename);
+		virtual bool versionJBossWildfly(SCXCoreLib::SCXFilePath filepath, jboss_version_type &version);
         virtual ~JBossAppServerInstancePALDependencies() {};
     };
 
@@ -46,22 +53,20 @@ namespace SCXSystemLib
     {
         friend class AppServerEnumeration;
 
-    public:
-
+	public:
         JBossAppServerInstance(
             std::wstring id, 
             std::wstring config,
             std::wstring portsBinding,
             SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies()));
         JBossAppServerInstance(
-            std::wstring diskPath, 
+            std::wstring diskPath,
             SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies()));
         virtual ~JBossAppServerInstance();
 
         virtual void Update();
 
     private:
-
         void UpdateVersion();
         void UpdateJBoss4PortsFromServiceBinding(std::wstring filename, std::string servername);
         void UpdateJBoss4PortsFromServerConfiguration();
@@ -70,8 +75,10 @@ namespace SCXSystemLib
         void UpdateJBoss7Ports();
         void GetStringFromStream(SCXCoreLib::SCXHandle<std::istream> mystream, std::string& content);
         void TryReadInteger(unsigned int& result, bool& found, const std::wstring& value, const std::wstring& errorText);
-
+		
+		std::vector<std::wstring> GetJBossWildflyServerHostXmlInformation();
         std::wstring m_config;
+        std::wstring m_serverName;
         std::wstring m_basePath;
         std::wstring m_portsBinding;
 
