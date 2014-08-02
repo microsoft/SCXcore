@@ -17,7 +17,10 @@
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxfilepath.h>
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxprocess.h>
 #include <util/XElement.h>
+#include <scxsystemlib/scxsysteminfo.h>
 
 #include "appserverconstants.h"
 #include "tomcatappserverinstance.h"
@@ -48,6 +51,19 @@ namespace SCXSystemLib
     {
         return SCXFile::OpenFstream(filename, ios::in);
     }
+
+	/**
+       Returns a command for running version script
+
+       \param[in]  filename   Name of file to open
+    */
+	wstring TomcatAppServerInstancePALDependencies::GetVersionScriptCommand(SCXCoreLib::SCXFilePath filepath)
+	{
+		SCXCoreLib::SCXFilePath filename(filepath);
+		filename.Append(L"version.sh");
+
+		return filename.Get();
+	}
 
     /*----------------------------------------------------------------------------*/
     /**
@@ -183,13 +199,19 @@ namespace SCXSystemLib
         Open text file RELEASE-NOTES from the home folder
         Find line that contains the string "Apache Tomcat Version " 
         Get the rest of the text on that line as the version
+
+		This file does not exist when installed from package manager
+		In order to find the version without the RELEASE-NOTES we can use the
+		version.sh script inside the bin directory
     */
     void TomcatAppServerInstance::UpdateVersion()
     {
         const string cTomcatVersionPrecursor("Apache Tomcat Version ");
 
         SCXFilePath filename(m_homePath);
+		SCXFilePath filename2(m_homePath);
         filename.Append(L"RELEASE-NOTES");
+		bool tryTomcatVersionScript = false;
 
         try {
             string filecontent;
@@ -211,13 +233,64 @@ namespace SCXSystemLib
         }
         catch (SCXFilePathNotFoundException&)
         {
-            SCX_LOGERROR(m_log, wstring(L"TomcatAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+			tryTomcatVersionScript = true;
         }
         catch (SCXUnauthorizedFileSystemAccessException&)
         {
             SCX_LOGERROR(m_log, wstring(L"TomcatAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
         }
-    }
+		if(tryTomcatVersionScript)
+		{
+			try 
+			{
+				filename2.Append(L"bin/");
+
+				std::istringstream in;
+				std::ostringstream out;
+				std::ostringstream err;
+
+				// Get command line from function
+				// Determine if version.sh exists
+				// Only use SCProcess::Run If version.sh exists
+				wstring cli = m_deps->GetVersionScriptCommand(filename2);
+				bool versionScriptFileExists = SCXFile::Exists(cli);
+				
+				if(cli.length() && versionScriptFileExists)
+				{
+					SystemInfo si;
+					wstring command = si.GetShellCommand(cli);
+					
+					int exitStatus = SCXCoreLib::SCXProcess::Run(command, in, out, err, 10000);
+					if(exitStatus != 0 || err.str().length())
+					{
+						wstring werr = SCXCoreLib::StrFromUTF8(err.str());
+						SCX_LOGERROR(m_log, wstring(L"TomcatAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - error in command line: ").append(werr));
+					}
+					else
+					{
+						wstring commandOutput = SCXCoreLib::StrFromUTF8(out.str());
+						vector<wstring> v_version;
+
+						SCXRegex re(L"Server number:  (.*).(OS Name)");
+						if(re.ReturnMatch(commandOutput, v_version, 0))
+						{
+							SetVersion(v_version[1]);
+						}
+						else
+							SCX_LOGERROR(m_log, wstring(L"No REGEX match"));
+					}
+				}
+			}
+			catch (SCXUnauthorizedFileSystemAccessException&)
+			{
+				SCX_LOGERROR(m_log, wstring(L"TomcatAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+			}
+		}
+		else
+		{
+            SCX_LOGERROR(m_log, wstring(L"TomcatAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename));
+		}
+	}
 
     /*----------------------------------------------------------------------------*/
     /**
