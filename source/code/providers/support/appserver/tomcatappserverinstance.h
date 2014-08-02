@@ -28,6 +28,7 @@ namespace SCXSystemLib
     public:
         virtual SCXCoreLib::SCXHandle<std::istream> OpenVersionFile(std::wstring filename);
         virtual SCXCoreLib::SCXHandle<std::istream> OpenXmlServerFile(std::wstring filename);
+		virtual std::wstring GetVersionScriptCommand(SCXCoreLib::SCXFilePath filepath);
         virtual ~TomcatAppServerInstancePALDependencies() {};
     };
 

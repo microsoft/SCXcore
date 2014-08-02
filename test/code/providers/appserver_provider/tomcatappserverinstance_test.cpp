@@ -11,6 +11,7 @@
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfilesystem.h>
 #include <testutils/scxunit.h>
+#include <scxcorelib/scxprocess.h>
 
 #include <tomcatappserverinstance.h>
 
@@ -29,8 +30,14 @@ public:
     TomcatAppServerInstanceTestPALDependencies() : 
         m_versionFilename(L""), m_xmlServerFilename(L""), m_noVersionFile(false), m_noVersion(false), 
         m_noServerFile(false), m_emptyVersionFile(false), m_emptyServerFile(false), m_badXmlServerFile(false),
-        m_NoProtocol(false), m_IncludeHTTPS(true)
+        m_NoProtocol(false), m_IncludeHTTPS(true), m_includeVersionScript(false)
     {}
+	
+	// Should the version script file be used when trying to determine version
+	void SetIncludeVersionScript(bool includeVersionScript)
+	{
+		m_includeVersionScript = includeVersionScript;
+	}
 
     // Should the we throw an exception when opening the version file
     void SetNoVersionFile(bool noVersionFile)
@@ -199,6 +206,16 @@ public:
         return xmlcontent;
     }
 
+	virtual wstring GetVersionScriptCommand(SCXCoreLib::SCXFilePath filepath)
+    {
+        wstring cli;
+        if(m_includeVersionScript)
+        {
+            cli = L"./testfiles/TomcatVersionCheck.sh";
+        }
+        return cli;
+    }
+
     wstring m_versionFilename;
     wstring m_xmlServerFilename;
     bool m_noVersionFile;
@@ -209,6 +226,7 @@ public:
     bool m_badXmlServerFile;
     bool m_NoProtocol;
     bool m_IncludeHTTPS;
+	bool m_includeVersionScript;
 };
 
 class TomcatAppServerInstance_Test : public CPPUNIT_NS::TestFixture
@@ -224,6 +242,7 @@ class TomcatAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testBadXmlServerFile );
     CPPUNIT_TEST( testAllGoodTomcat5 );
     CPPUNIT_TEST( testAllGoodNoHTTPS );
+	CPPUNIT_TEST( testVersionScript );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -236,6 +255,30 @@ class TomcatAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     void tearDown(void)
     {
     }
+
+	// Test to make sure we can retrieve version from version.sh script
+	void testVersionScript()
+	{
+        SCXHandle<TomcatAppServerInstanceTestPALDependencies> deps(new TomcatAppServerInstanceTestPALDependencies());
+        
+		deps->SetNoVersionFile(true);
+		deps->SetIncludeVersionScript(true);
+
+        SCXHandle<TomcatAppServerInstance> asInstance( new TomcatAppServerInstance(L"id/", L"home/", deps) );
+
+        asInstance->Update();
+
+        CPPUNIT_ASSERT_EQUAL(L"id/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL(L"id/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"Tomcat", asInstance->GetType());
+
+        CPPUNIT_ASSERT_EQUAL(L"8.0.9.0", asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"8", asInstance->GetMajorVersion());
+
+        CPPUNIT_ASSERT_EQUAL(L"8080", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
+
+	}
 
     // Test with XML not containing the HTTPBinding property, but which do contain the HTTP section
     void testAllGood()
