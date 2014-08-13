@@ -47,7 +47,7 @@
     <TeamProject Condition="$(TeamProject)==''">CDM_SFE</TeamProject>
     <ApplyLabelBuildJob Condition="$(ApplyLabelBuildJob)==''">OnPrem_SCXDEV_SCXCore_ApplyLabel</ApplyLabelBuildJob>
     <UnixBuildJob Condition="$(UnixBuildJob)==''">OnPrem_SCXDEV_SCXCore_UnixBuild</UnixBuildJob>
-    <UnixBuildTypes Condition="$(UnixBuildTypes)==''">AIX_5.3_ppc;AIX_6.1_ppc;AIX_7.1_ppc;CentOS_5.0_x64;CentOS_5.0_x86;HPUX_11.23_ia64;HPUX_11.23_pa-risc;HPUX_11.31_ia64;HPUX_11.31_pa-risc;REDHAT_4.0_x64;REDHAT_4.0_x86;REDHAT_5.0_x64;REDHAT_5.0_x86;REDHAT_6.0_x64;REDHAT_6.0_x86;SUSE_10.0_x64;SUSE_10.0_x86;SUSE_11.0_x64;SUSE_11.0_x86;SUSE_9.0_x86;SunOS_5.11_sparc;SunOS_5.11_x86;SunOS_5.10_sparc;SunOS_5.10_x86;SunOS_5.9_sparc;Debian_5.0_x64;Debian_5.0_x86</UnixBuildTypes>
+    <UnixBuildTypes Condition="$(UnixBuildTypes)==''">AIX_5.3_ppc;AIX_6.1_ppc;AIX_7.1_ppc;CentOS_5.0_x64;CentOS_5.0_x86;HPUX_11.23_ia64;HPUX_11.23_pa-risc;HPUX_11.31_ia64;HPUX_11.31_pa-risc;REDHAT_4.0_x64;REDHAT_4.0_x86;REDHAT_5.0_x64;REDHAT_5.0_x86;REDHAT_6.0_x64;REDHAT_6.0_x86;SUSE_10.0_x64;SUSE_10.0_x86;SUSE_11.0_x64;SUSE_11.0_x86;SUSE_9.0_x86;SunOS_5.11_sparc;SunOS_5.11_x86;SunOS_5.10_sparc;SunOS_5.10_x86;SunOS_5.9_sparc;Debian_5.0_x64;Debian_5.0_x86;REDHAT_7.0_x64</UnixBuildTypes>
   </PropertyGroup>
   
   <ItemGroup>
