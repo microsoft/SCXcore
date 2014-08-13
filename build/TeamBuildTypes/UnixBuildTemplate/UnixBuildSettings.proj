@@ -155,6 +155,14 @@
       </PropertyGroup>
     </When>
 
+    <When Condition=" '$(UnixBuildType)'=='REDHAT_7.0_x64' ">
+      <PropertyGroup>
+        <UnixBuildServer>ostcbld64-rhel7-01</UnixBuildServer>
+        <UnixWorkSpaceName>ScxCore_Main_REDHAT70_x64</UnixWorkSpaceName>
+        <DropPath>REDHAT7.0_x64</DropPath>
+      </PropertyGroup>
+    </When>
+
     <When Condition=" '$(UnixBuildType)'=='SUSE_10.0_x64' ">
       <PropertyGroup>
         <UnixBuildServer>scxom64-sles10-02</UnixBuildServer>
