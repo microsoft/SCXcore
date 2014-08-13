@@ -2,7 +2,7 @@
 PACKAGE_TYPE: 'RPM'
 
 %Dependencies
-omi >= 1.0.8
+omi >= 1.0.8-1
 
 %Postinstall_650
 # If this is a fresh install and not an upgrade
