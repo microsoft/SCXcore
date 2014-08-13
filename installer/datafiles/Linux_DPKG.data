@@ -2,4 +2,4 @@
 PACKAGE_TYPE: 'DPKG'
 
 %Dependencies
-omi (>= 1.0.8)
+omi (>= 1.0.8-1)
