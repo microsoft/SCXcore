@@ -120,6 +120,7 @@ namespace SCXSystemLib
         const string cSecureAttributeName("secure");
         const string cPortAttributeName("port");
         const string cHTTP11Name("HTTP/1.1");
+		const string cTomcat8HTTP11Name("org.apache.coyote.http11.Http11NioProtocol");
         const string cTrueName("true");
 
         SCXFilePath filename(m_diskPath);
@@ -150,9 +151,11 @@ namespace SCXSystemLib
                         if (connectorNodes[idx]->GetName() == cConnectorNodeName)
                         {
                             // For Tomcat 5 there is no 'Protocol' specified for the HTTP Connector
+							// Tomcat 8 uses org.apache.coyote.http11.Http11NioProtocol as the protocol name.
                             // we will use the Connectors as they appear in the file.
                             bool hasAttribute = connectorNodes[idx]->GetAttributeValue(cProtocolAttributeName, protocolprop);
-                            if( ( hasAttribute && (cHTTP11Name == protocolprop) ) ||
+							if ((hasAttribute && (cHTTP11Name == protocolprop)) || 
+								(hasAttribute && (cTomcat8HTTP11Name == protocolprop)) ||
                                 !hasAttribute )
                             {
                                 string secureprop;
