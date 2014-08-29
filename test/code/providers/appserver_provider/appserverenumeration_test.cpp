@@ -260,6 +260,7 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( JBoss_Tomcat_Process_Bad_Good_params );
     CPPUNIT_TEST( JBoss_Tomcat_Process_MixedGoodBad );
     
+    CPPUNIT_TEST( WebSphere_Process_NonDefaultProfile );
     CPPUNIT_TEST( WebSphere_Process_Good_Params );
     CPPUNIT_TEST( WebSphere_Process_Fixing_Incorrect_Enumerations );
     CPPUNIT_TEST( WebSphere_Process_Bad_Params_TooFewArgs_Missing_Server );
@@ -1238,6 +1239,71 @@ public:
         CPPUNIT_ASSERT(L"/opt/apache-tomcat-5.5.31/" == (*(++it))->GetId());
         CPPUNIT_ASSERT(L"Tomcat" == (*it)->GetType());
 
+        asEnum.CleanUp();
+    }
+
+    /**************************************************************************************/
+    //
+    // Verify that the mocked out implementation of the ProcessInstance
+    // with the corret parameters, and non default 'Profiles' path 
+    // A valid WebSphere instance should be created.
+    // 
+    /**************************************************************************************/
+    void WebSphere_Process_NonDefaultProfile()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/opt/IBM/WebSphere/AppServer/java/bin/java");
+        inst->AddParameter("-Declipse.security");
+        inst->AddParameter("-Dwas.status.socket=56994");
+        inst->AddParameter("-Dosgi.install.area=/opt/IBM/WebSphere/AppServer");
+        inst->AddParameter("-Dosgi.configuration.area=/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/configuration");
+        inst->AddParameter("-Djava.awt.headless=true");
+        inst->AddParameter("-Dosgi.framework.extensions=com.ibm.cds");
+        inst->AddParameter("-Xshareclasses:name=webspherev61_%g,groupAccess,nonFatal");
+        inst->AddParameter("-Xscmx50M");
+        inst->AddParameter("-Xbootclasspath/p:/opt/IBM/WebSphere/AppServer/java/jre/lib/ext/ibmorb.jar:/opt/IBM/WebSphere/AppServer/java/jre/lib/ext/ibmext.jar");
+        inst->AddParameter("-classpath");
+        inst->AddParameter("/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/properties:/opt/IBM/WebSphere/AppServer/properties:/opt/IBM/WebSphere/AppServer/lib/startup.jar:/opt/IBM/WebSphere/AppServer/lib/bootstrap.jar:/opt/IBM/WebSphere/AppServer/lib/j2ee.jar:/opt/IBM/WebSphere/AppServer/lib/lmproxy.jar:/opt/IBM/WebSphere/AppServer/lib/urlprotocols.jar:/opt/IBM/WebSphere/AppServer/deploytool/itp/batchboot.jar:/opt/IBM/WebSphere/AppServer/deploytool/itp/batch2.jar:/opt/IBM/WebSphere/AppServer/java/lib/tools.jar");
+        inst->AddParameter("-Dibm.websphere.internalClassAccessMode=allow");
+        inst->AddParameter("-Xms50m");
+        inst->AddParameter("-Xmx256m"); 
+        inst->AddParameter("-Dws.ext.dirs=/opt/IBM/WebSphere/AppServer/java/lib:/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/classes:/opt/IBM/WebSphere/AppServer/classes:/opt/IBM/WebSphere/AppServer/lib:/opt/IBM/WebSphere/AppServer/installedChannels:/opt/IBM/WebSphere/AppServer/lib/ext:/opt/IBM/WebSphere/AppServer/web/help:/opt/IBM/WebSphere/AppServer/deploytool/itp/plugins/com.ibm.etools.ejbdeploy/runtime"); 
+        inst->AddParameter("-Dderby.system.home=/opt/IBM/WebSphere/AppServer/derby"); 
+        inst->AddParameter("-Dcom.ibm.itp.location=/opt/IBM/WebSphere/AppServer/bin"); 
+        inst->AddParameter("-Djava.util.logging.configureByServer=true"); 
+        inst->AddParameter("-Duser.install.root=/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01");
+        inst->AddParameter("-Djavax.management.builder.initial=com.ibm.ws.management.PlatformMBeanServerBuilder"); 
+        inst->AddParameter("-Dwas.install.root=/opt/IBM/WebSphere/AppServer"); 
+        inst->AddParameter("-Dpython.cachedir=/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/temp/cachedir"); 
+        inst->AddParameter("-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager"); 
+        inst->AddParameter("-Dserver.root=/opt/IBM/WebSphere/AppServer/profiles/AppSrv01"); 
+        inst->AddParameter("-Djava.security.auth.login.config=/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/properties/wsjaas.conf"); 
+        inst->AddParameter("-Djava.security.policy=/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/properties/server.policy"); 
+        inst->AddParameter("com.ibm.wsspi.bootstrap.WSPreLauncher"); 
+        inst->AddParameter("-nosplash"); 
+        inst->AddParameter("-application"); 
+        inst->AddParameter("com.ibm.ws.bootstrap.WSLauncher"); 
+        inst->AddParameter("com.ibm.ws.runtime.WsServer"); 
+        inst->AddParameter("/opt/IBM/WebSphere/AppServer/profiles/AppSrv01/config"); 
+        inst->AddParameter("scxjet-rhel5-04Node01Cell"); 
+        inst->AddParameter("Node01"); 
+        inst->AddParameter("server1");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 1);
+        
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        CPPUNIT_ASSERT_EQUAL(L"AppSrv01-scxjet-rhel5-04Node01Cell-Node01-server1",(*it)->GetId());
+        CPPUNIT_ASSERT_EQUAL(L"WebSphere",(*it)->GetType());
+        
         asEnum.CleanUp();
     }
 

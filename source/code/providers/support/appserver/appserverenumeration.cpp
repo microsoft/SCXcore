@@ -303,7 +303,7 @@ namespace SCXSystemLib
         // Example of single server profile configuration "-Dosgi.configuration.area = /usr/WebSphere/WAS8/AppServer/profiles/AppSrv01/configuration"
         if ( !instDir.empty() 
              && re.ReturnMatch(StrFromUTF8(instDir),v_profileDiskPath, 0)
-             &&  v_profileDiskPath[3].compare(L"profiles") != 0)
+             &&  v_profileDiskPath[3].compare(L"servers") == 0)
         {
             // From previous regex, if disk path matched minimum directory structure and is not a single server profile
             // the vector v_profileDiskPath will be populated with the following

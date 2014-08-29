@@ -212,6 +212,7 @@ class WebSphereAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST_SUITE( WebSphereAppServerInstance_Test );
 
     CPPUNIT_TEST( testAllGood );
+    CPPUNIT_TEST( testAllGoodNonDefaultProfiles );
     CPPUNIT_TEST( testNoServerFile );
     CPPUNIT_TEST( testNoVersionFile );
     CPPUNIT_TEST( testEmptyServerFile );
@@ -256,6 +257,33 @@ class WebSphereAppServerInstance_Test : public CPPUNIT_NS::TestFixture
         CPPUNIT_ASSERT(deps->m_xmlServerFilename == L"home/config/cells/cell/nodes/node/serverindex.xml");
         CPPUNIT_ASSERT(deps->m_xmlVersionFilename == L"home/properties/version/profile.version");
     }
+
+    // Test with non default profiles path for WebSphere 6.1 and WebSphere 7.0
+    void testAllGoodNonDefaultProfiles()
+    {
+        SCXHandle<WebSphereAppServerInstanceTestPALDependencies> deps(new WebSphereAppServerInstanceTestPALDependencies());
+        
+        SCXHandle<WebSphereAppServerInstance> asInstance( new WebSphereAppServerInstance(L"/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01", L"cell", L"node", L"profile", L"server1", deps) );
+
+        asInstance->Update();
+
+        CPPUNIT_ASSERT(asInstance->GetId() == L"profile-cell-node-server1");
+        CPPUNIT_ASSERT_EQUAL( "/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/",StrToMultibyte(asInstance->GetDiskPath()));
+        CPPUNIT_ASSERT(asInstance->GetProfile() == L"profile");
+        CPPUNIT_ASSERT(asInstance->GetCell() == L"cell");
+        CPPUNIT_ASSERT(asInstance->GetNode() == L"node");
+        CPPUNIT_ASSERT(asInstance->GetServer() == L"server1");
+        CPPUNIT_ASSERT(asInstance->GetType() == L"WebSphere");
+        CPPUNIT_ASSERT(asInstance->GetVersion() == L"7.0.0.0");
+        CPPUNIT_ASSERT(asInstance->GetMajorVersion() == L"7");
+
+        CPPUNIT_ASSERT_EQUAL("9080", StrToMultibyte(asInstance->GetHttpPort()));
+        CPPUNIT_ASSERT(asInstance->GetHttpsPort() == L"9443");
+
+        CPPUNIT_ASSERT(deps->m_xmlServerFilename == L"/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/config/cells/cell/nodes/node/serverindex.xml");
+        CPPUNIT_ASSERT(deps->m_xmlVersionFilename == L"/opt/IBM/WebSphere/AppServer/Profiles/AppSrv01/properties/version/profile.version");
+    }
+
 
     // Test with code that throw exception when we try to open the ports file
     void testNoServerFile()

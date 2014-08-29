@@ -135,7 +135,7 @@ namespace SCXSystemLib
         {
             //v_profileDiskPath[1] will include disk path until profile name <../../../../profiles>
             //v_profileDiskPath[2] will include profile name <AppSrv01>
-            if(v_profileDiskPath[3].compare(L"profiles") != 0)
+            if(v_profileDiskPath[3].compare(L"servers") == 0)
             {
                 return v_profileDiskPath[1].append(L"/").append(v_profileDiskPath[2]).append(L"/");
             }
