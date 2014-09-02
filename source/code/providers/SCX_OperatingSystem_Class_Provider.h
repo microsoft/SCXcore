@@ -6,7 +6,6 @@
 #ifdef __cplusplus
 # include <micxx/micxx.h>
 # include "module.h"
-#include <scxcorelib/scxthreadpool.h>
 
 MI_BEGIN_NAMESPACE
 
