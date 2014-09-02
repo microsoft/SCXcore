@@ -551,7 +551,7 @@ static void Invoke_ExecuteCommand_ThreadBody(SCXCoreLib::SCXThreadParamHandle& p
         inst.MIReturn_value( cmdok );
         context.Post(inst);
         context.Post(MI_RESULT_OK);
-    }
+    } 
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand", log );
 }
 
@@ -565,9 +565,8 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand(
 
     SCX_PEX_BEGIN
     {
-        SCXHandle<SCXThreadParam> threadParamHandle(new SCX_OperatingSystem_Command_ThreadParam(context.context(), in));
-        SCXHandle<SCXThreadPoolTask> threadTask( new SCXThreadPoolTask(&Invoke_ExecuteCommand_ThreadBody, threadParamHandle) );
-        SCXCore::g_RunAsProvider.m_ThreadPoolHandle->QueueTask(threadTask);
+        SCX_OperatingSystem_Command_ThreadParam* params = new SCX_OperatingSystem_Command_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteCommand_ThreadBody, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand", log );
 }
@@ -668,15 +667,12 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
     const SCX_OperatingSystem_Class& instanceName,
     const SCX_OperatingSystem_ExecuteShellCommand_Class& in)
 {
-    SCXCoreLib::SCXLogHandle log = SCXCore::g_RunAsProvider.GetLogHandle();
-
     SCX_PEX_BEGIN
     {
-        SCXHandle<SCXThreadParam> threadParamHandle(new SCX_OperatingSystem_ShellCommand_ThreadParam(context.context(), in));
-        SCXHandle<SCXThreadPoolTask> threadTask( new SCXThreadPoolTask(&Invoke_ExecuteShellCommand_ThreadBody, threadParamHandle) );
-        SCXCore::g_RunAsProvider.m_ThreadPoolHandle->QueueTask(threadTask);
+        SCX_OperatingSystem_ShellCommand_ThreadParam* params = new SCX_OperatingSystem_ShellCommand_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteShellCommand_ThreadBody, params);
     }
-    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", log );
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", SCXCore::g_RunAsProvider.GetLogHandle() );
 }
 
 static void Invoke_ExecuteScript_ThreadBody(SCXCoreLib::SCXThreadParamHandle& param)
@@ -789,12 +785,10 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
 
     SCX_PEX_BEGIN
     {
-        SCXHandle<SCXThreadParam> threadParamHandle(new SCX_OperatingSystem_Script_ThreadParam(context.context(), in));
-        SCXHandle<SCXThreadPoolTask> threadTask( new SCXThreadPoolTask(&Invoke_ExecuteScript_ThreadBody, threadParamHandle) );
-        SCXCore::g_RunAsProvider.m_ThreadPoolHandle->QueueTask(threadTask);
+        SCX_OperatingSystem_Script_ThreadParam* params = new SCX_OperatingSystem_Script_ThreadParam(context.context(), in);
+        new SCXCoreLib::SCXThread(Invoke_ExecuteScript_ThreadBody, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript", log );
 }
-
 
 MI_END_NAMESPACE

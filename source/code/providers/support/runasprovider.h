@@ -15,7 +15,6 @@
 
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxlog.h>
-#include <scxcorelib/scxthreadpool.h>
 
 using namespace SCXCoreLib;
 
@@ -55,8 +54,6 @@ namespace SCXCore
         {
             m_Configurator = configurator;
         }
-
-        SCXHandle<SCXThreadPool> m_ThreadPoolHandle;
 
     private:
         void ParseConfiguration() { m_Configurator->Parse(); }
