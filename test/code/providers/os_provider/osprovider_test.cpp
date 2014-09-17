@@ -167,6 +167,7 @@ public:
                                                 L"OSType",
                                                 L"OtherTypeDescription",
                                                 L"Version",
+                                                L"LastBootUpTime",
                                                 L"LocalDateTime",
                                                 L"CurrentTimeZone",
                                                 L"NumberOfLicensedUsers",
