@@ -25,13 +25,13 @@ DPKG_EXISTS=$?
 cleanup_and_exit()
 {
     if [ "$PLATFORM" = "SunOS" ]; then
-	rm -f scx-admin scx-admin-upgrade
+        rm -f scx-admin scx-admin-upgrade
     rm -f /tmp/.ai.pkg.zone.lock*
     fi
     if [ -n "$1" ]; then
-	exit $1
+        exit $1
     else
-	exit 0
+        exit 0
     fi
 }
 
@@ -39,36 +39,36 @@ cleanup_and_exit()
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
     case "$PF" in
-	Linux)
-	    case "$PF_DISTRO" in
-		ULINUX)
-		    if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
+        Linux)
+            case "$PF_DISTRO" in
+                ULINUX)
+                    if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
                         if [ "$uninstallMode" = "P" ]; then
-	                    dpkg --purge $1 1> /dev/null 2> /dev/null
+                            dpkg --purge $1 1> /dev/null 2> /dev/null
                         else
-		            dpkg --remove $1 1> /dev/null 2> /dev/null
-	                fi
-		    elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
-		       	rpm --erase $1 1> /dev/null 2> /dev/null
-		    fi
-		    ;;
-		REDHAT|SUSE)
-		    rpm --erase $1 1> /dev/null 2> /dev/null
-		    ;;
-	    esac
-	    ;;
+                            dpkg --remove $1 1> /dev/null 2> /dev/null
+                        fi
+                    elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
+                        rpm --erase $1 1> /dev/null 2> /dev/null
+                    fi
+                    ;;
+                REDHAT|SUSE)
+                    rpm --erase $1 1> /dev/null 2> /dev/null
+                    ;;
+            esac
+            ;;
 
-	AIX)
-	    /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
-	    ;;
-	
-	HPUX)
-	    /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
-	    ;;
-	
-	SunOS)
-	    /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
-	    ;;
+        AIX)
+            /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+            ;;
+        
+        HPUX)
+            /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+            ;;
+        
+        SunOS)
+            /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+            ;;
     esac
 }
 
@@ -81,7 +81,7 @@ service_action_delay()
                 /usr/bin/svcs -H $1 2> /dev/null | grep -i $2 2> /dev/null 1> /dev/null
                 [ $? -eq 0 ] && break
                 echo "Waiting for service: $1 ..."
-		sleep 2
+                sleep 2
                 COUNT=`expr $COUNT + 1`
             done
         ;;
@@ -91,115 +91,117 @@ service_action_delay()
 
 
 stop_omiserver() {
-    case "$PF" in
-        AIX)
-	    stopsrc -s omiserverd
-            ;;
-	
-	Linux)
-	    case "$PF_DISTRO" in
-		ULINUX)
-		    if [ -x /usr/sbin/invoke-rc.d ]; then
-			invoke-rc.d omiserverd stop
-		    elif [ -x /sbin/service ]; then
-			service omiserverd stop
-		    else
-			echo "Unrecognized Service Controller to stop OMI Service."
-			cleanup_and_exit 1
-		    fi
-		    ;;
-		SUSE)
-		    case "$PF_MAJOR" in
-			9)
-			    /etc/init.d/omiserverd stop
-			    ;;
-			*)
-			    service omiserverd stop
-			    ;;
-		    esac
-		    ;;
-		REDHAT)
-		    service omiserverd stop
-		    ;;
-	    esac
-	    ;;
-
-	HPUX)
-	    $OMI_HOME/bin/omiserver -s
-	    ;;
-	
-	SunOS)
-	    case "$PF_MINOR" in
-		9)
-		    $OMI_HOME/bin/omiserver -s
-		    ;;
-		10|11)
-		    svcs -l omiserverd 2> /dev/null 1> /dev/null
-		    if [ $? -eq 0 ]; then
-			svcadm disable -s svc:/application/management/omiserverd
-			service_action_delay svc:/application/management/omiserverd disabled
-		    fi
-		    ;;
-	    esac
-	    ;;
-    esac
+    if [ -f /var/opt/microsoft/omi/run/omiserver.pid ]; then
+        case "$PF" in
+            AIX)
+                stopsrc -s omiserverd
+                ;;
+            
+            Linux)
+                case "$PF_DISTRO" in
+                    ULINUX)
+                        if [ -x /usr/sbin/invoke-rc.d ]; then
+                            invoke-rc.d omiserverd stop
+                        elif [ -x /sbin/service ]; then
+                            service omiserverd stop
+                        else
+                            echo "Unrecognized Service Controller to stop OMI Service."
+                            cleanup_and_exit 1
+                        fi
+                        ;;
+                    SUSE)
+                        case "$PF_MAJOR" in
+                            9)
+                                /etc/init.d/omiserverd stop
+                                ;;
+                            *)
+                                service omiserverd stop
+                                ;;
+                        esac
+                        ;;
+                    REDHAT)
+                        service omiserverd stop
+                        ;;
+                esac
+                ;;
+            
+            HPUX)
+                $OMI_HOME/bin/omiserver -s
+                ;;
+            
+            SunOS)
+                case "$PF_MINOR" in
+                    9)
+                        $OMI_HOME/bin/omiserver -s
+                        ;;
+                    10|11)
+                        svcs -l omiserverd 2> /dev/null 1> /dev/null
+                        if [ $? -eq 0 ]; then
+                            svcadm disable -s svc:/application/management/omiserverd
+                            service_action_delay svc:/application/management/omiserverd disabled
+                        fi
+                        ;;
+                esac
+                ;;
+        esac
+    fi
 }
 
 
 start_omiserver() {
     case "$PF" in
         AIX)
-	    startsrc -s omiserverd -e "LD_LIBRARY_PATH=$OMI_HOME/lib"
+            startsrc -s omiserverd -e "LD_LIBRARY_PATH=$OMI_HOME/lib"
             ;;
-	
-	Linux)
-	    case "$PF_DISTRO" in
-		ULINUX)
-		    if [ -x /usr/sbin/invoke-rc.d ]; then
-			invoke-rc.d omiserverd start
-		    elif [ -x /sbin/service ]; then
-			service omiserverd start
-		    else
-			echo "Unrecognized Service Controller to start SCX Service"
-			cleanup_and_exit 1
-		    fi
-		    ;;
-		SUSE)
-		    case "$PF_MAJOR" in
-			9)
-			    /etc/init.d/omiserverd start
-			    ;;
-			*)
-			    service omiserverd start
-			    ;;
-		    esac
-		    ;;
-		REDHAT)
-		    service omiserverd start
-		    ;;
-	    esac
-	    ;;
+        
+        Linux)
+            case "$PF_DISTRO" in
+                ULINUX)
+                    if [ -x /usr/sbin/invoke-rc.d ]; then
+                        invoke-rc.d omiserverd start
+                    elif [ -x /sbin/service ]; then
+                        service omiserverd start
+                    else
+                        echo "Unrecognized Service Controller to start SCX Service"
+                        cleanup_and_exit 1
+                    fi
+                    ;;
+                SUSE)
+                    case "$PF_MAJOR" in
+                        9)
+                            /etc/init.d/omiserverd start
+                            ;;
+                        *)
+                            service omiserverd start
+                            ;;
+                    esac
+                    ;;
+                REDHAT)
+                    service omiserverd start
+                    ;;
+            esac
+            ;;
 
-	HPUX)
-	    /opt/microsoft/omi/bin/omiserver -d
-	    ;;
-	
-	SunOS)
-	    case "$PF_MINOR" in
-		9)
-		    /opt/microsoft/omi/bin/omiserver -d
-		    ;;
-		10|11)
-		    svcs -H omiserverd 2> /dev/null | grep -i online 2> /dev/null 1> /dev/null
-		    if [ $? -eq 0 ]; then
-			return
-		    fi
-		    
-		    service_action_delay svc:/application/management/omiserverd disabled
-		    svcadm enable -s svc:/application/management/omiserverd
-		    ;;
-	    esac
-	    ;;
+        HPUX)
+            /opt/microsoft/omi/bin/omiserver -d
+            ;;
+        
+        SunOS)
+            case "$PF_MINOR" in
+                9)
+                    /opt/microsoft/omi/bin/omiserver -d
+                    ;;
+                10|11)
+                    svcs -H omiserverd 2> /dev/null | grep -i online 2> /dev/null 1> /dev/null
+                    if [ $? -eq 0 ]; then
+                        return
+                    fi
+                    
+                    service_action_delay svc:/application/management/omiserverd disabled
+                    svcadm enable -s svc:/application/management/omiserverd
+                    ;;
+            esac
+            ;;
     esac
 }
 
