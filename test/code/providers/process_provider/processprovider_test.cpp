@@ -251,6 +251,8 @@ public:
             tmpExpectedProperties.push_back(L"ProcessGroupID");
             tmpExpectedProperties.push_back(L"ProcessNiceValue");
             tmpExpectedProperties.push_back(L"Priority");
+            tmpExpectedProperties.push_back(L"PercentBusyTime");
+            tmpExpectedProperties.push_back(L"UsedMemory");
 #if defined(hpux)
             tmpPossibleProperties.push_back(L"ProcessSessionID");
 #else

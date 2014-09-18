@@ -80,7 +80,7 @@ static void EnumerateOneInstance(Context& context,
         std::wstring str(L"");
         unsigned int uint = 0;
         unsigned short ushort = 0;
-        scxulong ulong = 0;
+        scxulong ulong = 0, ulong1 = 0;
         SCXCoreLib::SCXCalendarTime ctime;
         int ppid = 0;
 
@@ -188,6 +188,15 @@ static void EnumerateOneInstance(Context& context,
             inst.ProcessNiceValue_value(uint);
         }
 
+        if (processinst->GetPercentUserTime(ulong) && processinst->GetPercentPrivilegedTime(ulong1))
+        {
+            inst.PercentBusyTime_value((unsigned char) (ulong + ulong1));
+        }
+
+        if (processinst->GetUsedMemory(ulong))
+        {
+            inst.UsedMemory_value(ulong);
+        }
     }
     context.Post(inst);
 }
