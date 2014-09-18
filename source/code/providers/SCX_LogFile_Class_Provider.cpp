@@ -167,11 +167,13 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         //   regexps       : string array
         //   qid           : string
         //   elevationType : [Optional] string
+        //   initialize    : [Optional] boolean
 
         std::wstring filename = SCXCoreLib::StrFromMultibyte( in.filename_value().Str() );
         const StringA regexps_sa = in.regexps_value();
         std::wstring qid = SCXCoreLib::StrFromMultibyte( in.qid_value().Str() );
         std::wstring elevationType = SCXCoreLib::StrFromMultibyte( in.elevationType_value().Str() );
+        int initializeFlag = in.initialize_exists() && in.initialize_value();
 
         bool fPerformElevation = false;
         if ( elevationType.length() )
@@ -189,6 +191,7 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - qid = ", qid));
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - regexp count = ", regexps_sa.GetSize()));
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - elevate = ", elevationType));
+        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - initialize = ", initializeFlag));
 
         // Extract and parse the regular expressions
 
@@ -231,7 +234,7 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
             // Call helper function to get the data
             std::vector<std::wstring> matchedLines;
             bool bWasPartialRead = SCXCore::g_LogFileProvider.InvokeLogFileReader(
-                filename, qid, regexps, fPerformElevation, matchedLines);
+                filename, qid, regexps, fPerformElevation, initializeFlag, matchedLines);
 
             // Add each match to the result property set
             //

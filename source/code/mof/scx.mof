@@ -243,7 +243,7 @@ class SCX_LogFile : CIM_LogicalFile {
         ]
         uint32 GetMatchedRows([IN] string filename, [IN] string regexps[], [IN] string qid,
                               [OUT, ArrayType("Ordered")] string rows[],
-                              [IN] string elevationType);
+                              [IN] string elevationType, [IN] boolean initialize);
 };
 
 
@@ -304,6 +304,18 @@ class SCX_UnixProcess : CIM_UnixProcess {
 
    [ Description ( "Descriptive text for this element") ]
    string Description = "A snapshot of a current process";
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in user mode + privileged mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentBusyTime;
+
+    [   Description ( 
+            "Used physical memory in kilobytes" ),
+        Units("KiloBytes")
+        ]
+    uint64 UsedMemory;
 
    // WI41620: Avoid error by taking an elevation type.  Note that this is here if SUDO elevation
    //   is defined for non-privileged account, but we don't actually care if it's passed or not.

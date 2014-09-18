@@ -310,7 +310,7 @@ int ReadLogFile_Interactive()
 
         s_pReader = new LogFileReader();
         s_pReader->SetPersistMedia(s_pmedia);
-        bool bPartial = s_pReader->ReadLogFile(filename, qid, regexps,
+        bool bPartial = s_pReader->ReadLogFile(filename, qid, regexps, 0 /* initializeFlag */,
                                                matchedLines);
 
         // Display the output interactively
@@ -342,12 +342,14 @@ int ReadLogFile_Interactive()
    results are returned (via STDOUT, marshalled).
 
    Input parameters are (as required by LogFileReader::ReadLogFile):
-     filename:  Filename to be read
-     qid:       ID (from property)
-     regexps:   Regular expressions to search for
+     filename:       Filename to be read
+     qid:            ID (from property)
+     regexps:        Regular expressions to search for
+     initializeFlag: Set the persistent line pointer to end of file
 
    Output parameters are:
-     matchedLines:  Resulting lines that match the regular expressions
+     wasPartialRead: This is incomplete (more data exists to return)
+     matchedLines:   Resulting lines that match the regular expressions
 
    \return Resulting status (exit status for scxlogfilereader executable)
 */
@@ -367,16 +369,18 @@ int ReadLogFile_Provider()
     wstring filename;
     wstring qid;
     vector<SCXRegexWithIndex> regexps;
+    int initializeFlag;
 
     UnMarshal receive(cin);
     receive.Read(filename);
     receive.Read(qid);
     receive.Read(regexps);
+    receive.Read(initializeFlag);
 
     try
     {
         vector<wstring> matchedLines;
-        bool bWasPartialRead = logFileReader->ReadLogFile(filename, qid, regexps,
+        bool bWasPartialRead = logFileReader->ReadLogFile(filename, qid, regexps, initializeFlag,
                                                           matchedLines);
 
         // Marshal the results

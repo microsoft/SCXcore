@@ -893,6 +893,7 @@ typedef struct _SCX_LogFile_GetMatchedRows
     /*IN*/ MI_ConstStringField qid;
     /*OUT*/ MI_ConstStringAField rows;
     /*IN*/ MI_ConstStringField elevationType;
+    /*IN*/ MI_ConstBooleanField initialize;
 }
 SCX_LogFile_GetMatchedRows;
 
@@ -1123,6 +1124,22 @@ MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Clear_elevationType(
     return self->__instance.ft->ClearElementAt(
         (MI_Instance*)&self->__instance,
         5);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Set_initialize(
+    SCX_LogFile_GetMatchedRows* self,
+    MI_Boolean x)
+{
+    ((MI_BooleanField*)&self->initialize)->value = x;
+    ((MI_BooleanField*)&self->initialize)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Clear_initialize(
+    SCX_LogFile_GetMatchedRows* self)
+{
+    memset((void*)&self->initialize, 0, sizeof(self->initialize));
+    return MI_RESULT_OK;
 }
 
 /*
@@ -1550,6 +1567,46 @@ public:
     {
         const size_t n = offsetof(Self, elevationType);
         GetField<String>(n).Clear();
+    }
+
+    //
+    // SCX_LogFile_GetMatchedRows_Class.initialize
+    //
+    
+    const Field<Boolean>& initialize() const
+    {
+        const size_t n = offsetof(Self, initialize);
+        return GetField<Boolean>(n);
+    }
+    
+    void initialize(const Field<Boolean>& x)
+    {
+        const size_t n = offsetof(Self, initialize);
+        GetField<Boolean>(n) = x;
+    }
+    
+    const Boolean& initialize_value() const
+    {
+        const size_t n = offsetof(Self, initialize);
+        return GetField<Boolean>(n).value;
+    }
+    
+    void initialize_value(const Boolean& x)
+    {
+        const size_t n = offsetof(Self, initialize);
+        GetField<Boolean>(n).Set(x);
+    }
+    
+    bool initialize_exists() const
+    {
+        const size_t n = offsetof(Self, initialize);
+        return GetField<Boolean>(n).exists ? true : false;
+    }
+    
+    void initialize_clear()
+    {
+        const size_t n = offsetof(Self, initialize);
+        GetField<Boolean>(n).Clear();
     }
 };
 
