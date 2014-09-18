@@ -197,12 +197,12 @@ bool SCX_LogConfigurator::Save()
 bool SCX_LogConfigurator::LogRotate()
 {
 #if !defined(SCX_STACK_ONLY) 
-    SCXSystemLib::ProcessEnumeration::SendSignalByName( L"scxcimprovagt", SIGCONT);
+    SCXSystemLib::ProcessEnumeration::SendSignalByName( L"omiagent", SIGCONT);
 #else
 #if defined(linux)
-    system("ps -A -o pid,comm | awk '$2~/scxcimprovagt/{print $1}' | xargs -r kill -s SIGCONT");
+    system("ps -A -o pid,comm | awk '$2~/omiagent/{print $1}' | xargs -r kill -s SIGCONT");
 #else
-    system("ps -A -o pid,comm | awk '$2~/scxcimprovagt/{print $1}' | xargs kill -s SIGCONT");
+    system("ps -A -o pid,comm | awk '$2~/omiagent/{print $1}' | xargs kill -s SIGCONT");
 #endif
 #endif
     return true;
