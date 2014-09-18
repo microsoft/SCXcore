@@ -488,56 +488,71 @@ namespace SCXCore {
         const std::wstring& filename,
         const std::wstring& qid,
         const std::vector<SCXRegexWithIndex>& regexps,
+        int initializeFlag,
         std::vector<std::wstring>& matchedLines)
     {
         LogFileStreamPositioner positioner(filename, qid, m_persistMedia);
         SCXHandle<std::wfstream> logfile = positioner.GetStream();
 
         bool partialRead = false;
-        unsigned int rows = 0;
-        unsigned int matched_rows = 0;
 
-        // Read rows from log file
-        while (matched_rows < cMaxMatchedRows && SCXStream::IsGood(*logfile))
+        if ( !initializeFlag )
         {
-            wstring line;
-            SCXStream::NLF nlf;
-                    
-            rows++;
-                    
-            SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Reading row: ", rows));
-                    
-            SCXStream::ReadLine(*logfile, line, nlf);
-                    
-            // Check line against regular expressions and add to result if any matches
-            std::wstring res(L"");
-            int matches = 0;
+            unsigned int rows = 0;
+            unsigned int matched_rows = 0;
 
-            for (size_t j=0; j<regexps.size(); j++)
+            // Read rows from log file
+            while (matched_rows < cMaxMatchedRows && SCXStream::IsGood(*logfile))
             {
-                if (regexps[j].regex->IsMatch(line))
+                wstring line;
+                SCXStream::NLF nlf;
+
+                rows++;
+
+                SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Reading row: ", rows));
+
+                SCXStream::ReadLine(*logfile, line, nlf);
+
+                // Check line against regular expressions and add to result if any matches
+                std::wstring res(L"");
+                int matches = 0;
+
+                for (size_t j=0; j<regexps.size(); j++)
                 {
-                    SCX_LOGHYSTERICAL(m_log, StrAppend(StrAppend(StrAppend(L"LogFileProvider DoInvokeMethod - row: ", rows), 
-                                                                 L" Matched regexp: "), regexps[j].index));
-                    matches++;
-                    res = StrAppend(StrAppend(res, res.length()>0?L" ":L""), regexps[j].index);
+                    if (regexps[j].regex->IsMatch(line))
+                    {
+                        SCX_LOGHYSTERICAL(m_log, StrAppend(StrAppend(StrAppend(L"LogFileProvider DoInvokeMethod - row: ", rows), 
+                                                                     L" Matched regexp: "), regexps[j].index));
+                        matches++;
+                        res = StrAppend(StrAppend(res, res.length()>0?L" ":L""), regexps[j].index);
+                    }
+                }
+
+                if (matches > 0)
+                {
+                    matchedLines.push_back(StrAppend(StrAppend(res, L";"), line));
+                    matched_rows++;
                 }
             }
-                    
-            if (matches > 0)
+
+            // Check if we read all rows, if not add special row to beginning of result
+            if (matched_rows >= cMaxMatchedRows && SCXStream::IsGood(*logfile))
             {
-                matchedLines.push_back(StrAppend(StrAppend(res, L";"), line));
-                matched_rows++;
+//TODO: logging policy not set so by default may write into stdout and therefore interfere with the normal operation.
+//              SCX_LOGINFO(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Breaking after matching max number of rows : ", cMaxMatchedRows));
+
+                partialRead = true;
             }
         }
-
-        // Check if we read all rows, if not add special row to beginning of result
-        if (matched_rows >= cMaxMatchedRows && SCXStream::IsGood(*logfile))
+        else
         {
-//TODO: logging policy not set so by default may write into stdout and therefore interfere with the normal operation.
-//            SCX_LOGINFO(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Breaking after matching max number of rows : ", cMaxMatchedRows));
+            // To support maintenance mode in Operations Manager, when the
+            // initializeFlag is true, then we:
+            //   1. Don't actually read any data from a logfile,
+            //   2. Set the stream to EOF (ignore errors during maintenance mode),
+            //   3. Persist the state with the new position of the logfile
 
-            partialRead = true;
+            logfile->seekg(0, std::ios_base::end);
         }
 
         positioner.PersistState();

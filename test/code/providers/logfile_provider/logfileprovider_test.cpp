@@ -88,12 +88,14 @@ class LogFileProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testLogFileStreamPositionerFileDisappearsAndReappears );
     CPPUNIT_TEST( testDoInvokeMethod );
     CPPUNIT_TEST( testDoInvokeMethodWithNonexistantLogfile );
+    CPPUNIT_TEST( testDoInvokeMethodWithInitializeFlagSet );
     CPPUNIT_TEST( testLocale8859_1 );
 
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordPersistable, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordUnpersist, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethod, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodWithNonexistantLogfile, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodWithInitializeFlagSet, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testLocale8859_1, SLOW);
     CPPUNIT_TEST_SUITE_END();
 
@@ -774,6 +776,77 @@ public:
         CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
             GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
     }
+
+    void testDoInvokeMethodWithInitializeFlagSet()
+    {
+        // The initializeFlag is optional; prior tests verify if it's NOT set.
+        // Here, we test if it IS set and insure proper behavior.
+
+        std::wstring errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+
+        // Create a log file with one row in it.
+        SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
+        *stream << L"This is the first row." << std::endl;
+
+        mi::SCX_LogFile_GetMatchedRows_Class param;
+        param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        param.regexps_value(regexps);
+        param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        param.initialize_value(false);
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should return no status rows (treated as new file)
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the second row." << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get 1 new row
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the third row." << std::endl;
+
+        context.Reset();
+        param.initialize_value(true); // Set to reinitialize state of the file
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should not get any new rows due to initialize flag
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Finally, add one last row to the log file.
+        *stream << L"This is the forth row" << std::endl;
+
+        context.Reset();
+        param.initialize_value(false);
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should now get 1 new row (first time read since we initialized)
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+    }
+
 
     void testLocale8859_1()
     {

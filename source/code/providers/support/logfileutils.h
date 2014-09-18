@@ -91,6 +91,7 @@ namespace SCXCore
             const std::wstring& filename,
             const std::wstring& qid,
             const std::vector<SCXCoreLib::SCXRegexWithIndex>& regexps,
+            int initializeFlag,
             std::vector<std::wstring>& matchedLines);
 
         // Public solely for unit tests ...

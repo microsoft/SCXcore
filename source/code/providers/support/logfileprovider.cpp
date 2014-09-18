@@ -111,6 +111,7 @@ namespace SCXCore {
         \param[in]     qid               QID used for state file handling
         \param[in]     regexps           List of regular expressions to look for
         \param[in]     performElevation  Perform elevation when running the command
+        \param[in]     initializeFlag    Behave as if the log file is brand new
         \param[out]    matchedLines      Resulting matched lines, if any, from log file
 
         \returns       Boolean flag to indicate if partial matches were returned
@@ -120,6 +121,7 @@ namespace SCXCore {
         const std::wstring& qid,
         const std::vector<SCXRegexWithIndex>& regexps,
         bool fPerformElevation,
+        int initializeFlag,
         std::vector<std::wstring>& matchedLines)
     {
         SCX_LOGTRACE(m_log, L"SCXLogFileProvider InvokeLogFileReader");
@@ -141,6 +143,7 @@ namespace SCXCore {
         send.Write(filename);
         send.Write(qid);
         send.Write(regexps);
+        send.Write(initializeFlag);
         send.Flush();
 
         // Test to see if we're running under testrunner.  This makes it easy

@@ -39,6 +39,7 @@ namespace SCXCore
                                  const std::wstring& qid,
                                  const std::vector<SCXCoreLib::SCXRegexWithIndex>& regexps,
                                  bool fPerformElevation,
+                                 int initializeFlag,
                                  std::vector<std::wstring>& matchedLines);
 
     private:

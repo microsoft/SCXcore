@@ -12720,6 +12720,20 @@ static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_elevationType_param 
     offsetof(SCX_LogFile_GetMatchedRows, elevationType), /* offset */
 };
 
+/* parameter SCX_LogFile.GetMatchedRows(): initialize */
+static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_initialize_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x0069650A, /* code */
+    MI_T("initialize"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_BOOLEAN, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_GetMatchedRows, initialize), /* offset */
+};
+
 /* parameter SCX_LogFile.GetMatchedRows(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_MIReturn_param =
 {
@@ -12742,6 +12756,7 @@ static MI_ParameterDecl MI_CONST* MI_CONST SCX_LogFile_GetMatchedRows_params[] =
     &SCX_LogFile_GetMatchedRows_qid_param,
     &SCX_LogFile_GetMatchedRows_rows_param,
     &SCX_LogFile_GetMatchedRows_elevationType_param,
+    &SCX_LogFile_GetMatchedRows_initialize_param,
 };
 
 /* method SCX_LogFile.GetMatchedRows() */
@@ -16323,6 +16338,70 @@ static MI_CONST MI_PropertyDecl SCX_UnixProcess_Description_prop =
     &SCX_UnixProcess_Description_value,
 };
 
+static MI_CONST MI_Char* SCX_UnixProcess_PercentBusyTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_UnixProcess_PercentBusyTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_UnixProcess_PercentBusyTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_UnixProcess_PercentBusyTime_quals[] =
+{
+    &SCX_UnixProcess_PercentBusyTime_Units_qual,
+};
+
+/* property SCX_UnixProcess.PercentBusyTime */
+static MI_CONST MI_PropertyDecl SCX_UnixProcess_PercentBusyTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0070650F, /* code */
+    MI_T("PercentBusyTime"), /* name */
+    SCX_UnixProcess_PercentBusyTime_quals, /* qualifiers */
+    MI_COUNT(SCX_UnixProcess_PercentBusyTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_UnixProcess, PercentBusyTime), /* offset */
+    MI_T("SCX_UnixProcess"), /* origin */
+    MI_T("SCX_UnixProcess"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_UnixProcess_UsedMemory_Units_qual_value = MI_T("KiloBytes");
+
+static MI_CONST MI_Qualifier SCX_UnixProcess_UsedMemory_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_UnixProcess_UsedMemory_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_UnixProcess_UsedMemory_quals[] =
+{
+    &SCX_UnixProcess_UsedMemory_Units_qual,
+};
+
+/* property SCX_UnixProcess.UsedMemory */
+static MI_CONST MI_PropertyDecl SCX_UnixProcess_UsedMemory_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0075790A, /* code */
+    MI_T("UsedMemory"), /* name */
+    SCX_UnixProcess_UsedMemory_quals, /* qualifiers */
+    MI_COUNT(SCX_UnixProcess_UsedMemory_quals), /* numQualifiers */
+    MI_UINT64, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_UnixProcess, UsedMemory), /* offset */
+    MI_T("SCX_UnixProcess"), /* origin */
+    MI_T("SCX_UnixProcess"), /* propagator */
+    NULL,
+};
+
 static MI_PropertyDecl MI_CONST* MI_CONST SCX_UnixProcess_props[] =
 {
     &CIM_ManagedElement_InstanceID_prop,
@@ -16369,6 +16448,8 @@ static MI_PropertyDecl MI_CONST* MI_CONST SCX_UnixProcess_props[] =
     &CIM_UnixProcess_Parameters_prop,
     &CIM_UnixProcess_ProcessNiceValue_prop,
     &CIM_UnixProcess_ProcessWaitingForEvent_prop,
+    &SCX_UnixProcess_PercentBusyTime_prop,
+    &SCX_UnixProcess_UsedMemory_prop,
 };
 
 /* parameter SCX_UnixProcess.RequestStateChange(): RequestedState */

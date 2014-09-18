@@ -83,6 +83,8 @@ typedef struct _SCX_UnixProcess /* extends CIM_UnixProcess */
     MI_ConstUint32Field ProcessNiceValue;
     MI_ConstStringField ProcessWaitingForEvent;
     /* SCX_UnixProcess properties */
+    MI_ConstUint8Field PercentBusyTime;
+    MI_ConstUint64Field UsedMemory;
 }
 SCX_UnixProcess;
 
@@ -1262,6 +1264,38 @@ MI_INLINE MI_Result MI_CALL SCX_UnixProcess_Clear_ProcessWaitingForEvent(
         43);
 }
 
+MI_INLINE MI_Result MI_CALL SCX_UnixProcess_Set_PercentBusyTime(
+    SCX_UnixProcess* self,
+    MI_Uint8 x)
+{
+    ((MI_Uint8Field*)&self->PercentBusyTime)->value = x;
+    ((MI_Uint8Field*)&self->PercentBusyTime)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_UnixProcess_Clear_PercentBusyTime(
+    SCX_UnixProcess* self)
+{
+    memset((void*)&self->PercentBusyTime, 0, sizeof(self->PercentBusyTime));
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_UnixProcess_Set_UsedMemory(
+    SCX_UnixProcess* self,
+    MI_Uint64 x)
+{
+    ((MI_Uint64Field*)&self->UsedMemory)->value = x;
+    ((MI_Uint64Field*)&self->UsedMemory)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_UnixProcess_Clear_UsedMemory(
+    SCX_UnixProcess* self)
+{
+    memset((void*)&self->UsedMemory, 0, sizeof(self->UsedMemory));
+    return MI_RESULT_OK;
+}
+
 /*
 **==============================================================================
 **
@@ -1708,6 +1742,85 @@ public:
         return &SCX_UnixProcess_rtti;
     }
 
+    //
+    // SCX_UnixProcess_Class.PercentBusyTime
+    //
+    
+    const Field<Uint8>& PercentBusyTime() const
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        return GetField<Uint8>(n);
+    }
+    
+    void PercentBusyTime(const Field<Uint8>& x)
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        GetField<Uint8>(n) = x;
+    }
+    
+    const Uint8& PercentBusyTime_value() const
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        return GetField<Uint8>(n).value;
+    }
+    
+    void PercentBusyTime_value(const Uint8& x)
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        GetField<Uint8>(n).Set(x);
+    }
+    
+    bool PercentBusyTime_exists() const
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        return GetField<Uint8>(n).exists ? true : false;
+    }
+    
+    void PercentBusyTime_clear()
+    {
+        const size_t n = offsetof(Self, PercentBusyTime);
+        GetField<Uint8>(n).Clear();
+    }
+
+    //
+    // SCX_UnixProcess_Class.UsedMemory
+    //
+    
+    const Field<Uint64>& UsedMemory() const
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        return GetField<Uint64>(n);
+    }
+    
+    void UsedMemory(const Field<Uint64>& x)
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        GetField<Uint64>(n) = x;
+    }
+    
+    const Uint64& UsedMemory_value() const
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        return GetField<Uint64>(n).value;
+    }
+    
+    void UsedMemory_value(const Uint64& x)
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        GetField<Uint64>(n).Set(x);
+    }
+    
+    bool UsedMemory_exists() const
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        return GetField<Uint64>(n).exists ? true : false;
+    }
+    
+    void UsedMemory_clear()
+    {
+        const size_t n = offsetof(Self, UsedMemory);
+        GetField<Uint64>(n).Clear();
+    }
 };
 
 typedef Array<SCX_UnixProcess_Class> SCX_UnixProcess_ClassA;
