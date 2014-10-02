@@ -238,12 +238,19 @@ class SCX_FileSystem : CIM_FileSystem {
 class SCX_LogFile : CIM_LogicalFile {
 
    [    Description ( 
-       "Get rows from a log file that matches any of the supplied regular expressions" ) ,
+           "Get rows from a log file that matches any of the supplied regular expressions" ) ,
         Static(true)
         ]
         uint32 GetMatchedRows([IN] string filename, [IN] string regexps[], [IN] string qid,
                               [OUT, ArrayType("Ordered")] string rows[],
-                              [IN] string elevationType, [IN] boolean initialize);
+                              [IN] string elevationType);
+
+   [    Description ( 
+           "Reset the state of specified state file for the current user" ) ,
+        Static(true)
+        ]
+        uint32 ResetStateFile([IN] string filename, [IN] string qid, [IN] boolean resetOnRead,
+                              [IN] string elevationType);
 };
 
 

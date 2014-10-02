@@ -40,6 +40,8 @@ namespace SCXCore
                                   const std::wstring& qid,
                                   SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> persistMedia = SCXCoreLib::GetPersistMedia());
             const SCXCoreLib::SCXFilePath& GetLogFile() const;
+            bool GetResetOnRead() const;
+            void SetResetOnRead(bool fSet);
             std::streamoff GetPos() const;
             void SetPos(std::streamoff pos);
             scxulong GetStatStIno() const;
@@ -54,6 +56,8 @@ namespace SCXCore
         private:
             SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> m_PersistMedia; //!< Handle to persistence framework.
             const SCXCoreLib::SCXFilePath m_LogFile; //!< Log file path.
+            std::wstring m_Qid;      //!< Query ID
+            bool m_ResetOnRead;      //!< ResetOnRead flag
             std::wstring m_IdString; //!< Persistence id string created from file name and qid.
             
             std::streamoff m_Pos;   //!< file end pos
@@ -72,6 +76,7 @@ namespace SCXCore
                                     const std::wstring& qid,
                                     SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> persistMedia = SCXCoreLib::GetPersistMedia());
             SCXCoreLib::SCXHandle<std::wfstream> GetStream();
+            void SetResetOnRead(bool fSet) { m_Record->SetResetOnRead(fSet); }
             void PersistState();
 
         private:
@@ -91,8 +96,14 @@ namespace SCXCore
             const std::wstring& filename,
             const std::wstring& qid,
             const std::vector<SCXCoreLib::SCXRegexWithIndex>& regexps,
-            int initializeFlag,
             std::vector<std::wstring>& matchedLines);
+
+        int ResetLogFileState(
+            const std::wstring& filename,
+            const std::wstring& qid,
+            bool resetOnRead);
+
+        int ResetAllLogFileStates(const std::wstring& path, bool resetOnRead);
 
         // Public solely for unit tests ...
         void SetPersistMedia(SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> persistMedia);

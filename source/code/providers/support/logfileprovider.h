@@ -39,8 +39,12 @@ namespace SCXCore
                                  const std::wstring& qid,
                                  const std::vector<SCXCoreLib::SCXRegexWithIndex>& regexps,
                                  bool fPerformElevation,
-                                 int initializeFlag,
                                  std::vector<std::wstring>& matchedLines);
+
+        int InvokeResetStateFile(const std::wstring& filename,
+                                 const std::wstring& qid,
+                                 int resetOnRead,
+                                 bool fPerformElevation);
 
     private:
         SCXCoreLib::SCXHandle<LogFileReader> m_pLogFileReader;

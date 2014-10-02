@@ -12720,20 +12720,6 @@ static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_elevationType_param 
     offsetof(SCX_LogFile_GetMatchedRows, elevationType), /* offset */
 };
 
-/* parameter SCX_LogFile.GetMatchedRows(): initialize */
-static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_initialize_param =
-{
-    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
-    0x0069650A, /* code */
-    MI_T("initialize"), /* name */
-    NULL, /* qualifiers */
-    0, /* numQualifiers */
-    MI_BOOLEAN, /* type */
-    NULL, /* className */
-    0, /* subscript */
-    offsetof(SCX_LogFile_GetMatchedRows, initialize), /* offset */
-};
-
 /* parameter SCX_LogFile.GetMatchedRows(): MIReturn */
 static MI_CONST MI_ParameterDecl SCX_LogFile_GetMatchedRows_MIReturn_param =
 {
@@ -12756,7 +12742,6 @@ static MI_ParameterDecl MI_CONST* MI_CONST SCX_LogFile_GetMatchedRows_params[] =
     &SCX_LogFile_GetMatchedRows_qid_param,
     &SCX_LogFile_GetMatchedRows_rows_param,
     &SCX_LogFile_GetMatchedRows_elevationType_param,
-    &SCX_LogFile_GetMatchedRows_initialize_param,
 };
 
 /* method SCX_LogFile.GetMatchedRows() */
@@ -12777,9 +12762,107 @@ MI_CONST MI_MethodDecl SCX_LogFile_GetMatchedRows_rtti =
     (MI_ProviderFT_Invoke)SCX_LogFile_Invoke_GetMatchedRows, /* method */
 };
 
+/* parameter SCX_LogFile.ResetStateFile(): filename */
+static MI_CONST MI_ParameterDecl SCX_LogFile_ResetStateFile_filename_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x00666508, /* code */
+    MI_T("filename"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_ResetStateFile, filename), /* offset */
+};
+
+/* parameter SCX_LogFile.ResetStateFile(): qid */
+static MI_CONST MI_ParameterDecl SCX_LogFile_ResetStateFile_qid_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x00716403, /* code */
+    MI_T("qid"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_ResetStateFile, qid), /* offset */
+};
+
+/* parameter SCX_LogFile.ResetStateFile(): resetOnRead */
+static MI_CONST MI_ParameterDecl SCX_LogFile_ResetStateFile_resetOnRead_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x0072640B, /* code */
+    MI_T("resetOnRead"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_BOOLEAN, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_ResetStateFile, resetOnRead), /* offset */
+};
+
+/* parameter SCX_LogFile.ResetStateFile(): elevationType */
+static MI_CONST MI_ParameterDecl SCX_LogFile_ResetStateFile_elevationType_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_IN, /* flags */
+    0x0065650D, /* code */
+    MI_T("elevationType"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_ResetStateFile, elevationType), /* offset */
+};
+
+/* parameter SCX_LogFile.ResetStateFile(): MIReturn */
+static MI_CONST MI_ParameterDecl SCX_LogFile_ResetStateFile_MIReturn_param =
+{
+    MI_FLAG_PARAMETER|MI_FLAG_OUT, /* flags */
+    0x006D6E08, /* code */
+    MI_T("MIReturn"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_UINT32, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_LogFile_ResetStateFile, MIReturn), /* offset */
+};
+
+static MI_ParameterDecl MI_CONST* MI_CONST SCX_LogFile_ResetStateFile_params[] =
+{
+    &SCX_LogFile_ResetStateFile_MIReturn_param,
+    &SCX_LogFile_ResetStateFile_filename_param,
+    &SCX_LogFile_ResetStateFile_qid_param,
+    &SCX_LogFile_ResetStateFile_resetOnRead_param,
+    &SCX_LogFile_ResetStateFile_elevationType_param,
+};
+
+/* method SCX_LogFile.ResetStateFile() */
+MI_CONST MI_MethodDecl SCX_LogFile_ResetStateFile_rtti =
+{
+    MI_FLAG_METHOD|MI_FLAG_STATIC, /* flags */
+    0x0072650E, /* code */
+    MI_T("ResetStateFile"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    SCX_LogFile_ResetStateFile_params, /* parameters */
+    MI_COUNT(SCX_LogFile_ResetStateFile_params), /* numParameters */
+    sizeof(SCX_LogFile_ResetStateFile), /* size */
+    MI_UINT32, /* returnType */
+    MI_T("SCX_LogFile"), /* origin */
+    MI_T("SCX_LogFile"), /* propagator */
+    &schemaDecl, /* schema */
+    (MI_ProviderFT_Invoke)SCX_LogFile_Invoke_ResetStateFile, /* method */
+};
+
 static MI_MethodDecl MI_CONST* MI_CONST SCX_LogFile_meths[] =
 {
     &SCX_LogFile_GetMatchedRows_rtti,
+    &SCX_LogFile_ResetStateFile_rtti,
 };
 
 static MI_CONST MI_ProviderFT SCX_LogFile_funcs =

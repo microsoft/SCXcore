@@ -1505,6 +1505,23 @@ MI_EXTERN_C void MI_CALL SCX_LogFile_Invoke_GetMatchedRows(
     cxxSelf->Invoke_GetMatchedRows(cxxContext, nameSpace, instance, param);
 }
 
+MI_EXTERN_C void MI_CALL SCX_LogFile_Invoke_ResetStateFile(
+    SCX_LogFile_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const MI_Char* methodName,
+    const SCX_LogFile* instanceName,
+    const SCX_LogFile_ResetStateFile* in)
+{
+    SCX_LogFile_Class_Provider* cxxSelf =((SCX_LogFile_Class_Provider*)self);
+    SCX_LogFile_Class instance(instanceName, false);
+    Context  cxxContext(context);
+    SCX_LogFile_ResetStateFile_Class param(in, false);
+
+    cxxSelf->Invoke_ResetStateFile(cxxContext, nameSpace, instance, param);
+}
+
 MI_EXTERN_C void MI_CALL SCX_MemoryStatisticalInformation_Load(
     SCX_MemoryStatisticalInformation_Self** self,
     MI_Module_Self* selfModule,

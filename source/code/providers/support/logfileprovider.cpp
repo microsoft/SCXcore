@@ -111,7 +111,6 @@ namespace SCXCore {
         \param[in]     qid               QID used for state file handling
         \param[in]     regexps           List of regular expressions to look for
         \param[in]     performElevation  Perform elevation when running the command
-        \param[in]     initializeFlag    Behave as if the log file is brand new
         \param[out]    matchedLines      Resulting matched lines, if any, from log file
 
         \returns       Boolean flag to indicate if partial matches were returned
@@ -121,7 +120,6 @@ namespace SCXCore {
         const std::wstring& qid,
         const std::vector<SCXRegexWithIndex>& regexps,
         bool fPerformElevation,
-        int initializeFlag,
         std::vector<std::wstring>& matchedLines)
     {
         SCX_LOGTRACE(m_log, L"SCXLogFileProvider InvokeLogFileReader");
@@ -143,7 +141,6 @@ namespace SCXCore {
         send.Write(filename);
         send.Write(qid);
         send.Write(regexps);
-        send.Write(initializeFlag);
         send.Flush();
 
         // Test to see if we're running under testrunner.  This makes it easy
@@ -224,6 +221,111 @@ namespace SCXCore {
         SCX_LOGTRACE(m_log, StrAppend(L"SCXLogFileProvider InvokeLogFileReader - Returning: ", (0 != wasPartialRead)));
 
         return (0 != wasPartialRead);
+    }
+
+    /*----------------------------------------------------------------------------*/
+    /**
+        Invoke the logfilereader CLI (command line) program, with elevation if needed,
+        to reset a specific state file.
+
+        \param[in]     filename          Filename to scan for matches
+        \param[in]     qid               QID used for state file handling
+        \param[in]     resetOnRead       Rather than reset now, reset on next logfile read
+        \param[in]     performElevation  Perform elevation when running the command
+
+        \returns       Result status (if operation was successful or not)
+    */
+    int LogFileProvider::InvokeResetStateFile(
+        const std::wstring& filename,
+        const std::wstring& qid,
+        int resetOnRead,
+        bool fPerformElevation)
+    {
+        SCX_LOGTRACE(m_log, L"SCXLogFileProvider InvokeResetStateFile");
+
+        // Marshal our data to send along to the subprocess
+
+        std::stringstream processInput;
+        std::stringstream processOutput;
+        std::stringstream processError;
+
+        SCX_LOGTRACE(m_log, L"SCXLogFileProvider InvokeResetStateFile - Marshaling");
+
+        Marshal send(processInput);
+        send.Write(filename);
+        send.Write(qid);
+        send.Write(resetOnRead);
+        send.Flush();
+
+        // Test to see if we're running under testrunner.  This makes it easy
+        // to know where to launch our test program, allowing unit tests to
+        // test all the way through to the CLI.
+
+        wstring programName;
+        char *testrunFlag = getenv("SCX_TESTRUN_ACTIVE");
+        if (NULL != testrunFlag)
+        {
+            programName = L"testfiles/scxlogfilereader-test -t -r";
+        }
+        else
+        {
+            programName = L"/opt/microsoft/scx/bin/scxlogfilereader -r";
+        }
+
+        // Elevate the command if that's called for
+        SCXSystemLib::SystemInfo si;
+
+        if (fPerformElevation)
+        {
+            programName = si.GetElevatedCommand(programName);
+        }
+
+        // Call the log file reader (CLI) program
+
+        SCX_LOGTRACE(m_log,
+                     StrAppend(L"SCXLogFileProvider InvokeResetStateFile - Running ",
+                               programName));
+
+        int returnCode = -1;
+        try
+        {
+            returnCode = SCXProcess::Run(
+                programName,
+                processInput, processOutput, processError);
+
+            SCX_LOGTRACE(m_log,
+                         StrAppend(L"SCXLogFileProvider InvokeResetStateFile - Result ", returnCode));
+
+            switch (returnCode)
+            {
+                case 0:
+                    // Normal exit code
+                    break;
+                case ENOENT:
+                    // Log file didn't exist - scxlogfilereader logged message about it
+                    // Nothing to unmarshal at this point ...
+                    break;
+                default:
+                    wstringstream errorMsg;
+                    errorMsg << L"Unexpected return code running '"
+                             << programName
+                             << L"': "
+                             << returnCode;
+
+                    throw SCXInternalErrorException(errorMsg.str(), SCXSRCLOCATION);
+            }
+        }
+        catch (SCXCoreLib::SCXException& e)
+        {
+            SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider InvokeResetStateFile - Exception: ", e.What()));
+            throw;
+        }
+
+        // No unmarshalling to do ...
+
+        SCX_LOGTRACE(m_log, StrAppend(L"SCXLogFileProvider InvokeResetStateFile - Returning: ", returnCode));
+
+        return returnCode;
     }
 
     LogFileProvider g_LogFileProvider;
