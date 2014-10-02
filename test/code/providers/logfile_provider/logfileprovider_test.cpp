@@ -16,6 +16,7 @@
 
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/scxfile.h>
+#include <scxcorelib/scxprocess.h>
 #include <scxcorelib/stringaid.h>
 #include "source/code/scxcorelib/util/persist/scxfilepersistmedia.h"
 
@@ -88,14 +89,20 @@ class LogFileProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testLogFileStreamPositionerFileDisappearsAndReappears );
     CPPUNIT_TEST( testDoInvokeMethod );
     CPPUNIT_TEST( testDoInvokeMethodWithNonexistantLogfile );
-    CPPUNIT_TEST( testDoInvokeMethodWithInitializeFlagSet );
+    CPPUNIT_TEST( testInvokeResetStateFile );
+    CPPUNIT_TEST( testInvokeResetStateFileWithResetFlag );
+    CPPUNIT_TEST( testInvokeResetAllStateFiles );
+    CPPUNIT_TEST( testInvokeResetAllStateFilesWithResetFlag );
     CPPUNIT_TEST( testLocale8859_1 );
 
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordPersistable, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testLogFilePositionRecordUnpersist, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethod, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodWithNonexistantLogfile, SLOW);
-    SCXUNIT_TEST_ATTRIBUTE(testDoInvokeMethodWithInitializeFlagSet, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testInvokeResetStateFile, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testInvokeResetStateFileWithResetFlag, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testInvokeResetAllStateFiles, SLOW);
+    SCXUNIT_TEST_ATTRIBUTE(testInvokeResetAllStateFilesWithResetFlag, SLOW);
     SCXUNIT_TEST_ATTRIBUTE(testLocale8859_1, SLOW);
     CPPUNIT_TEST_SUITE_END();
 
@@ -777,10 +784,179 @@ public:
             GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
     }
 
-    void testDoInvokeMethodWithInitializeFlagSet()
+    void testInvokeResetStateFile()
     {
-        // The initializeFlag is optional; prior tests verify if it's NOT set.
-        // Here, we test if it IS set and insure proper behavior.
+        std::wstring errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+
+        // Create a log file with one row in it.
+        SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
+        *stream << L"This is the first row." << std::endl;
+
+        mi::SCX_LogFile_GetMatchedRows_Class gmr_param;
+        gmr_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        gmr_param.regexps_value(regexps);
+        gmr_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should return no status rows (treated as new file)
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the second row." << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get 1 new row
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the third row." << std::endl;
+
+        // Invoke ResetStateFile (without resetOnRead)
+        mi::SCX_LogFile_ResetStateFile_Class rsf_param;
+        rsf_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        rsf_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_ResetStateFile(context, NULL, instanceName, rsf_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(0u, context.Size());
+
+        // Finally, add one last row to the log file.
+        *stream << L"This is the forth row" << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should now get 1 new row (first time read since we initialized)
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+                                                                "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+                                     1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+                                     GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+    }
+
+    void testInvokeResetStateFileWithResetFlag()
+    {
+        std::wstring errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+
+        // Create a log file with one row in it.
+        SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
+        *stream << L"This is the first row." << std::endl;
+
+        mi::SCX_LogFile_GetMatchedRows_Class gmr_param;
+        gmr_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        gmr_param.regexps_value(regexps);
+        gmr_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should return no status rows (treated as new file)
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the second row." << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get 1 new row
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the third row." << std::endl;
+
+        // Invoke ResetStateFile (with resetOnRead)
+        mi::SCX_LogFile_ResetStateFile_Class rsf_param;
+        rsf_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        rsf_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        rsf_param.resetOnRead_value(true);
+        context.Reset();
+        agent.Invoke_ResetStateFile(context, NULL, instanceName, rsf_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(0u, context.Size());
+
+        // Add another row to the log file.
+        *stream << L"This is the forth row" << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should not get any rows due to resetOnRead flag
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Finally, add one last row to the log file.
+        *stream << L"This is the fifth row" << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should now get 1 new row (first time read since we initialized)
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+                                                                "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+                                     1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+                                     GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+    }
+
+    void InvokeProcess_scxlogfilereader(const std::wstring parameters)
+    {
+        std::stringstream processInput;
+        std::stringstream processOutput;
+        std::stringstream processError;
+
+        // Test to see if we're running under testrunner.  This makes it easy
+        // to know where to launch our test program, allowing unit tests to
+        // test all the way through to the CLI.
+
+        std::wstring programName = L"testfiles/scxlogfilereader-test " + parameters;
+
+        int returnCode;
+        returnCode = SCXProcess::Run(
+            programName,
+            processInput, processOutput, processError);
+        CPPUNIT_ASSERT_EQUAL("", processOutput.str());
+        CPPUNIT_ASSERT_EQUAL("", processError.str());
+        CPPUNIT_ASSERT_EQUAL(0, returnCode);
+    }
+
+    void testInvokeResetAllStateFiles()
+    {
+        // ResetStateFile() resets a specific file while ResetAllStateFiles()
+        // resets all state files that exist in the user directory. We can have
+        // something super sophisticated that has multiple state files and
+        // validates each of them, but given the code implementation, verifying
+        // one state file is good enough, and test team will do further testing.
 
         std::wstring errMsg;
         TestableContext context;
@@ -794,13 +970,12 @@ public:
         SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
         *stream << L"This is the first row." << std::endl;
 
-        mi::SCX_LogFile_GetMatchedRows_Class param;
-        param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
-        param.regexps_value(regexps);
-        param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
-        param.initialize_value(false);
+        mi::SCX_LogFile_GetMatchedRows_Class gmr_param;
+        gmr_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        gmr_param.regexps_value(regexps);
+        gmr_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
         context.Reset();
-        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
         CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
         CPPUNIT_ASSERT_EQUAL(1u, context.Size());
         CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
@@ -812,7 +987,7 @@ public:
         *stream << L"This is the second row." << std::endl;
 
         context.Reset();
-        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
         CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
         CPPUNIT_ASSERT_EQUAL(1u, context.Size());
         CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
@@ -823,30 +998,95 @@ public:
         // Add another row to the log file.
         *stream << L"This is the third row." << std::endl;
 
-        context.Reset();
-        param.initialize_value(true); // Set to reinitialize state of the file
-        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
-        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
-        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
-        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
-        // Should not get any new rows due to initialize flag
-        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
-            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        // Reset the log files (without resetOnRead)
+        InvokeProcess_scxlogfilereader(L"-t -g 0");
 
         // Finally, add one last row to the log file.
         *stream << L"This is the forth row" << std::endl;
 
         context.Reset();
-        param.initialize_value(false);
-        agent.Invoke_GetMatchedRows(context, NULL, instanceName, param);
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
         CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
         CPPUNIT_ASSERT_EQUAL(1u, context.Size());
         CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
         // Should now get 1 new row (first time read since we initialized)
-        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
-            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+                                                                "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+                                     1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+                                     GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
     }
 
+    void testInvokeResetAllStateFilesWithResetFlag()
+    {
+        std::wstring errMsg;
+        TestableContext context;
+        mi::SCX_LogFile_Class instanceName;
+        mi::StringA regexps;
+        regexps.PushBack(".*");
+        mi::Module Module;
+        mi::SCX_LogFile_Class_Provider agent(&Module);
+
+        // Create a log file with one row in it.
+        SCXHandle<std::wfstream> stream = SCXFile::OpenWFstream(testlogfilename, std::ios_base::out);
+        *stream << L"This is the first row." << std::endl;
+
+        mi::SCX_LogFile_GetMatchedRows_Class gmr_param;
+        gmr_param.filename_value(SCXCoreLib::StrToMultibyte(testlogfilename).c_str());
+        gmr_param.regexps_value(regexps);
+        gmr_param.qid_value(SCXCoreLib::StrToMultibyte(testQID).c_str());
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // First call should return no status rows (treated as new file)
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the second row." << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should get 1 new row
+        CPPUNIT_ASSERT_EQUAL(1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Add another row to the log file.
+        *stream << L"This is the third row." << std::endl;
+
+        // Reset the log files (with resetOnRead)
+        InvokeProcess_scxlogfilereader(L"-t -g 1");
+
+        // Add another row to the log file.
+        *stream << L"This is the forth row" << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should not get any rows due to resetOnRead flag
+        CPPUNIT_ASSERT_EQUAL(0u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+            GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+
+        // Finally, add one last row to the log file.
+        *stream << L"This is the fifth row" << std::endl;
+
+        context.Reset();
+        agent.Invoke_GetMatchedRows(context, NULL, instanceName, gmr_param);
+        CPPUNIT_ASSERT_EQUAL(MI_RESULT_OK, context.GetResult());
+        CPPUNIT_ASSERT_EQUAL(1u, context.Size());
+        CPPUNIT_ASSERT_EQUAL(2u, context[0].GetNumberOfProperties());
+        // Should now get 1 new row (first time read since we initialized)
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(DumpProperty_MIStringA(context[0].GetProperty(
+                                                                "rows", CALL_LOCATION(errMsg)), CALL_LOCATION(errMsg)),
+                                     1u, context[0].GetProperty("rows", CALL_LOCATION(errMsg)).
+                                     GetValue_MIStringA(CALL_LOCATION(errMsg)).size());
+    }
 
     void testLocale8859_1()
     {

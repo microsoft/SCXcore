@@ -70,6 +70,12 @@ public:
         const SCX_LogFile_Class& instanceName,
         const SCX_LogFile_GetMatchedRows_Class& in);
 
+    void Invoke_ResetStateFile(
+        Context& context,
+        const String& nameSpace,
+        const SCX_LogFile_Class& instanceName,
+        const SCX_LogFile_ResetStateFile_Class& in);
+
 /* @MIGEN.END@ CAUTION: PLEASE DO NOT EDIT OR DELETE THIS LINE. */
 };
 

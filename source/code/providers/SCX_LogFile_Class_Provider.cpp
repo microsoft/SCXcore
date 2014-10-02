@@ -22,6 +22,7 @@
 #include "support/logfileprovider.h"
 #include "support/scxcimutils.h"
 
+#include <errno.h>
 #include <iostream>
 
 using namespace SCXCoreLib;
@@ -167,13 +168,11 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         //   regexps       : string array
         //   qid           : string
         //   elevationType : [Optional] string
-        //   initialize    : [Optional] boolean
 
         std::wstring filename = SCXCoreLib::StrFromMultibyte( in.filename_value().Str() );
         const StringA regexps_sa = in.regexps_value();
         std::wstring qid = SCXCoreLib::StrFromMultibyte( in.qid_value().Str() );
         std::wstring elevationType = SCXCoreLib::StrFromMultibyte( in.elevationType_value().Str() );
-        int initializeFlag = in.initialize_exists() && in.initialize_value();
 
         bool fPerformElevation = false;
         if ( elevationType.length() )
@@ -191,7 +190,6 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - qid = ", qid));
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - regexp count = ", regexps_sa.GetSize()));
         SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - elevate = ", elevationType));
-        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeMatchedRows - initialize = ", initializeFlag));
 
         // Extract and parse the regular expressions
 
@@ -234,7 +232,7 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
             // Call helper function to get the data
             std::vector<std::wstring> matchedLines;
             bool bWasPartialRead = SCXCore::g_LogFileProvider.InvokeLogFileReader(
-                filename, qid, regexps, fPerformElevation, initializeFlag, matchedLines);
+                filename, qid, regexps, fPerformElevation, matchedLines);
 
             // Add each match to the result property set
             //
@@ -266,6 +264,74 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         inst.MIReturn_value( static_cast<MI_Uint32> (returnData.size()) );
 
         context.Post(inst);
+        context.Post(MI_RESULT_OK);
+    }
+    SCX_PEX_END( L"SCX_LogFile_Class_Provider::Load", log );
+}
+
+void SCX_LogFile_Class_Provider::Invoke_ResetStateFile(
+    Context& context,
+    const String& nameSpace,
+    const SCX_LogFile_Class& instanceName,
+    const SCX_LogFile_ResetStateFile_Class& in)
+{
+    SCXCoreLib::SCXLogHandle log = SCXCore::g_LogFileProvider.GetLogHandle();
+
+    SCX_PEX_BEGIN
+    {
+        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::LogFileProvider::Lock"));
+
+        // Validate that we have mandatory arguments
+        if ( !in.filename_exists() || !in.qid_exists() )
+        {
+            context.Post(MI_RESULT_INVALID_PARAMETER);
+            return;
+        }
+
+        // Get the arguments:
+        //   filename      : string
+        //   qid           : string
+        //   resetOnRead:  : boolean
+        //   elevationType : [Optional] string
+
+        std::wstring filename = SCXCoreLib::StrFromMultibyte( in.filename_value().Str() );
+        std::wstring qid = SCXCoreLib::StrFromMultibyte( in.qid_value().Str() );
+        bool resetOnRead = in.resetOnRead_value();
+        std::wstring elevationType = SCXCoreLib::StrFromMultibyte( in.elevationType_value().Str() );
+
+        bool fPerformElevation = false;
+        if ( elevationType.length() )
+        {
+            if ( SCXCoreLib::StrToLower(elevationType) != L"sudo" )
+            {
+                context.Post(MI_RESULT_INVALID_PARAMETER);
+                return;
+            }
+
+            fPerformElevation = true;
+        }
+
+        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeResetStateFile - filename = ", filename));
+        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeResetStateFile - qid = ", qid));
+        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeResetStateFile - resetOnRead = ", resetOnRead));
+        SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"SCXLogFileProvider::InvokeResetStateFile - elevate = ", elevationType));
+
+        int returnStatus;
+        SCX_LogFile_ResetStateFile_Class inst;
+        try
+        {
+            // Call helper function to get the data
+            returnStatus = SCXCore::g_LogFileProvider.InvokeResetStateFile(
+                filename, qid, resetOnRead, fPerformElevation);
+        }
+        catch (SCXCoreLib::SCXFilePathNotFoundException& e)
+        {
+            SCX_LOGWARNING(log, SCXCoreLib::StrAppend(L"LogFileProvider InvokeResetStateFile - File not found: ", filename).append(e.What()));
+            returnStatus = ENOENT;
+        }
+
+        // Set the return value
+        inst.MIReturn_value( returnStatus );
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_LogFile_Class_Provider::Load", log );

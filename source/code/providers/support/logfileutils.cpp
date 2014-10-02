@@ -19,6 +19,7 @@
 #include <locale>
 
 #include <scxcorelib/scxexception.h>
+#include <scxcorelib/scxdirectoryinfo.h>
 #include <scxcorelib/scxlog.h>
 #include <scxcorelib/scxmath.h>
 #include <scxcorelib/scxuser.h>
@@ -58,6 +59,8 @@ namespace SCXCore {
         SCXCoreLib::SCXHandle<SCXCoreLib::SCXPersistMedia> persistMedia /* =  SCXCoreLib::GetPersistMedia()*/)
         : m_PersistMedia(persistMedia),
           m_LogFile(logfile),
+          m_Qid(qid),
+          m_ResetOnRead(false),
           m_Pos(0),
           m_StIno(0),
           m_StSize(0)
@@ -74,6 +77,26 @@ namespace SCXCore {
     const SCXFilePath& LogFileReader::LogFilePositionRecord::GetLogFile() const
     {
         return m_LogFile;
+    }
+
+    /*----------------------------------------------------------------------------*/
+    /**
+        Get current "ResetOnRead" flag for the logfile and qid.
+        \returns Current reset-on-read flag.
+    */
+    bool LogFileReader::LogFilePositionRecord::GetResetOnRead() const
+    {
+        return m_ResetOnRead;
+    }
+
+    /*----------------------------------------------------------------------------*/
+    /**
+        Set current "ResetOnRead" flag for the logfile and qid.
+        \param[in] fSet New reset-on-read flag.
+    */
+    void LogFileReader::LogFilePositionRecord::SetResetOnRead(bool fSet)
+    {
+        m_ResetOnRead = fSet;
     }
 
     /*----------------------------------------------------------------------------*/
@@ -146,7 +169,10 @@ namespace SCXCore {
         {
             m_StSize = static_cast<scxulong>(m_Pos);
         }
-        SCXHandle<SCXPersistDataWriter> pwriter = m_PersistMedia->CreateWriter(m_IdString, 0);
+        SCXHandle<SCXPersistDataWriter> pwriter = m_PersistMedia->CreateWriter(m_IdString, 1);
+        pwriter->WriteValue(L"Filename", SCXCoreLib::StrFrom(m_LogFile.Get()));
+        pwriter->WriteValue(L"QID", SCXCoreLib::StrFrom(m_Qid));
+        pwriter->WriteValue(L"Reset", SCXCoreLib::StrFrom(m_ResetOnRead));
         pwriter->WriteValue(L"Pos", SCXCoreLib::StrFrom(m_Pos));
         pwriter->WriteStartGroup(L"Stat");
         pwriter->WriteValue(L"StIno", SCXCoreLib::StrFrom(m_StIno));
@@ -165,10 +191,22 @@ namespace SCXCore {
         try
         {
             SCXHandle<SCXPersistDataReader> preader = m_PersistMedia->CreateReader(m_IdString);
-            if (0 != preader->GetVersion())
+            int version = preader->GetVersion();
+            if (0 != version && 1 != version)
             {
                 // Wrong version. Just ignore. It will be re-persisted later.
                 return false;
+            }
+
+            // Version 0 does not include Filename, QID, or Reset; Version 1 does
+            // By being version-aware, we always recover properly
+
+            if (version >= 1)
+            {
+                // We already have filename, but consume to avoid errors
+                preader->ConsumeValue(L"Filename");
+                m_Qid = preader->ConsumeValue(L"QID");
+                m_ResetOnRead = SCXCoreLib::StrToLong(preader->ConsumeValue(L"Reset"));
             }
 
             m_Pos = SCXCoreLib::StrToULong(preader->ConsumeValue(L"Pos"));
@@ -262,7 +300,7 @@ namespace SCXCore {
         m_Stream->seekg(0, std::ios_base::end);
         std::streamoff pos = m_Stream->tellg();
 
-        if ( ! m_Record->Recover())
+        if ( ! m_Record->Recover() )
         {
             // First time (i.e when no persisted data exists) we just go to end of file.
             SCX_LOGTRACE(m_log, L"OpenStream " + m_Record->GetLogFile().Get() + L" - First time - Seek to end");
@@ -270,7 +308,14 @@ namespace SCXCore {
         }
         else
         {
-            if ( ! IsFileNew())
+            if ( m_Record->GetResetOnRead() )
+            {
+                // We were requested to reset on the next read; now's the time
+                SCX_LOGTRACE(m_log, L"OpenStream " + m_Record->GetLogFile().Get() + L" - ResetOnRead - Seek to end");
+                SCX_LOGTRACE(m_log, StrAppend(L"LogFileProvider OpenStream last pos = ", pos));
+                m_Record->SetResetOnRead(false);
+            }
+            else if ( ! IsFileNew() )
             {
                 // File has not wrapped so we seek to last position.
                 SCX_LOGTRACE(m_log, StrAppend(L"LogFileProvider OpenLogFile " + m_Record->GetLogFile().Get()
@@ -488,7 +533,6 @@ namespace SCXCore {
         const std::wstring& filename,
         const std::wstring& qid,
         const std::vector<SCXRegexWithIndex>& regexps,
-        int initializeFlag,
         std::vector<std::wstring>& matchedLines)
     {
         LogFileStreamPositioner positioner(filename, qid, m_persistMedia);
@@ -496,67 +540,165 @@ namespace SCXCore {
 
         bool partialRead = false;
 
-        if ( !initializeFlag )
+        unsigned int rows = 0;
+        unsigned int matched_rows = 0;
+
+        // Read rows from log file
+        while (matched_rows < cMaxMatchedRows && SCXStream::IsGood(*logfile))
         {
-            unsigned int rows = 0;
-            unsigned int matched_rows = 0;
+            wstring line;
+            SCXStream::NLF nlf;
 
-            // Read rows from log file
-            while (matched_rows < cMaxMatchedRows && SCXStream::IsGood(*logfile))
+            rows++;
+
+            SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Reading row: ", rows));
+
+            SCXStream::ReadLine(*logfile, line, nlf);
+
+            // Check line against regular expressions and add to result if any matches
+            std::wstring res(L"");
+            int matches = 0;
+
+            for (size_t j=0; j<regexps.size(); j++)
             {
-                wstring line;
-                SCXStream::NLF nlf;
-
-                rows++;
-
-                SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Reading row: ", rows));
-
-                SCXStream::ReadLine(*logfile, line, nlf);
-
-                // Check line against regular expressions and add to result if any matches
-                std::wstring res(L"");
-                int matches = 0;
-
-                for (size_t j=0; j<regexps.size(); j++)
+                if (regexps[j].regex->IsMatch(line))
                 {
-                    if (regexps[j].regex->IsMatch(line))
-                    {
-                        SCX_LOGHYSTERICAL(m_log, StrAppend(StrAppend(StrAppend(L"LogFileProvider DoInvokeMethod - row: ", rows), 
-                                                                     L" Matched regexp: "), regexps[j].index));
-                        matches++;
-                        res = StrAppend(StrAppend(res, res.length()>0?L" ":L""), regexps[j].index);
-                    }
-                }
-
-                if (matches > 0)
-                {
-                    matchedLines.push_back(StrAppend(StrAppend(res, L";"), line));
-                    matched_rows++;
+                    SCX_LOGHYSTERICAL(m_log, StrAppend(StrAppend(StrAppend(L"LogFileProvider DoInvokeMethod - row: ", rows), 
+                                                                 L" Matched regexp: "), regexps[j].index));
+                    matches++;
+                    res = StrAppend(StrAppend(res, res.length()>0?L" ":L""), regexps[j].index);
                 }
             }
 
-            // Check if we read all rows, if not add special row to beginning of result
-            if (matched_rows >= cMaxMatchedRows && SCXStream::IsGood(*logfile))
+            if (matches > 0)
             {
-//TODO: logging policy not set so by default may write into stdout and therefore interfere with the normal operation.
-//              SCX_LOGINFO(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Breaking after matching max number of rows : ", cMaxMatchedRows));
-
-                partialRead = true;
+                matchedLines.push_back(StrAppend(StrAppend(res, L";"), line));
+                matched_rows++;
             }
         }
-        else
-        {
-            // To support maintenance mode in Operations Manager, when the
-            // initializeFlag is true, then we:
-            //   1. Don't actually read any data from a logfile,
-            //   2. Set the stream to EOF (ignore errors during maintenance mode),
-            //   3. Persist the state with the new position of the logfile
 
-            logfile->seekg(0, std::ios_base::end);
+        // Check if we read all rows, if not add special row to beginning of result
+        if (matched_rows >= cMaxMatchedRows && SCXStream::IsGood(*logfile))
+        {
+//TODO: logging policy not set so by default may write into stdout and therefore interfere with the normal operation.
+//          SCX_LOGINFO(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Breaking after matching max number of rows : ", cMaxMatchedRows));
+
+            partialRead = true;
         }
 
         positioner.PersistState();
         return partialRead;
+    }
+
+    int LogFileReader::ResetLogFileState(
+        const std::wstring& filename,
+        const std::wstring& qid,
+        bool resetOnRead)
+    {
+        LogFileStreamPositioner positioner(filename, qid, m_persistMedia);
+        SCXHandle<std::wfstream> logfile = positioner.GetStream();
+
+        if (false == resetOnRead)
+        {
+            logfile->seekg(0, std::ios_base::end);
+        }
+
+        positioner.SetResetOnRead(resetOnRead);
+        positioner.PersistState();
+        return 0;
+    }
+
+    int LogFileReader::ResetAllLogFileStates(const std::wstring& path, bool resetOnRead)
+    {
+        int exitStatus = 0;
+
+        SCX_LOGTRACE(m_log, L"LogFileProvider ResetAllLogFileStates - entry");
+
+        // Determine the directory where the state files live
+        SCXFilePath basePath(path);
+        SCXUser user;
+
+        if (!user.IsRoot())
+        {
+            basePath.AppendDirectory(user.GetName());
+        }
+
+        // Enumerate the state files
+        vector<SCXFilePath> items(SCXDirectory::GetFiles(basePath));
+
+        for (vector<SCXFilePath>::iterator i(items.begin()); i != items.end(); ++i)
+        {
+            const std::wstring stateFilename = i->GetFilename();
+            SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Considering file: ", stateFilename));
+
+            // If this isn't a state file, ignore it ...
+            if (! StrIsPrefix(stateFilename, L"LogFileProvider_", true))
+            {
+                continue;
+            }
+
+            SCX_LOGTRACE(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Found file: ", stateFilename));
+
+            SCXStream::NLFs nlfs;
+            vector<wstring> lines;
+            SCXFile::ReadAllLinesAsUTF8(*i, lines, nlfs);
+            wstring filename, qid;
+
+            SCX_LOGHYSTERICAL(m_log, L"LogFileProvider ResetAllLogFileStates - State file contents start");
+            for (vector<wstring>::iterator l(lines.begin()); l != lines.end(); ++l)
+            {
+                SCX_LOGHYSTERICAL(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Line: ", *l));
+
+                SCXRegex re(L"Value Name=\"(.*)\" Value=\"(.*)\"");
+                vector<wstring> matches;
+
+                if (re.ReturnMatch(*l, matches, 0))
+                {
+                    if ( L"Filename" == matches[1] )
+                    {
+                        filename = matches[2];
+                    }
+                    else if ( L"QID" == matches[1] )
+                    {
+                        qid = matches[2];
+                    }
+                }
+            }
+            SCX_LOGHYSTERICAL(m_log, L"LogFileProvider ResetAllLogFileStates - State file contents completed");
+
+            // If we found the data that we needed, then reset the log file
+            if (filename.length() && qid.length())
+            {
+                SCX_LOGTRACE(m_log, StrAppend(StrAppend(L"LogFileProvider ResetAllLogFileStates - Filename: ", filename).append(L", QID: "), qid));
+
+                try
+                {
+                    int localStatus = ResetLogFileState(filename, qid, resetOnRead);
+
+                    if (localStatus != 0)
+                    {
+                        exitStatus = localStatus;
+                    }
+                }
+                catch (SCXFilePathNotFoundException& e)
+                {
+                    SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - File not found: ", filename).append(e.What()));
+
+                    // Return a special exit code so we know that the log file wasn't found
+                    exitStatus = ENOENT;
+                }
+                catch (SCXException &e)
+                {
+                    SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Unexpected exception: ", e.What()));
+
+                    // Return a special exit code so we know that an exception occurred
+                    exitStatus = EINTR;
+                }
+            }
+        }
+
+        SCX_LOGTRACE(m_log, L"LogFileProvider ResetAllLogFileStates - exit");
+        return exitStatus;
     }
 }
 

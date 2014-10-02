@@ -893,7 +893,6 @@ typedef struct _SCX_LogFile_GetMatchedRows
     /*IN*/ MI_ConstStringField qid;
     /*OUT*/ MI_ConstStringAField rows;
     /*IN*/ MI_ConstStringField elevationType;
-    /*IN*/ MI_ConstBooleanField initialize;
 }
 SCX_LogFile_GetMatchedRows;
 
@@ -1126,20 +1125,188 @@ MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Clear_elevationType(
         5);
 }
 
-MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Set_initialize(
-    SCX_LogFile_GetMatchedRows* self,
-    MI_Boolean x)
+/*
+**==============================================================================
+**
+** SCX_LogFile.ResetStateFile()
+**
+**==============================================================================
+*/
+
+typedef struct _SCX_LogFile_ResetStateFile
 {
-    ((MI_BooleanField*)&self->initialize)->value = x;
-    ((MI_BooleanField*)&self->initialize)->exists = 1;
+    MI_Instance __instance;
+    /*OUT*/ MI_ConstUint32Field MIReturn;
+    /*IN*/ MI_ConstStringField filename;
+    /*IN*/ MI_ConstStringField qid;
+    /*IN*/ MI_ConstBooleanField resetOnRead;
+    /*IN*/ MI_ConstStringField elevationType;
+}
+SCX_LogFile_ResetStateFile;
+
+MI_EXTERN_C MI_CONST MI_MethodDecl SCX_LogFile_ResetStateFile_rtti;
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Construct(
+    SCX_LogFile_ResetStateFile* self,
+    MI_Context* context)
+{
+    return MI_ConstructParameters(context, &SCX_LogFile_ResetStateFile_rtti,
+        (MI_Instance*)&self->__instance);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clone(
+    const SCX_LogFile_ResetStateFile* self,
+    SCX_LogFile_ResetStateFile** newInstance)
+{
+    return MI_Instance_Clone(
+        &self->__instance, (MI_Instance**)newInstance);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Destruct(
+    SCX_LogFile_ResetStateFile* self)
+{
+    return MI_Instance_Destruct(&self->__instance);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Delete(
+    SCX_LogFile_ResetStateFile* self)
+{
+    return MI_Instance_Delete(&self->__instance);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Post(
+    const SCX_LogFile_ResetStateFile* self,
+    MI_Context* context)
+{
+    return MI_PostInstance(context, &self->__instance);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Set_MIReturn(
+    SCX_LogFile_ResetStateFile* self,
+    MI_Uint32 x)
+{
+    ((MI_Uint32Field*)&self->MIReturn)->value = x;
+    ((MI_Uint32Field*)&self->MIReturn)->exists = 1;
     return MI_RESULT_OK;
 }
 
-MI_INLINE MI_Result MI_CALL SCX_LogFile_GetMatchedRows_Clear_initialize(
-    SCX_LogFile_GetMatchedRows* self)
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clear_MIReturn(
+    SCX_LogFile_ResetStateFile* self)
 {
-    memset((void*)&self->initialize, 0, sizeof(self->initialize));
+    memset((void*)&self->MIReturn, 0, sizeof(self->MIReturn));
     return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Set_filename(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        1,
+        (MI_Value*)&str,
+        MI_STRING,
+        0);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_SetPtr_filename(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        1,
+        (MI_Value*)&str,
+        MI_STRING,
+        MI_FLAG_BORROW);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clear_filename(
+    SCX_LogFile_ResetStateFile* self)
+{
+    return self->__instance.ft->ClearElementAt(
+        (MI_Instance*)&self->__instance,
+        1);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Set_qid(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        2,
+        (MI_Value*)&str,
+        MI_STRING,
+        0);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_SetPtr_qid(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        2,
+        (MI_Value*)&str,
+        MI_STRING,
+        MI_FLAG_BORROW);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clear_qid(
+    SCX_LogFile_ResetStateFile* self)
+{
+    return self->__instance.ft->ClearElementAt(
+        (MI_Instance*)&self->__instance,
+        2);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Set_resetOnRead(
+    SCX_LogFile_ResetStateFile* self,
+    MI_Boolean x)
+{
+    ((MI_BooleanField*)&self->resetOnRead)->value = x;
+    ((MI_BooleanField*)&self->resetOnRead)->exists = 1;
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clear_resetOnRead(
+    SCX_LogFile_ResetStateFile* self)
+{
+    memset((void*)&self->resetOnRead, 0, sizeof(self->resetOnRead));
+    return MI_RESULT_OK;
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Set_elevationType(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        4,
+        (MI_Value*)&str,
+        MI_STRING,
+        0);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_SetPtr_elevationType(
+    SCX_LogFile_ResetStateFile* self,
+    const MI_Char* str)
+{
+    return self->__instance.ft->SetElementAt(
+        (MI_Instance*)&self->__instance,
+        4,
+        (MI_Value*)&str,
+        MI_STRING,
+        MI_FLAG_BORROW);
+}
+
+MI_INLINE MI_Result MI_CALL SCX_LogFile_ResetStateFile_Clear_elevationType(
+    SCX_LogFile_ResetStateFile* self)
+{
+    return self->__instance.ft->ClearElementAt(
+        (MI_Instance*)&self->__instance,
+        4);
 }
 
 /*
@@ -1209,6 +1376,15 @@ MI_EXTERN_C void MI_CALL SCX_LogFile_Invoke_GetMatchedRows(
     const MI_Char* methodName,
     const SCX_LogFile* instanceName,
     const SCX_LogFile_GetMatchedRows* in);
+
+MI_EXTERN_C void MI_CALL SCX_LogFile_Invoke_ResetStateFile(
+    SCX_LogFile_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const MI_Char* methodName,
+    const SCX_LogFile* instanceName,
+    const SCX_LogFile_ResetStateFile* in);
 
 
 /*
@@ -1568,49 +1744,260 @@ public:
         const size_t n = offsetof(Self, elevationType);
         GetField<String>(n).Clear();
     }
-
-    //
-    // SCX_LogFile_GetMatchedRows_Class.initialize
-    //
-    
-    const Field<Boolean>& initialize() const
-    {
-        const size_t n = offsetof(Self, initialize);
-        return GetField<Boolean>(n);
-    }
-    
-    void initialize(const Field<Boolean>& x)
-    {
-        const size_t n = offsetof(Self, initialize);
-        GetField<Boolean>(n) = x;
-    }
-    
-    const Boolean& initialize_value() const
-    {
-        const size_t n = offsetof(Self, initialize);
-        return GetField<Boolean>(n).value;
-    }
-    
-    void initialize_value(const Boolean& x)
-    {
-        const size_t n = offsetof(Self, initialize);
-        GetField<Boolean>(n).Set(x);
-    }
-    
-    bool initialize_exists() const
-    {
-        const size_t n = offsetof(Self, initialize);
-        return GetField<Boolean>(n).exists ? true : false;
-    }
-    
-    void initialize_clear()
-    {
-        const size_t n = offsetof(Self, initialize);
-        GetField<Boolean>(n).Clear();
-    }
 };
 
 typedef Array<SCX_LogFile_GetMatchedRows_Class> SCX_LogFile_GetMatchedRows_ClassA;
+
+class SCX_LogFile_ResetStateFile_Class : public Instance
+{
+public:
+    
+    typedef SCX_LogFile_ResetStateFile Self;
+    
+    SCX_LogFile_ResetStateFile_Class() :
+        Instance(&SCX_LogFile_ResetStateFile_rtti)
+    {
+    }
+    
+    SCX_LogFile_ResetStateFile_Class(
+        const SCX_LogFile_ResetStateFile* instanceName,
+        bool keysOnly) :
+        Instance(
+            &SCX_LogFile_ResetStateFile_rtti,
+            &instanceName->__instance,
+            keysOnly)
+    {
+    }
+    
+    SCX_LogFile_ResetStateFile_Class(
+        const MI_ClassDecl* clDecl,
+        const MI_Instance* instance,
+        bool keysOnly) :
+        Instance(clDecl, instance, keysOnly)
+    {
+    }
+    
+    SCX_LogFile_ResetStateFile_Class(
+        const MI_ClassDecl* clDecl) :
+        Instance(clDecl)
+    {
+    }
+    
+    SCX_LogFile_ResetStateFile_Class& operator=(
+        const SCX_LogFile_ResetStateFile_Class& x)
+    {
+        CopyRef(x);
+        return *this;
+    }
+    
+    SCX_LogFile_ResetStateFile_Class(
+        const SCX_LogFile_ResetStateFile_Class& x) :
+        Instance(x)
+    {
+    }
+
+    //
+    // SCX_LogFile_ResetStateFile_Class.MIReturn
+    //
+    
+    const Field<Uint32>& MIReturn() const
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        return GetField<Uint32>(n);
+    }
+    
+    void MIReturn(const Field<Uint32>& x)
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        GetField<Uint32>(n) = x;
+    }
+    
+    const Uint32& MIReturn_value() const
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        return GetField<Uint32>(n).value;
+    }
+    
+    void MIReturn_value(const Uint32& x)
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        GetField<Uint32>(n).Set(x);
+    }
+    
+    bool MIReturn_exists() const
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        return GetField<Uint32>(n).exists ? true : false;
+    }
+    
+    void MIReturn_clear()
+    {
+        const size_t n = offsetof(Self, MIReturn);
+        GetField<Uint32>(n).Clear();
+    }
+
+    //
+    // SCX_LogFile_ResetStateFile_Class.filename
+    //
+    
+    const Field<String>& filename() const
+    {
+        const size_t n = offsetof(Self, filename);
+        return GetField<String>(n);
+    }
+    
+    void filename(const Field<String>& x)
+    {
+        const size_t n = offsetof(Self, filename);
+        GetField<String>(n) = x;
+    }
+    
+    const String& filename_value() const
+    {
+        const size_t n = offsetof(Self, filename);
+        return GetField<String>(n).value;
+    }
+    
+    void filename_value(const String& x)
+    {
+        const size_t n = offsetof(Self, filename);
+        GetField<String>(n).Set(x);
+    }
+    
+    bool filename_exists() const
+    {
+        const size_t n = offsetof(Self, filename);
+        return GetField<String>(n).exists ? true : false;
+    }
+    
+    void filename_clear()
+    {
+        const size_t n = offsetof(Self, filename);
+        GetField<String>(n).Clear();
+    }
+
+    //
+    // SCX_LogFile_ResetStateFile_Class.qid
+    //
+    
+    const Field<String>& qid() const
+    {
+        const size_t n = offsetof(Self, qid);
+        return GetField<String>(n);
+    }
+    
+    void qid(const Field<String>& x)
+    {
+        const size_t n = offsetof(Self, qid);
+        GetField<String>(n) = x;
+    }
+    
+    const String& qid_value() const
+    {
+        const size_t n = offsetof(Self, qid);
+        return GetField<String>(n).value;
+    }
+    
+    void qid_value(const String& x)
+    {
+        const size_t n = offsetof(Self, qid);
+        GetField<String>(n).Set(x);
+    }
+    
+    bool qid_exists() const
+    {
+        const size_t n = offsetof(Self, qid);
+        return GetField<String>(n).exists ? true : false;
+    }
+    
+    void qid_clear()
+    {
+        const size_t n = offsetof(Self, qid);
+        GetField<String>(n).Clear();
+    }
+
+    //
+    // SCX_LogFile_ResetStateFile_Class.resetOnRead
+    //
+    
+    const Field<Boolean>& resetOnRead() const
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        return GetField<Boolean>(n);
+    }
+    
+    void resetOnRead(const Field<Boolean>& x)
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        GetField<Boolean>(n) = x;
+    }
+    
+    const Boolean& resetOnRead_value() const
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        return GetField<Boolean>(n).value;
+    }
+    
+    void resetOnRead_value(const Boolean& x)
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        GetField<Boolean>(n).Set(x);
+    }
+    
+    bool resetOnRead_exists() const
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        return GetField<Boolean>(n).exists ? true : false;
+    }
+    
+    void resetOnRead_clear()
+    {
+        const size_t n = offsetof(Self, resetOnRead);
+        GetField<Boolean>(n).Clear();
+    }
+
+    //
+    // SCX_LogFile_ResetStateFile_Class.elevationType
+    //
+    
+    const Field<String>& elevationType() const
+    {
+        const size_t n = offsetof(Self, elevationType);
+        return GetField<String>(n);
+    }
+    
+    void elevationType(const Field<String>& x)
+    {
+        const size_t n = offsetof(Self, elevationType);
+        GetField<String>(n) = x;
+    }
+    
+    const String& elevationType_value() const
+    {
+        const size_t n = offsetof(Self, elevationType);
+        return GetField<String>(n).value;
+    }
+    
+    void elevationType_value(const String& x)
+    {
+        const size_t n = offsetof(Self, elevationType);
+        GetField<String>(n).Set(x);
+    }
+    
+    bool elevationType_exists() const
+    {
+        const size_t n = offsetof(Self, elevationType);
+        return GetField<String>(n).exists ? true : false;
+    }
+    
+    void elevationType_clear()
+    {
+        const size_t n = offsetof(Self, elevationType);
+        GetField<String>(n).Clear();
+    }
+};
+
+typedef Array<SCX_LogFile_ResetStateFile_Class> SCX_LogFile_ResetStateFile_ClassA;
 
 MI_END_NAMESPACE
 

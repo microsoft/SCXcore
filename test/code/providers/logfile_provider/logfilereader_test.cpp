@@ -102,9 +102,12 @@ public:
         expectedHelpText << "Usage: scxlogfilereader" << endl << endl
                          << "Options:" << endl
                          << "  -h:\tDisplay detailed help information" << endl
+                         << "  -g:\tReset all log file states (for internal use only)" << endl
+                         << "     \t(Requires parameter for ResetOnRead: 1/true/0/false)" << endl
                          << "  -i:\tInteractive use (for debugging purposes only)" << endl
                          << "  -m:\tRun marshal unit tests (debugging purposes only)" << endl
                          << "  -p:\tProvider interface (for internal use only)" << endl
+                         << "  -r:\tReset log file state (for internal use only)" << endl
                          << "  -t:\tProvide hooks for testrunner environmental setup" << endl
                          << "  -v:\tDisplay version information" << endl;
 
