@@ -27,7 +27,7 @@ fi
 # Also, add logfilereader executable location to path (use '' to evaluate in child)
 # This avoids failing unit tests by having variable paths on invocation line
 echo "SCX_TESTRUN_ACTIVE=1; export SCX_TESTRUN_ACTIVE" >> $ENV_FILE
-echo 'PATH=$1:$PATH; export PATH' >> $ENV_FILE
+echo 'PATH=$1:/usr/sbin:$PATH; export PATH' >> $ENV_FILE
 
 # Testrunner arguments are sent using environment variables...
 [ -n "$SCX_TESTRUN_NAMES" ] && echo "SCX_TESTRUN_NAMES=\"$SCX_TESTRUN_NAMES\"; export SCX_TESTRUN_NAMES" >> $ENV_FILE
