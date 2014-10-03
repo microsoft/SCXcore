@@ -174,7 +174,8 @@ LOGFILEREADER_DIR=$(SCX_SRC_ROOT)/providers/support
 
 # Static lib files for scxlogfilereader command line program
 STATIC_LOGFILEREADER_SRCFILES = \
-	$(LOGFILEREADER_DIR)/logfileutils.cpp
+	$(LOGFILEREADER_DIR)/logfileutils.cpp \
+	$(LOGFILEREADER_DIR)/logpolicy.cpp
 
 STATIC_LOGFILEREADER_OBJFILES = $(call src_to_obj,$(STATIC_LOGFILEREADER_SRCFILES))
 
