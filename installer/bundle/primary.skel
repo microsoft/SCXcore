@@ -37,12 +37,12 @@ umask 022
 # And HP doesn't define $PWD in a sudo environment, so we define our own
 case $0 in
     /*|~*)
-	SCRIPT_INDIRECT="`dirname $0`"
-	;;
+        SCRIPT_INDIRECT="`dirname $0`"
+        ;;
     *)
-	PWD="`pwd`"
-	SCRIPT_INDIRECT="`dirname $PWD/$0`"
-	;;
+        PWD="`pwd`"
+        SCRIPT_INDIRECT="`dirname $PWD/$0`"
+        ;;
 esac
 SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 SCRIPT="$SCRIPT_DIR/`basename $0`"
@@ -53,7 +53,7 @@ SCRIPT="$SCRIPT_DIR/`basename $0`"
 #       Linux_REDHAT, Linux_SUSE, Linux_ULINUX_R, Linux_ULINUX_D, HPUX, AIX, SunOS
 #
 # The OM_PKG symbol should contain something like:
-#	scx-1.5.1-115.rhel.6.x64.rpm
+#       scx-1.5.1-115.rhel.6.x64.rpm
 
 PLATFORM=<PLATFORM_TYPE>
 TAR_FILE=<TAR_FILE>
@@ -79,13 +79,13 @@ usage()
 cleanup_and_exit()
 {
     if [ "$PLATFORM" = "SunOS" ]; then
-	rm -f scx-admin scx-admin-upgrade
+        rm -f scx-admin scx-admin-upgrade
     rm -f /tmp/.ai.pkg.zone.lock*
     fi
     if [ -n "$1" ]; then
-	exit $1
+        exit $1
     else
-	exit 0
+        exit 0
     fi
 }
 
@@ -93,8 +93,8 @@ cleanup_and_exit()
 verifyNoInstallationOption()
 {
     if [ -n "${installMode}" ]; then
-	echo "$0: Conflicting qualifiers, exiting" >&2
-	cleanup_and_exit 1
+        echo "$0: Conflicting qualifiers, exiting" >&2
+        cleanup_and_exit 1
     fi
 
     return;
@@ -114,7 +114,7 @@ ulinux_detect_openssl_version() {
         echo "Error: This system does not have a supported version of OpenSSL installed."
         echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
         echo "Supported versions: 0.9.8*, 1.0.*"
-	cleanup_and_exit 60
+        cleanup_and_exit 60
     fi
 }
 
@@ -124,98 +124,98 @@ ulinux_detect_openssl_version() {
 while [ $# -ne 0 ]
 do
     case "$1" in
-	--extract-script)
-	    # hidden option, not part of usage
-	    # echo "  --extract-script FILE  extract the script to FILE."
-	    head -${SCRIPT_LEN} "${SCRIPT}" > "$2"
-	    local shouldexit=true
-	    shift 2
-	    ;;
+        --extract-script)
+            # hidden option, not part of usage
+            # echo "  --extract-script FILE  extract the script to FILE."
+            head -${SCRIPT_LEN} "${SCRIPT}" > "$2"
+            local shouldexit=true
+            shift 2
+            ;;
 
-	--extract-binary)
-	    # hidden option, not part of usage
-	    # echo "  --extract-binary FILE  extract the binary to FILE."
-	    tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" > "$2"
-	    local shouldexit=true
-	    shift 2
-	    ;;
+        --extract-binary)
+            # hidden option, not part of usage
+            # echo "  --extract-binary FILE  extract the binary to FILE."
+            tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" > "$2"
+            local shouldexit=true
+            shift 2
+            ;;
 
-	--force)
-	    forceFlag=true
-	    shift 1
-	    ;;
+        --force)
+            forceFlag=true
+            shift 1
+            ;;
 
-	--install)
-	    verifyNoInstallationOption
-	    installMode=I
-	    shift 1
-	    ;;
+        --install)
+            verifyNoInstallationOption
+            installMode=I
+            shift 1
+            ;;
 
-	--purge)
-	    verifyNoInstallationOption
-	    installMode=P
-	    shouldexit=true
-	    shift 1
-	    ;;
+        --purge)
+            verifyNoInstallationOption
+            installMode=P
+            shouldexit=true
+            shift 1
+            ;;
 
-	--remove)
-	    verifyNoInstallationOption
-	    installMode=R
-	    shouldexit=true
-	    shift 1
-	    ;;
+        --remove)
+            verifyNoInstallationOption
+            installMode=R
+            shouldexit=true
+            shift 1
+            ;;
 
-	--upgrade)
-	    verifyNoInstallationOption
-	    installMode=U
-	    shift 1
-	    ;;
+        --upgrade)
+            verifyNoInstallationOption
+            installMode=U
+            shift 1
+            ;;
 
-	--debug)
-	    echo "Starting shell debug mode." >&2
-	    echo "" >&2
-	    echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2
-	    echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2
-	    echo "SCRIPT:          $SCRIPT" >&2
-	    echo >&2
-	    set -x
-	    shift 1
-	    ;;
+        --debug)
+            echo "Starting shell debug mode." >&2
+            echo "" >&2
+            echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2
+            echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2
+            echo "SCRIPT:          $SCRIPT" >&2
+            echo >&2
+            set -x
+            shift 1
+            ;;
 
-	-? | --help)
-	    usage `basename $0` >&2
-	    cleanup_and_exit 0
-	    ;;
+        -? | --help)
+            usage `basename $0` >&2
+            cleanup_and_exit 0
+            ;;
 
-	*)
-	    usage `basename $0` >&2
-	    cleanup_and_exit 1
-	    ;;
+        *)
+            usage `basename $0` >&2
+            cleanup_and_exit 1
+            ;;
     esac
 done
 
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
     case "$PLATFORM" in
-	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	    rpm -q $1 2> /dev/null 1> /dev/null
-	    ;;
-	
-	Linux_ULINUX_D)
-	    dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
-	    ;;
-	
-	AIX)
-	    lslpp $1 2> /dev/null 1> /dev/null
-	    ;;
-	
-	HPUX)
-	    swlist $1 2> /dev/null 1> /dev/null
-	    ;;
-	
-	SunOS)
-	    /usr/bin/pkginfo MSFT$1 2> /dev/null 1> /dev/null
-	    ;;
+        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+            rpm -q $1 2> /dev/null 1> /dev/null
+            ;;
+        
+        Linux_ULINUX_D)
+            dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
+            ;;
+        
+        AIX)
+            lslpp $1 2> /dev/null 1> /dev/null
+            ;;
+        
+        HPUX)
+            swlist $1 2> /dev/null 1> /dev/null
+            ;;
+        
+        SunOS)
+            /usr/bin/pkginfo MSFT$1 2> /dev/null 1> /dev/null
+            ;;
     esac
     return $?
 }
@@ -225,32 +225,32 @@ check_if_pkg_is_installed() {
 pkg_add() {
     pkg_filename=$1
     case "$PLATFORM" in
-	Linux_ULINUX*)
-	    ulinux_detect_openssl_version
-	    pkg_filename=$TMPBINDIR/$pkg_filename
-	    ;;
+        Linux_ULINUX*)
+            ulinux_detect_openssl_version
+            pkg_filename=$TMPBINDIR/$pkg_filename
+            ;;
     esac
 
     case "$PLATFORM" in
-	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	    rpm --install $pkg_filename
-	    ;;
-	
-	Linux_ULINUX_D)
-	    dpkg --install --refuse-downgrade $pkg_filename
-	    ;;
-	
-	AIX)
-	    /usr/sbin/installp -X -d $1 $2.rte
-	    ;;
-	
-	HPUX)
-	    /usr/sbin/swinstall -s $PWD/$1 $2
-	    ;;
-	
-	SunOS)
-	    /usr/sbin/pkgadd -a scx-admin -n -d $1 MSFT$2
-	    ;;
+        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+            rpm --install $pkg_filename
+            ;;
+        
+        Linux_ULINUX_D)
+            dpkg --install --refuse-downgrade $pkg_filename
+            ;;
+        
+        AIX)
+            /usr/sbin/installp -X -d $1 $2.rte
+            ;;
+        
+        HPUX)
+            /usr/sbin/swinstall -s $PWD/$1 $2
+            ;;
+        
+        SunOS)
+            /usr/sbin/pkgadd -a scx-admin -n -d $1 MSFT$2
+            ;;
     esac
 }
 
@@ -258,34 +258,34 @@ pkg_add() {
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
     case "$PLATFORM" in
-	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	    rpm --erase $1 1> /dev/null 2> /dev/null
-	    ;;
-	
-	Linux_ULINUX_D)
-	    if [ "$installMode" = "P" ]; then
-		dpkg --purge $1 1> /dev/null 2> /dev/null
-	    else
-		dpkg --remove $1 1> /dev/null 2> /dev/null
-	    fi
-	    ;;
-	
-	AIX)
-	    /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+            rpm --erase $1 1> /dev/null 2> /dev/null
+            ;;
+        
+        Linux_ULINUX_D)
+            if [ "$installMode" = "P" ]; then
+                dpkg --purge $1 1> /dev/null 2> /dev/null
+            else
+                dpkg --remove $1 1> /dev/null 2> /dev/null
+            fi
+            ;;
+        
+        AIX)
+            /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
 
-	    ;;
-	
-	HPUX)
-	    /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
-	    ;;
-	
-	SunOS)
-	    if [ "$2" = "force" ]; then
-		/usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 1> /dev/null 2> /dev/null
-	    else
-		/usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
-	    fi
-	    ;;
+            ;;
+        
+        HPUX)
+            /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+            ;;
+        
+        SunOS)
+            if [ "$2" = "force" ]; then
+                /usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 1> /dev/null 2> /dev/null
+            else
+                /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+            fi
+            ;;
     esac
 }
 
@@ -295,80 +295,80 @@ pkg_rm() {
 pkg_upd() {
     pkg_filename=$1
     case "$PLATFORM" in
-	Linux_ULINUX*)
-	    ulinux_detect_openssl_version
-	    pkg_filename=$TMPBINDIR/$pkg_filename
-	    ;;
+        Linux_ULINUX*)
+            ulinux_detect_openssl_version
+            pkg_filename=$TMPBINDIR/$pkg_filename
+            ;;
     esac
 
     case "$PLATFORM" in
-	Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	    [ -n "${forceFlag}" ] && FORCE="--force"
-	    rpm --upgrade $FORCE $pkg_filename
-	    ;;
-	
-	Linux_ULINUX_D)
-	    [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
-	    dpkg --install $FORCE $pkg_filename
-	    
-	    export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
-	    ;;
-	
-	AIX)
-	    [ -n "${forceFlag}" ] && FORCE="-F"
-	    /usr/sbin/installp -X $FORCE -d $1 $2.rte
-	    ;;
-	
-	HPUX)
-	    [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
+        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
+            [ -n "${forceFlag}" ] && FORCE="--force"
+            rpm --upgrade $FORCE $pkg_filename
+            ;;
+        
+        Linux_ULINUX_D)
+            [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
+            dpkg --install $FORCE $pkg_filename
+            
+            export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+            ;;
+        
+        AIX)
+            [ -n "${forceFlag}" ] && FORCE="-F"
+            /usr/sbin/installp -X $FORCE -d $1 $2.rte
+            ;;
+        
+        HPUX)
+            [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
 
-	    /usr/sbin/swinstall $FORCE -s $PWD/$1 $2
-	    ;;
-	
-	SunOS)
+            /usr/sbin/swinstall $FORCE -s $PWD/$1 $2
+            ;;
+        
+        SunOS)
             # No notion of "--force" since Sun package has no notion of update
-	    check_if_pkg_is_installed $2
-	    if [ $? -eq 0 ]; then
+            check_if_pkg_is_installed $2
+            if [ $? -eq 0 ]; then
                 # Check version numbers of this package, both installed and the new file
-		INSTALLED_VERSION=`pkginfo -l MSFT$2 | grep VERSION | awk '{ print $2 }'`
-		FILE_VERSION=`pkginfo -l -d $1 | grep VERSION | awk '{ print $2 }'`
-		IV_1=`echo $INSTALLED_VERSION | awk -F. '{ print $1 }'`
-		IV_2=`echo $INSTALLED_VERSION | awk -F. '{ print $2 }'`
-		IV_3=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }'`
-		IV_4=`echo $INSTALLED_VERSION | awk -F. '{ print $4 }'`
-		FV_1=`echo $FILE_VERSION | awk -F. '{ print $1 }'`
-		FV_2=`echo $FILE_VERSION | awk -F. '{ print $2 }'`
-		FV_3=`echo $FILE_VERSION | awk -F. '{ print $3 }'`
-		FV_4=`echo $FILE_VERSION | awk -F. '{ print $4 }'`
-		
-		# If the new version is greater than the previous, upgrade it. We expect at least 3 tokens in the version.
-		UPGRADE_PACKAGE=0
-		if [ $FV_1 -gt $IV_1 -o $FV_2 -gt $IV_2 -o  $FV_3 -gt $IV_3 ]; then
-		    UPGRADE_PACKAGE=1
-		elif [ -n "$FV_4" -a -n "$IV_4" ]; then
-		    if [ $FV_4 -gt $IV_4 ]; then
-			UPGRADE_PACKAGE=1
-		    fi
-		fi
+                INSTALLED_VERSION=`pkginfo -l MSFT$2 | grep VERSION | awk '{ print $2 }'`
+                FILE_VERSION=`pkginfo -l -d $1 | grep VERSION | awk '{ print $2 }'`
+                IV_1=`echo $INSTALLED_VERSION | awk -F. '{ print $1 }'`
+                IV_2=`echo $INSTALLED_VERSION | awk -F. '{ print $2 }'`
+                IV_3=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $1 }'`
+                IV_4=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $2 }'`
+                FV_1=`echo $FILE_VERSION | awk -F. '{ print $1 }'`
+                FV_2=`echo $FILE_VERSION | awk -F. '{ print $2 }'`
+                FV_3=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $1 }'`
+                FV_4=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $2 }'`
+                
+                # If the new version is greater than the previous, upgrade it. We expect at least 3 tokens in the version.
+                UPGRADE_PACKAGE=0
+                if [ $FV_1 -gt $IV_1 -o $FV_2 -gt $IV_2 -o  $FV_3 -gt $IV_3 ]; then
+                    UPGRADE_PACKAGE=1
+                elif [ -n "$FV_4" -a -n "$IV_4" ]; then
+                    if [ $FV_4 -gt $IV_4 ]; then
+                        UPGRADE_PACKAGE=1
+                    fi
+                fi
 
-		if [ $UPGRADE_PACKAGE -eq 1 ]; then
-		    pkg_rm $2 force
-		    pkg_add $1 $2
-		fi
-	    else
-		pkg_add $1 $2
-	    fi
-	    ;;
+                if [ $UPGRADE_PACKAGE -eq 1 ]; then
+                    pkg_rm $2 force
+                    pkg_add $1 $2
+                fi
+            else
+                pkg_add $1 $2
+            fi
+            ;;
     esac
 }
 
 case "$PLATFORM" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
-	;;
+        ;;
 
     *)
-	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-	cleanup_and_exit 2
+        echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+        cleanup_and_exit 2
 esac
 
 # Create installation administrative file for Solaris platform if needed
@@ -397,22 +397,22 @@ set +e
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
     if [ -f /opt/microsoft/scx/bin/uninstall ]; then
-	/opt/microsoft/scx/bin/uninstall $installMode
+        /opt/microsoft/scx/bin/uninstall $installMode
     else
-	# This is an old kit.  Let's just simply pkg_rm scx
-	pkg_rm scx
+        # This is an old kit.  Let's just simply pkg_rm scx
+        pkg_rm scx
     fi
 
     if [ "$installMode" = "P" ]
     then
-	echo "Purging all files in cross-platform agent ..."
-	rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
+        echo "Purging all files in cross-platform agent ..."
+        rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
 
-	# If OMI is not installed, purge its directories as well.
-	check_if_pkg_is_installed omi
-	if [ $? -ne 0 ]; then
-	    rm -rf /etc/opt/microsoft/omi /opt/microsoft/omi /var/opt/microsoft/omi
-	fi
+        # If OMI is not installed, purge its directories as well.
+        check_if_pkg_is_installed omi
+        if [ $? -ne 0 ]; then
+            rm -rf /etc/opt/microsoft/omi /opt/microsoft/omi /var/opt/microsoft/omi
+        fi
     fi
 fi
 
@@ -435,20 +435,20 @@ echo "Extracting..."
 
 case "$PLATFORM" in
     Linux_*)
-	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
-	;;
+        tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
+        ;;
 
     AIX)
-	tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
-	;;
+        tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | gunzip -c | tar xf -
+        ;;
 
     HPUX|SunOS)
-	tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
-	;;
+        tail $TAIL_CQUAL +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | zcat - | tar xf -
+        ;;
 
     *)
-	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-	cleanup_and_exit 2
+        echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+        cleanup_and_exit 2
 esac
 
 STATUS=$?
@@ -512,53 +512,53 @@ force_stop_omi_service() {
 
 case "$installMode" in
     I)
-	echo "Installing cross-platform agent ..."
-	if [ "$PLATFORM" = "SunOS" ]; then
-	    check_if_pkg_is_installed scx
-	    if [ $? -eq 0 ]; then
-		echo "ERROR: SCX package is already installed"
-		rm $OM_PKG $OMI_PKG $TAR_FILE
-		cleanup_and_exit 2
-	    fi
-	fi	
+        echo "Installing cross-platform agent ..."
+        if [ "$PLATFORM" = "SunOS" ]; then
+            check_if_pkg_is_installed scx
+            if [ $? -eq 0 ]; then
+                echo "ERROR: SCX package is already installed"
+                rm $OM_PKG $OMI_PKG $TAR_FILE
+                cleanup_and_exit 2
+            fi
+        fi      
 
-	check_if_pkg_is_installed omi
-	force_stop_omi_service
-	if [ $? -eq 0 ]; then
-	    pkg_upd $OMI_PKG omi
-	    # It is acceptable that this fails due to the new omi being 
-	    # the same version (or less) than the one currently installed.
-	    OMI_EXIT_STATUS=0
-	else
-	    pkg_add $OMI_PKG omi
-	    OMI_EXIT_STATUS=$?
-	fi
+        force_stop_omi_service
+        check_if_pkg_is_installed omi
+        if [ $? -eq 0 ]; then
+            pkg_upd $OMI_PKG omi
+            # It is acceptable that this fails due to the new omi being 
+            # the same version (or less) than the one currently installed.
+            OMI_EXIT_STATUS=0
+        else
+            pkg_add $OMI_PKG omi
+            OMI_EXIT_STATUS=$?
+        fi
 
-	pkg_add $OM_PKG scx
-	SCX_EXIT_STATUS=$?
-	;;
+        pkg_add $OM_PKG scx
+        SCX_EXIT_STATUS=$?
+        ;;
 
     U)
-	echo "Updating cross-platform agent ..."
-	check_if_pkg_is_installed omi
-	force_stop_omi_service
-	if [ $? -eq 0 ]; then
-	    pkg_upd $OMI_PKG omi
-	    # It is acceptable that this fails due to the new omi being 
-	    # the same version (or less) than the one currently installed.
-	    OMI_EXIT_STATUS=0
-	else
-	    pkg_add $OMI_PKG omi
-	    OMI_EXIT_STATUS=$?	
-	fi
-	
-	pkg_upd $OM_PKG scx
-	SCX_EXIT_STATUS=$?
-	;;
+        echo "Updating cross-platform agent ..."
+        force_stop_omi_service
+        check_if_pkg_is_installed omi
+        if [ $? -eq 0 ]; then
+            pkg_upd $OMI_PKG omi
+            # It is acceptable that this fails due to the new omi being 
+            # the same version (or less) than the one currently installed.
+            OMI_EXIT_STATUS=0
+        else
+            pkg_add $OMI_PKG omi
+            OMI_EXIT_STATUS=$?  
+        fi
+        
+        pkg_upd $OM_PKG scx
+        SCX_EXIT_STATUS=$?
+        ;;
 
     *)
-	echo "$0: Invalid setting of variable \$installMode, exiting" >&2
-	cleanup_and_exit 2
+        echo "$0: Invalid setting of variable \$installMode, exiting" >&2
+        cleanup_and_exit 2
 esac
 
 # Remove the package that was extracted as part of the bundle
@@ -566,11 +566,11 @@ esac
 
 case "$PLATFORM" in
     Linux_ULINUX*)
-	rm -rf 098 100
-	;;
+        rm -rf 098 100
+        ;;
     *)
-	rm $OM_PKG $OMI_PKG
-	;;
+        rm $OM_PKG $OMI_PKG
+        ;;
 esac
 
 if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" ]; then
