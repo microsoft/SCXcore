@@ -43,6 +43,7 @@ clean: clean-status doxygen_clean
 	-$(RMDIR) $(INTERMEDIATE_DIR)/*.cov
 	-$(RMDIR) $(TARGET_DIR)
 	-$(RM) $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
+	-find $(SCX_BRD) -name \*~ -exec rm {} \;
 
 # Clean the PAL as well as OM with distclean target
 distclean: clean

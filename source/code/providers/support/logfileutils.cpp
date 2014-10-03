@@ -595,6 +595,13 @@ namespace SCXCore {
         const std::wstring& qid,
         bool resetOnRead)
     {
+        wstringstream ss;
+        ss << L"LogFileProvider ResetLogFileState: "
+           << L"Filename: " << filename
+           << L", qid: " << qid
+           << L", resetOnRead: " << resetOnRead;
+        SCX_LOGTRACE(m_log, ss.str())
+
         LogFileStreamPositioner positioner(filename, qid, m_persistMedia);
         SCXHandle<std::wfstream> logfile = positioner.GetStream();
 
@@ -624,7 +631,25 @@ namespace SCXCore {
         }
 
         // Enumerate the state files
-        vector<SCXFilePath> items(SCXDirectory::GetFiles(basePath));
+        // If exception occurs, items vector will be empty, so just fall through
+        vector<SCXFilePath> items;
+        try {
+            items = SCXDirectory::GetFiles(basePath);
+        }
+        catch (SCXFilePathNotFoundException& e)
+        {
+            SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Base path not found: ", basePath.Get()).append(L", exception: ").append(e.What()));
+
+            // Return a special exit code so we know that the log file wasn't found
+            exitStatus = ENOENT;
+        }
+        catch (SCXException &e)
+        {
+            SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - Unexpected exception: ", e.What()));
+
+            // Return a special exit code so we know that an exception occurred
+            exitStatus = EINTR;
+        }
 
         for (vector<SCXFilePath>::iterator i(items.begin()); i != items.end(); ++i)
         {
@@ -682,7 +707,7 @@ namespace SCXCore {
                 }
                 catch (SCXFilePathNotFoundException& e)
                 {
-                    SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - File not found: ", filename).append(e.What()));
+                    SCX_LOGWARNING(m_log, StrAppend(L"LogFileProvider ResetAllLogFileStates - File not found: ", filename).append(L", exception: ").append(e.What()));
 
                     // Return a special exit code so we know that the log file wasn't found
                     exitStatus = ENOENT;

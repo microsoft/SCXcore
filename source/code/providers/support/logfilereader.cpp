@@ -30,6 +30,18 @@
 #undef dynamic_cast
 #endif
 
+// SCXCoreLib::SCXProductDependencies::SetLogFileHeaderSuppression() is specific
+// to the OM project, and thus isn't defined in PAL header files. Just define
+// the function here so it's usable (this is the only place it's called from).
+
+namespace SCXCoreLib
+{
+    namespace SCXProductDependencies
+    {
+        void SetLogFileHeaderSuppression(bool fSet);
+    }
+}
+
 using namespace SCXCore;
 using namespace SCXCoreLib;
 using namespace std;
@@ -198,6 +210,11 @@ int main(int argc, char * const argv[])
         }
     }
 
+    // Since scxlogfilereader just uses the scx.log logfile, don't write header
+    // each time we're called (makes log confusing thinking agent restarted)
+    SCXCoreLib::SCXProductDependencies::SetLogFileHeaderSuppression(true);
+
+    // Dispatch for the operation that was requested
     switch (operation)
     {
         case Marshal_Test:
@@ -493,7 +510,7 @@ int ReadLogFile_Provider()
     }
     catch (SCXFilePathNotFoundException& e)
     {
-        SCX_LOGWARNING(logH, StrAppend(L"scxlogfilereader - File not found: ", filename).append(e.What()));
+        SCX_LOGWARNING(logH, StrAppend(L"scxlogfilereader - File not found: ", filename).append(L", exception: ").append(e.What()));
 
         // Return a special exit code so we know that the log file wasn't found
         return ENOENT;
@@ -556,7 +573,7 @@ int ResetLogFileState()
     }
     catch (SCXFilePathNotFoundException& e)
     {
-        SCX_LOGWARNING(logH, StrAppend(L"scxlogfilereader - File not found: ", filename).append(e.What()));
+        SCX_LOGWARNING(logH, StrAppend(L"scxlogfilereader - File not found: ", filename).append(L", exception: ").append(e.What()));
 
         // Return a special exit code so we know that the log file wasn't found
         return ENOENT;

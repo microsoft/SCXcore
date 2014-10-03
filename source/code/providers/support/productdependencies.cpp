@@ -24,8 +24,20 @@ namespace SCXCoreLib
 {
     namespace SCXProductDependencies
     {
+        static bool s_fSuppressHeader = false;
+
+        void SetLogFileHeaderSuppression(bool fSet)
+        {
+            s_fSuppressHeader = fSet;
+        }
+
         void WriteLogFileHeader( SCXHandle<std::wfstream> &stream, int logFileRunningNumber, SCXCalendarTime& procStartTimestamp )
         {
+            if (s_fSuppressHeader)
+            {
+                return;
+            }
+
             std::wstringstream continuationLogMsg;
             if ( logFileRunningNumber > 1 )
             {
