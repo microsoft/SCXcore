@@ -66,21 +66,11 @@ export OPENSSL100DIR=openssl_1.0.0
 LINK_OPENSSL098=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL098DIR) -L$(SCXPAL_TARGET_DIR)
 LINK_OPENSSL100=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL100DIR) -L$(SCXPAL_TARGET_DIR)
 
-ifeq ($(PF_WIDTH),64)
-	PKG_CONFIG_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib/pkgconfig
-	LD_LIBRARY_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib
-	OPENSSL_BINPATH_OPENSSL098=/usr/local_ssl_0.9.8/bin/openssl
-	PKG_CONFIG_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib64/pkgconfig
-	LD_LIBRARY_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib64
-	OPENSSL_BINPATH_OPENSSL100=/usr/local_ssl_1.0.0/bin/openssl
-else
-	PKG_CONFIG_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib/pkgconfig
-	LD_LIBRARY_PATH_OPENSSL098=/usr/local_ssl_0.9.8/lib
-	OPENSSL_BINPATH_OPENSSL098=/usr/local_ssl_0.9.8/bin/openssl
-	PKG_CONFIG_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib/pkgconfig
-	LD_LIBRARY_PATH_OPENSSL100=/usr/local_ssl_1.0.0/lib
-	OPENSSL_BINPATH_OPENSSL100=/usr/local_ssl_1.0.0/bin/openssl
-endif 
+LD_LIBRARY_PATH_OPENSSL098=$(OPENSSL098_LIBDIR)
+PKG_CONFIG_PATH_OPENSSL098=$(OPENSSL098_LIBDIR)/pkgconfig
+LD_LIBRARY_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)
+PKG_CONFIG_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)/pkgconfig
+
 endif 
 
 #--------------------------------------------------------------------------------
