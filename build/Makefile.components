@@ -292,29 +292,19 @@ ifeq ($(PF_DISTRO),ULINUX)
 
 	$(ECHO) "========================= Performing make omi (0.9.8)"
 
-	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL098); \
 	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL098); \
-	export OPENSSL_CFLAGS=`pkg-config --cflags openssl`; \
-	export OPENSSL_LIBS=`pkg-config --libs openssl`; \
-	echo "Building OMI with OPENSSL_CFLAGS: $$OPENSSL_CFLAGS"; \
-	echo "Building OMI with OPENSSL_LIBS:   $$OPENSSL_LIBS"; \
 	cd $(SCXOMI_DIR); \
-	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
-	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --openssl=$(OPENSSL_BINPATH_OPENSSL098) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --opensslcflags="$(OPENSSL098_CFLAGS)" --openssllibs="$(OPENSSL098_LIBS)" --openssllibdir="$(OPENSSL098_LIBDIR)"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --opensslcflags="$(OPENSSL098_CFLAGS)" --openssllibs="$(OPENSSL098_LIBS)" --openssllibdir="$(OPENSSL098_LIBDIR)"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
 	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_0.9.8"
 
 	$(ECHO) "========================= Performing make omi (1.0.0)"
 
-	export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH_OPENSSL100); \
 	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL100); \
-	export OPENSSL_CFLAGS=`pkg-config --cflags openssl`; \
-	export OPENSSL_LIBS=`pkg-config --libs openssl`; \
-	echo "Building OMI with OPENSSL_CFLAGS: $$OPENSSL_CFLAGS"; \
-	echo "Building OMI with OPENSSL_LIBS:   $$OPENSSL_LIBS"; \
 	cd $(SCXOMI_DIR); \
-	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
-	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --openssl=$(OPENSSL_BINPATH_OPENSSL100) --opensslcflags="$$OPENSSL_CFLAGS" --openssllibs="$$OPENSSL_LIBS"; \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --opensslcflags="$(OPENSSL100_CFLAGS)" --openssllibs="$(OPENSSL100_LIBS)" --openssllibdir="$(OPENSSL100_LIBDIR)"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --opensslcflags="$(OPENSSL100_CFLAGS)" --openssllibs="$(OPENSSL100_LIBS)" --openssllibdir="$(OPENSSL100_LIBDIR)"; \
 	$(MAKE) -C $(SCXOMI_DIR) all
 	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_1.0.0"
 

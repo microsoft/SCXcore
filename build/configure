@@ -101,9 +101,49 @@ fi
 
 omi_configure_quals="--enable-preexec ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
 
+##==============================================================================
+##
+## openssl variables
+##
+##==============================================================================
+
+pkgconfig=`which pkg-config`
+
+openssl_cflags=`$pkgconfig --cflags openssl`
+openssl_libs=`$pkgconfig --libs openssl`
+openssl_libdir=`$pkgconfig --variable=libdir openssl`
+
+
+if [ -d "/usr/local_ssl_0.9.8" -a -d "/usr/local_ssl_1.0.0" ]; then
+    case "`uname -m`" in    
+	x86_64 )
+            openssl098_libdir=/usr/local_ssl_0.9.8/lib
+            openssl100_libdir=/usr/local_ssl_1.0.0/lib64
+            ;;
+	
+	* )
+            openssl098_libdir=/usr/local_ssl_0.9.8/lib
+            openssl100_libdir=/usr/local_ssl_1.0.0/lib
+            ;;
+    esac
+    openssl098_cflags=`PKG_CONFIG_PATH=$openssl098_libdir/pkgconfig $pkgconfig --cflags openssl`
+    openssl098_libs=`PKG_CONFIG_PATH=$openssl098_libdir/pkgconfig $pkgconfig --libs openssl`
+    openssl100_cflags=`PKG_CONFIG_PATH=$openssl100_libdir/pkgconfig $pkgconfig --cflags openssl`
+    openssl100_libs=`PKG_CONFIG_PATH=$openssl100_libdir/pkgconfig $pkgconfig --libs openssl`
+fi
+
 cat <<EOF > config.mak
 LOCAL_OMI=$local_omi
 OMI_CONFIGURE_QUALS=$omi_configure_quals
+OPENSSL_CFLAGS=$openssl_cflags
+OPENSSL_LIBS=$openssl_libs
+OPENSSL_LIBDIR=$openssl_libdir
+OPENSSL098_CFLAGS=$openssl098_cflags
+OPENSSL098_LIBS=$openssl098_libs
+OPENSSL098_LIBDIR=$openssl098_libdir
+OPENSSL100_CFLAGS=$openssl100_cflags
+OPENSSL100_LIBS=$openssl100_libs
+OPENSSL100_LIBDIR=$openssl100_libdir
 EOF
 
 # Fix permissions in case they aren't executable - and then configure OMI
