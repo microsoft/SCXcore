@@ -1091,7 +1091,7 @@ public:
     void testLocale8859_1()
     {
         const std::wstring regexpStr = L"0;";
-#if defined(sun)
+#if defined(aix) || defined(sun)
         const char *localeString = "en_US.ISO8859-1";
 #else
         const char *localeString = "en_US.iso88591";
