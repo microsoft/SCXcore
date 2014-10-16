@@ -182,7 +182,8 @@ public:
                                                 L"FreeSpaceInPagingFiles",
                                                 L"OperatingSystemCapability",
                                                 L"MaxProcessMemorySize",
-                                                L"MaxProcessesPerUser"
+                                                L"MaxProcessesPerUser",
+                                                L"SystemUpTime"
         };
 #elif defined(hpux)
         std::wstring tmpExpectedProperties[] = {L"Caption",
@@ -244,7 +245,8 @@ public:
                                                 L"FreeSpaceInPagingFiles",
                                                 L"MaxProcessMemorySize",
                                                 L"MaxProcessesPerUser",
-                                                L"OperatingSystemCapability"
+                                                L"OperatingSystemCapability",
+                                                L"SystemUpTime"
         };
 #else
 #error Platform not supported
