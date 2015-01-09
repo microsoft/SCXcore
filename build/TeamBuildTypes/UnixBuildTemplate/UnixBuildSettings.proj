@@ -5,7 +5,7 @@
     
     Project: ScxCore (Main)
     
-    There are 23 different types of unix builds, the "UnixBuildType" property can have the following values:
+    There are many different types of unix builds, the "UnixBuildType" property can have the following values:
     
         AIX_5.3_ppc
         AIX_6.1_ppc
@@ -20,10 +20,12 @@
         REDHAT_5.0_x86
         REDHAT_6.0_x64
         REDHAT_6.0_x86
+        REDHAT_7.0_x64
         SUSE_10.0_x64
         SUSE_10.0_x86
         SUSE_11.0_x64
         SUSE_11.0_x86
+        SUSE_12.0_x64
         SUSE_9.0_x86
         CentOS_5.0_x64
         CentOS_5.0_x86
@@ -180,7 +182,15 @@
         <DropPath>SUSE10.0_x86</DropPath>
       </PropertyGroup>
     </When>
-
+    
+   <When Condition=" '$(UnixBuildType)'=='SUSE_12.0_x64' ">
+      <PropertyGroup>
+        <UnixBuildServer>bld64-sles12-01</UnixBuildServer>
+        <UnixWorkSpaceName>ScxCore_SCXDEV_SUSE_120_x64</UnixWorkSpaceName>
+        <DropPath>SUSE12.0_x64</DropPath>
+      </PropertyGroup>
+    </When>
+    
     <When Condition=" '$(UnixBuildType)'=='SUSE_11.0_x64' ">
       <PropertyGroup>
         <UnixBuildServer>scxcr64-sle11-02</UnixBuildServer>
