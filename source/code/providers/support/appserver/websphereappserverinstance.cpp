@@ -17,6 +17,7 @@
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxfilepath.h>
+#include <scxcorelib/scxdirectoryinfo.h>
 #include <scxcorelib/scxregex.h>
 #include <util/XElement.h>
 
@@ -350,7 +351,32 @@ namespace SCXSystemLib
     */
     bool WebSphereAppServerInstance::IsStillInstalled()
     {
-        return SCXFile::Exists(GetProfileVersionXml());
+        // Check to see if servers directory is present
+        // If the directory is present then this means that the installation is a Network Deployment installation
+        // If Network Deployment installation go all the way to root diskPath + "servers/server1/configuration"
+        // This directory contains wsBundleMetadata file that we can check to make sure exists
+        SCXCoreLib::SCXFilePath profileDiskPath(returnProfileDiskPath(m_diskPath));
+        profileDiskPath.AppendDirectory(L"servers");
+                
+        if (SCXDirectory::Exists(profileDiskPath))
+        {
+            SCXCoreLib::SCXFilePath serverDiskPath(m_diskPath);
+            serverDiskPath.AppendDirectory(L"configuration");
+            serverDiskPath.Append(L"wsBundleMetadata");
+                        
+            if (SCXFile::Exists(serverDiskPath.Get()))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return SCXFile::Exists(GetProfileVersionXml());
+        }
     }
 }
 
