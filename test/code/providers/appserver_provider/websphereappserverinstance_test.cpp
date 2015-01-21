@@ -28,7 +28,7 @@ public:
 
     WebSphereAppServerInstanceTestPALDependencies() : 
         m_xmlServerFilename(L""), m_noServerFile(false), m_emptyServerFile(false), m_badXmlServerFile(false),
-        m_xmlVersionFilename(L""), m_noVersionFile(false), m_emptyVersionFile(false), m_badXmlVersionFile(false)
+        m_xmlVersionFilename(L""), m_noVersionFile(false), m_emptyVersionFile(false), m_badXmlVersionFile(false),m_version(7)
     {}
 
     // Should the we throw an exception when opening the server file
@@ -60,6 +60,12 @@ public:
     {
         m_emptyVersionFile = emptyVersionFile;
     }
+    
+    // If we need specific version - besides 7 - what version file to return
+    void SetVersion(int version)
+    {
+        m_version = version;
+    }
 
     // Should the we return invalid XML for the content of the version file
     void SetBadXmlVersionFile(bool badXmlVersionFile)
@@ -86,7 +92,8 @@ public:
         *xmlcontent << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
         *xmlcontent << "<profile>" << endl;
         *xmlcontent << "  <id>default</id>" << endl;
-        *xmlcontent << "  <version>7.0.0.0</version>" << endl;
+        *xmlcontent << "  <version>" << m_version << ".0.0.0</version>" << endl;
+
         *xmlcontent << "  <build-info date=\"8/31/08\" level=\"r0835.03\"/>" << endl;
         
         if (!m_badXmlVersionFile)
@@ -205,6 +212,7 @@ public:
     bool m_noVersionFile;
     bool m_emptyVersionFile;
     bool m_badXmlVersionFile;
+    int m_version;
 };
 
 class WebSphereAppServerInstance_Test : public CPPUNIT_NS::TestFixture
@@ -219,6 +227,7 @@ class WebSphereAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testEmptyVersionFile );
     CPPUNIT_TEST( testBadXmlServerFile );
     CPPUNIT_TEST( testBadXmlVersionFile );
+    CPPUNIT_TEST( testRemovingNetworkDeploymentInstallation );
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -453,6 +462,31 @@ class WebSphereAppServerInstance_Test : public CPPUNIT_NS::TestFixture
         CPPUNIT_ASSERT(deps->m_xmlVersionFilename == L"home/properties/version/profile.version");
     }
 
+        // Test removing non existent WebSphere Application Server with greater logic than checking profile.version
+        // This change is neccessary for WebSphere Network Deployment configurations
+        void testRemovingNetworkDeploymentInstallation()
+        {
+                SCXHandle<WebSphereAppServerInstanceTestPALDependencies> deps(new WebSphereAppServerInstanceTestPALDependencies());
+
+                // Set WebSphere version to 8
+                deps->SetVersion(8);
+
+                // Create good instance with proper server directory
+                // Note: Makefile.tests, as part of setup, creates directory
+                //   structure under $(TARGET_DIR)/testfiles.
+                SCXHandle<WebSphereAppServerInstance> asInstance(new WebSphereAppServerInstance(L"testfiles/websphere_networkdeployment/profiles/profile1/servers/server1", L"cell", L"node", L"profile", L"server1", deps));
+                asInstance->Update();
+                CPPUNIT_ASSERT_EQUAL(L"8.0.0.0", asInstance->GetVersion());
+                
+                // Create bad instance with incorrect server directory
+                SCXHandle<WebSphereAppServerInstance> asInstance2(new WebSphereAppServerInstance(L"../../test/code/shared/testutils/websphere_badnetworkdeployment/profiles/profile1/", L"cell", L"node", L"profile", L"server1", deps));
+                asInstance2->Update();
+                CPPUNIT_ASSERT_EQUAL(L"8.0.0.0", asInstance2->GetVersion());
+
+                CPPUNIT_ASSERT_EQUAL(true, asInstance->IsStillInstalled());
+                CPPUNIT_ASSERT_EQUAL(false, asInstance2->IsStillInstalled());
+
+        }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( WebSphereAppServerInstance_Test );

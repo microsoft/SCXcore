@@ -180,6 +180,10 @@ testrun_copy : $(TARGET_DIR)/closefiledescriptors
 	chmod u+wx $(TARGET_DIR)/testfiles/TomcatVersionCheck.sh
 	chmod u+wx $(TARGET_DIR)/testfiles/testrun_wrapper
 	chmod u+wx $(TARGET_DIR)/testfiles/scxlogfilereader-test
+	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/configuration
+	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration
+	touch $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration/wsBundleMetadata
+	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_badnetworkdeployment/profiles/profile1/configuration
 	$(COPY) $(TARGET_DIR)/closefiledescriptors $(TARGET_DIR)/testfiles/
 	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(TARGET_DIR)
 	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(TARGET_DIR))
