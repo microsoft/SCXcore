@@ -213,7 +213,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
@@ -226,7 +226,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("");
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -240,7 +240,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("sudo");
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -254,7 +254,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("SUdo");
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -268,7 +268,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("echo Testing");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("aaaaaa");
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
@@ -280,7 +280,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/non-existing-directory/non-existing-command");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_MESSAGE(ERROR_MESSAGE, 0 != returnData.returnCode);
@@ -293,7 +293,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
@@ -308,7 +308,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         // Command is: "echo 'Howdy&There<Partner'"  (without quotes)
         param.Command_value("ZWNobyAnSG93ZHkmVGhlcmU8UGFydG5lcic=");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.b64encoded_value(true);
         InvokeReturnData returnData;
         ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -322,7 +322,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("sudo");
         InvokeReturnData returnData;
         ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -336,7 +336,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("");
         InvokeReturnData returnData;
         ExecuteShellCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -350,7 +350,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteShellCommand_Class param;
         param.Command_value("echo 'a\nb\nc' | grep b");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("aaaaaa");
         InvokeReturnData returnData;
         ExecuteShellCommand(param, MI_RESULT_INVALID_PARAMETER, returnData, CALL_LOCATION(errMsg));
@@ -374,7 +374,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
@@ -390,7 +390,7 @@ public:
         util::Base64Helper::Encode(command, command);
         param.Script_value(command.c_str());
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.b64encoded_value(true);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -405,7 +405,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("sudo");
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -420,7 +420,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("SUDO");
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -435,7 +435,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(GetScript());
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         param.ElevationType_value("");
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
@@ -453,7 +453,7 @@ public:
             "# generate error code we can check later\n"
             "exit 7\n");
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 7, returnData.returnCode);
@@ -490,7 +490,7 @@ public:
         mi::SCX_OperatingSystem_ExecuteScript_Class param;
         param.Script_value(script.c_str());
         param.Arguments_value("");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
@@ -509,7 +509,7 @@ public:
             "echo \"-$2-\">&2\n"
             "exit 0\n");
         param.Arguments_value("unit test run");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
@@ -583,7 +583,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/bin/touch /ExecuteCommandWasHere");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT( SCXFile::Exists(L"testChRoot/ExecuteCommandWasHere") );
@@ -608,7 +608,7 @@ public:
         std::wstring errMsg;
         mi::SCX_OperatingSystem_ExecuteCommand_Class param;
         param.Command_value("/bin/touch ./ExecuteCommandWasHere");
-        param.timeout_value(100);
+        param.timeout_value(0);
         InvokeReturnData returnData;
         ExecuteCommand(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT( SCXFile::Exists(L"testCWD/ExecuteCommandWasHere") );
