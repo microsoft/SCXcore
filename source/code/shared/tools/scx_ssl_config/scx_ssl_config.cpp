@@ -36,7 +36,8 @@ using SCXCoreLib::SCXFilePath;
 
 static void usage(const char * name, int exitValue);
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
-                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false );
+                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false,
+                      bool domainRecovery=false, bool domainSpecified=false );
 
 
 
@@ -57,6 +58,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
    \n -d domain      domain name
    \n -h host        hostname
    \n -b bits        number of key bits (defaults to 2048)
+   \n -r             allow the domain to change even if it is specified with -d
 
    Result Code
    \n -1  an exception has occured
@@ -76,9 +78,12 @@ int main(int argc, char *argv[])
     const string hostFlag       ("-h");
     const string startdaysFlag  ("-s");
     const string debugFlag      ("-v");
+    const string recoveryFlag   ("-r");
 
     // Control variables built from command line arguments (defaulted as needed by SCX)
     bool debugMode = false;
+    bool domainRecovery = false;
+    bool domainSpecified = false;
     bool doGenerateCert = false;
     wstring targetPath = L"/etc/opt/microsoft/omi/ssl";
     int startDays = -365;
@@ -100,6 +105,10 @@ int main(int argc, char *argv[])
         {
             debugMode = ! debugMode;
             wcout << L"Setting debugMode=" << (debugMode ? L"true" :L"false") << endl;
+        }
+        else if (recoveryFlag == argv[i])
+        {
+            domainRecovery = true;
         }
         else if (helpFlag == argv[i])
         {
@@ -139,6 +148,7 @@ int main(int argc, char *argv[])
             try
             {
                 domainname = SCXCoreLib::StrFromMultibyte(argv[i], true);
+                domainSpecified = true;
             }
             catch(SCXCoreLib::SCXStringConversionException ex)
             {
@@ -286,15 +296,8 @@ int main(int argc, char *argv[])
     int rc = 0;
     if (doGenerateCert)
     {
-        // Output what we'll be using for certificate generation
-        wcout << L"Generating certificate with hostname=\"" << hostname << L"\"";
-        if (domainname.length())
-        {
-            wcout << L", domainname=\"" << domainname << L"\"" ;
-        }
-        wcout << endl;
-        
-        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode);
+        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode,
+            domainRecovery, domainSpecified);
     }
 
     if (debugMode)
@@ -317,8 +320,16 @@ int main(int argc, char *argv[])
 */
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname,
-                      int bits, bool bDebug)
+                      int bits, bool bDebug, bool domainRecovery, bool domainSpecified)
 {
+    // Output what we'll be using for certificate generation
+    wcout << L"Generating certificate with hostname=\"" << hostname << L"\"";
+    if (domainname.length())
+    {
+        wcout << L", domainname=\"" << domainname << L"\"" ;
+    }
+    wcout << endl;
+    
     std::wstring c_certFilename(L"omi-host-");  // Remainder must be generated
     const std::wstring c_keyFilename(L"omikey.pem");
 
@@ -337,13 +348,6 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         certPath.SetDirectory(targetPath);
         certPath.SetFilename(c_certFilename);
         SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, startDays, endDays, hostname, domainname, bits);
-
-        size_t keyLen;
-        if((keyLen = cert.GetCombinedNameLength()) > 64)
-        {
-            wcerr << L"Hostname too long to generate certificate!  (Maximum length must be <= 64)" << endl;
-            return 1;
-        }
         
         std::ostringstream debugChatter;
         debugChatter << endl;
@@ -365,10 +369,29 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         }
         catch(SCXSSLException e_ssl)
         {
-            if(bDebug)
-                wcout << debugChatter.str().c_str(); 
+            // When the domain is specified through the command line "-d", we only allow recovery if the 
+            // recovery flag "-r" is also present. If the domain is not specified on the command line,
+            // we also allow recovery.
+            if ( domainname != L"local" && ( (domainSpecified && domainRecovery) || !domainSpecified ) )
+            {
+                // When the domain is not RFC compliant, openssl fails to generate a cerificate.
+                // We will try a fallback for it. We do this here because we do not want to print
+                // an error if the fallback succeeds.
+                wcerr << e_ssl.What() << endl;
+                wcout << "Domain likely not RFC compliant, trying fallback domain name: \"local\"" << endl;
 
-            wcerr << e_ssl.What() << std::endl;
+                rc = DoGenerate(targetPath, startDays, endDays, hostname, L"local", bits, bDebug,
+                    domainRecovery, domainSpecified);
+                if (rc == 0)
+                {
+                    return 0;
+                }
+            }
+
+            if(bDebug)
+                wcout << debugChatter.str().c_str();
+
+            wcerr << e_ssl.What() << endl;
             return 3;
         }
 
@@ -449,6 +472,7 @@ static void usage(char const * const name, int exitValue)
           << L"-d domain      - domain name" << endl
           << L"-h host        - host name" << endl
           << L"-b bits        - number of key bits" << endl
+          << L"-r             - allow recovery for domains that are not RFC compliant even if the domain is specified with -d" << endl
           << L"-?             - this help message" << endl
     ;
     exit(exitValue);
