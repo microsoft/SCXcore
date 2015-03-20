@@ -150,7 +150,6 @@ public:
 
     using SCXSSLCertificate::Generate; 
     void Generate(std::ostringstream& verbage);
-    size_t GetCombinedNameLength(void) const;
 
 private:
     static void * GetLibIDN(void);

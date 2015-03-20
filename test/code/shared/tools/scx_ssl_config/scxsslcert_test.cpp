@@ -34,6 +34,7 @@
 
 using std::cout;
 using std::wcout;
+using std::endl;
 
 class ScxSSLCertTest : public CPPUNIT_NS::TestFixture
 {
@@ -47,8 +48,11 @@ class ScxSSLCertTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testLoadRndNumberWithNoRandomAtAll );
     CPPUNIT_TEST( testCertGeneration7Bit );
     CPPUNIT_TEST( testCertGeneration8Bit );
-    CPPUNIT_TEST( test7BitCertGenerationAndCheckFiles );        
-    CPPUNIT_TEST( test8BitCertGenerationAndCheckFiles );    
+    CPPUNIT_TEST( test7BitCertGenerationAndCheckFiles );
+    CPPUNIT_TEST( test8BitCertGenerationAndCheckFiles );
+    CPPUNIT_TEST( testNonRFCcompliantDomainFailure );
+    CPPUNIT_TEST( testNonRFCcompliantDomainFallback );
+    CPPUNIT_TEST( testNonRFCcompliantDomainNoRecovery );
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -202,7 +206,7 @@ public:
             CPPUNIT_ASSERT_MESSAGE("Output certificate file not found", SCXCoreLib::SCXFile::Exists(cert.m_CertPath));
             CPPUNIT_ASSERT_MESSAGE("Output key file not found", SCXCoreLib::SCXFile::Exists(cert.m_KeyPath));
         }
-        catch(SCXSSLException e)
+        catch(SCXSSLException &e)
         {
             std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
             CPPUNIT_ASSERT_MESSAGE(msg, false);
@@ -237,7 +241,7 @@ public:
             cout << debugChatter.str();
             bConverted = true;
         }
-        catch(SCXSSLException e)
+        catch(SCXSSLException &e)
         {
             // All Linux platforms should have the IDN libraries installed
             if (s_fIsLinux)
@@ -276,7 +280,7 @@ public:
             return false; 
 
         std::string strIssuer("issuer= /DC=com/DC=" + domainname + std::string("/CN=") + hostname + std::string("/CN=") + hostname + "." +  domainname + ".com");
-        if(out.str().find(strSubject) == std::string::npos)
+        if(out.str().find(strIssuer) == std::string::npos)
             return false; 
   
         return true;
@@ -313,7 +317,7 @@ public:
             
             cout << debugChatter.str();
         }
-        catch(SCXSSLException e)
+        catch(SCXSSLException &e)
         {
             // Should succeed everywhere
             std::string msg("Exception: " + debugChatter.str() + SCXCoreLib::StrToMultibyte(e.Where()) + std::string("\n") + SCXCoreLib::StrToMultibyte(e.What()));
@@ -354,7 +358,7 @@ public:
             cout << debugChatter.str();
             bConverted = true;
         }
-        catch(SCXSSLException e)
+        catch(SCXSSLException &e)
         {
             // All Linux platforms should have the IDN libraries installed
             if (s_fIsLinux)
@@ -374,6 +378,100 @@ public:
 
             CPPUNIT_ASSERT_MESSAGE("Expected a failure to convert on this platform, but it succeeded (" + debugChatter.str() + ")", hLib != NULL);
         }
+    }
+
+    void testNonRFCcompliantDomainFailure()
+    {
+        std::ostringstream debugChatter;
+ 
+        SCXCoreLib::SelfDeletingFilePath keyPath(L"./testfiles/scx-test-key.pem");
+        SCXCoreLib::SelfDeletingFilePath certPath(L"./testfiles/scx-test-cert.pem");
+
+        // This is an actual example we received.
+        std::wstring hostname(L"Instance0-406484d6-6dba-46cb-b21f-93be8e2588b2-serresdev");
+        std::wstring domainname(L"406484d6-6dba-46cb-b21f-93be8e2588b2-serresdev.d4.internal.cloudapp.net");
+        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, hostname, domainname, 2048);
+
+        try
+        {
+            cert.Generate(debugChatter);
+        }
+        catch(SCXSSLException &e)
+        {
+            CPPUNIT_ASSERT_MESSAGE("Adding a non RFC compliant domain name did not produce the expected exception. Exception=" + SCXCoreLib::StrToMultibyte(e.What()),
+                e.What().find(L"Unable to add the domain name to the subject.") != std::string::npos);
+            return;
+        }
+        CPPUNIT_ASSERT_MESSAGE("Adding a non RFC compliant domain name did not produce an exception.", false);
+    }
+
+    void testNonRFCcompliantDomainFallback()
+    {
+        std::istringstream in;
+        std::ostringstream out, err;
+        
+        std::wstring hostname(L"hostname");
+        std::wstring domainname(L"406484d6-6dba-46cb-b21f-93be8e2588b2-serresdev.d4.internal.cloudapp.net");
+
+        SCXCoreLib::SelfDeletingFilePath sdCertPath(L"./testfiles/omi-host-" + hostname + L".pem");
+        SCXCoreLib::SelfDeletingFilePath sdLinkPath(L"./testfiles/omi.pem");
+        SCXCoreLib::SelfDeletingFilePath sdKeyPath(L"./testfiles/omikey.pem");
+        
+        std::wstring scxsslconfigPath(L"./scxsslconfig");
+        if (SCXCoreLib::SCXFile::Exists(L"./openssl_0.9.8/scxsslconfig"))
+        {
+            scxsslconfigPath = L"./openssl_0.9.8/scxsslconfig";
+        }
+
+        // When the "-r" flag is specified with a non RFC compliant domain name, scxsslconfig should try a fallback and succeed.
+        int ret = SCXCoreLib::SCXProcess::Run(scxsslconfigPath + L" -f -v -g testfiles/ -h " + hostname + L" -r -d " + domainname, in, out, err);
+
+        std::ostringstream errorCodeMsg;
+        errorCodeMsg << "Not able to run " << SCXCoreLib::StrToUTF8(scxsslconfigPath) << ", error message is: " << err.str() 
+            << ", error code is: " << ret;
+        CPPUNIT_ASSERT_MESSAGE(errorCodeMsg.str(), ret == 0);
+
+        CPPUNIT_ASSERT_MESSAGE("Fallback was not detected", out.str().find("trying fallback domain name: \"local\"") != std::string::npos);
+        CPPUNIT_ASSERT_MESSAGE("Output certificate file not found", SCXCoreLib::SCXFile::Exists(sdCertPath.Get()));
+        CPPUNIT_ASSERT_MESSAGE("Output key file not found", SCXCoreLib::SCXFile::Exists(sdKeyPath.Get()));
+
+        out.str("");
+        err.str("");
+
+        if (SCXCoreLib::SCXProcess::Run(L"openssl x509 -noout -subject -issuer -in " + sdCertPath.Get(), in, out, err))
+        {
+            std::string msg("Not able to run openssl, error message is: " + err.str()); 
+            CPPUNIT_ASSERT_MESSAGE(msg, false);
+        }
+
+        CPPUNIT_ASSERT_MESSAGE("Cert subject not as expected. Received: " + out.str(), out.str().find("subject= /DC=local/CN=hostname/CN=hostname.local") != std::string::npos);
+        CPPUNIT_ASSERT_MESSAGE("Cert issuer not as expected. Received: " + out.str(), out.str().find("issuer= /DC=local/CN=hostname/CN=hostname.local") != std::string::npos);
+    }
+
+    void testNonRFCcompliantDomainNoRecovery()
+    {
+        std::istringstream in;
+        std::ostringstream out, err;
+        
+        std::wstring hostname(L"Instance0-406484d6-6dba-46cb-b21f-93be8e2588b2-serresdev");
+        std::wstring domainname(L"406484d6-6dba-46cb-b21f-93be8e2588b2-serresdev.d4.internal.cloudapp.net");
+
+        SCXCoreLib::SelfDeletingFilePath sdCertPath(L"./testfiles/omi-host-" + hostname + L".pem");
+        SCXCoreLib::SelfDeletingFilePath sdLinkPath(L"./testfiles/omi.pem");
+        SCXCoreLib::SelfDeletingFilePath sdKeyPath(L"./testfiles/omikey.pem");
+        
+        std::wstring scxsslconfigPath(L"./scxsslconfig");
+        if (SCXCoreLib::SCXFile::Exists(L"./openssl_0.9.8/scxsslconfig"))
+        {
+            scxsslconfigPath = L"./openssl_0.9.8/scxsslconfig";
+        }
+
+        // When the "-r" flag is not specified, scxsslconfig will not try to recover from a non RFC compliant domainname and should fail.
+        int ret = SCXCoreLib::SCXProcess::Run(scxsslconfigPath + L" -f -v -g testfiles/ -h " + hostname + L" -d " + domainname, in, out, err);
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("scxsslconfig did not fail with a non RFC compliant domain name", 3, ret);
+        CPPUNIT_ASSERT_MESSAGE("Adding a non RFC compliant domain name did not produce the expected error message: \"" + err.str() +"\"",
+                err.str().find("Unable to add the domain name to the subject.") != std::string::npos);
     }
 };
 

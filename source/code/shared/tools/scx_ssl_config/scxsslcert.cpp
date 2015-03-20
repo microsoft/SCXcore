@@ -537,24 +537,6 @@ void SCXSSLCertificate::DoGenerate()
 
 /*----------------------------------------------------------------------------*/
 /**
-   Gets length of certificate to ensure we will not overrun OpenSSL's limit. 
-*/
-size_t SCXSSLCertificateLocalizedDomain::GetCombinedNameLength(void) const
-{
-    // Now that the domain string has been converted, let's see if it passes length checks
-    // We need to watch the length - SSL has a maximum length of 64 bytes
-    size_t keyLen = m_hostname.length();
-
-    if (m_domainname.length())
-    {
-        keyLen += m_domainname.length() + 1;
-    }
-
-    return keyLen;
-}
-
-/*----------------------------------------------------------------------------*/
-/**
    Set the properties in the X509_REQ object.
    
    \param req pointer to openSSL X509 request information object.
