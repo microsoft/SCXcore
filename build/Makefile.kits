@@ -30,6 +30,14 @@ DISTRO_TYPE = $(PF)_$(PF_DISTRO)_D
  endif
 endif
 
+ifneq ($(PF),SunOS)
+ifeq ($(PF_ARCH),x86)
+OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
+else if ($(PF_ARCH),x64)
+OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
+endif
+endif
+
 installerOnly: compressed_kit bundle
 
 STAGING_DIR = $(SCX_BRD)/installer/intermediate/staging
@@ -103,10 +111,15 @@ else
 endif
 
 bundle: native_kit
+	# Copy OSS kit files to target directory if Linux or ULINUX
+ifneq ($(OSS_KITS),)
+	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); chmod u+x $(OSS_KITS)
+endif
+	# Copy remaining kit files to target directory
 ifneq ($(PF_DISTRO),ULINUX)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(TARGET_DIR)/omi_package_filename
-	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename`
+	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
                                              $(TARGET_DIR) \
                                              `cat $(TARGET_DIR)/package_filename`.tar \
