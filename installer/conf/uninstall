@@ -44,30 +44,30 @@ pkg_rm() {
                 ULINUX)
                     if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
                         if [ "$uninstallMode" = "P" ]; then
-                            dpkg --purge $1 1> /dev/null 2> /dev/null
+                            dpkg --purge $1 # 1> /dev/null 2> /dev/null
                         else
-                            dpkg --remove $1 1> /dev/null 2> /dev/null
+                            dpkg --remove $1 # 1> /dev/null 2> /dev/null
                         fi
                     elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
-                        rpm --erase $1 1> /dev/null 2> /dev/null
+                        rpm --erase $1 # 1> /dev/null 2> /dev/null
                     fi
                     ;;
                 REDHAT|SUSE)
-                    rpm --erase $1 1> /dev/null 2> /dev/null
+                    rpm --erase $1 # 1> /dev/null 2> /dev/null
                     ;;
             esac
             ;;
 
         AIX)
-            /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+            /usr/sbin/installp -u $1.rte # 1> /dev/null 2> /dev/null
             ;;
         
         HPUX)
-            /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+            /usr/sbin/swremove $1 # 1> /dev/null 2> /dev/null
             ;;
         
         SunOS)
-            /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+            /usr/sbin/pkgrm -a scx-admin -n MSFT$1 # 1> /dev/null 2> /dev/null
             ;;
     esac
 }
@@ -217,9 +217,29 @@ if [ "$PF" = "SunOS" ]; then
     echo "basedir=default" >> scx-admin
 fi
 
-echo "Removing cross-platform agent ..."
+echo "Removing cross-platform agent(s) ..."
+
+# First remove any bundled agents
+
+BUNDLE_EXIT_STATUS="0"
+
+for i in /opt/microsoft/*-cimprov; do
+    PKG_NAME=`basename $i`
+    if [ "$PKG_NAME" != "*-cimprov" ]; then
+        echo "Removing ${PKG_NAME} ..."
+        pkg_rm ${PKG_NAME}
+        TEMP_STATUS=$?
+        [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
+    fi
+done
+
+# Now remove actual SCX/OMI agents
+
+echo "Removing SCX package ..."
 pkg_rm scx
 SCX_EXIT_STATUS=$?
+
+echo "Removing OMI package ..."
 pkg_rm omi
 OMI_EXIT_STATUS=$?
 
@@ -229,7 +249,7 @@ if [ $OMI_EXIT_STATUS -ne 0 ]; then
     start_omiserver
 fi
 
-if [ "$SCX_EXIT_STATUS" -ne "0" ]; then
+if [ "$SCX_EXIT_STATUS" -ne "0" -o "$BUNDLE_EXIT_STATUS" -ne "0" ]; then
     cleanup_and_exit 1
 else
     cleanup_and_exit 0

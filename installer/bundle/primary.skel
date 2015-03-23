@@ -46,6 +46,7 @@ case $0 in
 esac
 SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 SCRIPT="$SCRIPT_DIR/`basename $0`"
+EXTRACT_DIR="`pwd -P`/scxbundle.$$"
 
 # These symbols will get replaced during the bundle creation process.
 #
@@ -67,10 +68,12 @@ usage()
 {
     echo "usage: $1 [OPTIONS]"
     echo "Options:"
+    echo "  --extract              Extract contents and exit."
     echo "  --force                Force upgrade (override version checks)."
     echo "  --install              Install the package from the system."
     echo "  --purge                Uninstall the package and remove all related data."
     echo "  --remove               Uninstall the package from the system."
+    echo "  --restart-deps         Reconfigure and restart dependent service"
     echo "  --upgrade              Upgrade the package in the system."
     echo "  --debug                use shell debug mode."
     echo "  -? | --help            shows this usage text."
@@ -78,10 +81,19 @@ usage()
 
 cleanup_and_exit()
 {
+    # $1: Exit status
+    # $2: "SAVE" (if we're not to delete bundles), otherwise empty
+
     if [ "$PLATFORM" = "SunOS" ]; then
         rm -f scx-admin scx-admin-upgrade
-    rm -f /tmp/.ai.pkg.zone.lock*
+        rm -f /tmp/.ai.pkg.zone.lock*
     fi
+
+    if [ -z "$2" ]; then
+        cd $EXTRACT_DIR/..
+        rm -rf $EXTRACT_DIR
+    fi
+
     if [ -n "$1" ]; then
         exit $1
     else
@@ -140,6 +152,12 @@ do
             shift 2
             ;;
 
+        --extract)
+            verifyNoInstallationOption
+            installMode=E
+            shift 1
+            ;;
+
         --force)
             forceFlag=true
             shift 1
@@ -165,6 +183,11 @@ do
             shift 1
             ;;
 
+        --restart-deps)
+            restartDependencies=--restart-deps
+            shift 1
+            ;;
+
         --upgrade)
             verifyNoInstallationOption
             installMode=U
@@ -176,6 +199,7 @@ do
             echo "" >&2
             echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2
             echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2
+            echo "EXTRACT DIR:     $EXTRACT_DIR" >&2
             echo "SCRIPT:          $SCRIPT" >&2
             echo >&2
             set -x
@@ -226,9 +250,9 @@ pkg_add() {
     pkg_filename=$1
     case "$PLATFORM" in
         Linux_ULINUX*)
-            ulinux_detect_openssl_version
-            pkg_filename=$TMPBINDIR/$pkg_filename
-            ;;
+	    ulinux_detect_openssl_version
+	    pkg_filename=$TMPBINDIR/$pkg_filename
+	    ;;
     esac
 
     case "$PLATFORM" in
@@ -259,31 +283,31 @@ pkg_add() {
 pkg_rm() {
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm --erase $1 1> /dev/null 2> /dev/null
+            rpm --erase $1 # 1> /dev/null 2> /dev/null
             ;;
         
         Linux_ULINUX_D)
             if [ "$installMode" = "P" ]; then
-                dpkg --purge $1 1> /dev/null 2> /dev/null
+                dpkg --purge $1 # 1> /dev/null 2> /dev/null
             else
-                dpkg --remove $1 1> /dev/null 2> /dev/null
+                dpkg --remove $1 # 1> /dev/null 2> /dev/null
             fi
             ;;
         
         AIX)
-            /usr/sbin/installp -u $1.rte 1> /dev/null 2> /dev/null
+            /usr/sbin/installp -u $1.rte # 1> /dev/null 2> /dev/null
 
             ;;
         
         HPUX)
-            /usr/sbin/swremove $1 1> /dev/null 2> /dev/null
+            /usr/sbin/swremove $1 # 1> /dev/null 2> /dev/null
             ;;
         
         SunOS)
             if [ "$2" = "force" ]; then
-                /usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 1> /dev/null 2> /dev/null
+                /usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 # 1> /dev/null 2> /dev/null
             else
-                /usr/sbin/pkgrm -a scx-admin -n MSFT$1 1> /dev/null 2> /dev/null
+                /usr/sbin/pkgrm -a scx-admin -n MSFT$1 # 1> /dev/null 2> /dev/null
             fi
             ;;
     esac
@@ -371,6 +395,19 @@ case "$PLATFORM" in
         cleanup_and_exit 2
 esac
 
+if [ -z "${installMode}" ]; then
+    echo "$0: No options specified, specify --help for help" >&2
+    cleanup_and_exit 3
+fi
+
+#
+# Note: From this point, we're in a temporary directory. This aids in cleanup
+# from bundled packages in our package (we just remove the diretory when done).
+#
+
+mkdir -p $EXTRACT_DIR
+cd $EXTRACT_DIR
+
 # Create installation administrative file for Solaris platform if needed
 if [ "$PLATFORM" = "SunOS" ]; then
     echo "mail=" > scx-admin
@@ -399,14 +436,23 @@ then
     if [ -f /opt/microsoft/scx/bin/uninstall ]; then
         /opt/microsoft/scx/bin/uninstall $installMode
     else
-        # This is an old kit.  Let's just simply pkg_rm scx
+        # This is an old kit.  Let's remove each separate provider package
+        for i in /opt/microsoft/*-cimprov; do
+            PKG_NAME=`basename $i`
+            if [ "$PKG_NAME" != "*-cimprov" ]; then
+                echo "Removing ${PKG_NAME} ..."
+                pkg_rm ${PKG_NAME}
+            fi
+        done
+
+        # Now just simply pkg_rm scx
         pkg_rm scx
     fi
 
     if [ "$installMode" = "P" ]
     then
         echo "Purging all files in cross-platform agent ..."
-        rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
+        rm -rf /etc/opt/microsoft/*-cimprov /etc/opt/microsoft/scx /opt/microsoft/*-cimprov /opt/microsoft/scx /var/opt/microsoft/*-cimprov /var/opt/microsoft/scx
 
         # If OMI is not installed, purge its directories as well.
         check_if_pkg_is_installed omi
@@ -458,10 +504,6 @@ then
     cleanup_and_exit ${STATUS}
 fi
 
-# Default behavior is to extract the bundle and then exit
-
-[ -z "$installMode" ] && cleanup_and_exit 0
-
 #
 # Do stuff after extracting the binary here, such as actually installing the package.
 #
@@ -510,7 +552,15 @@ force_stop_omi_service() {
 
 }
 
+
+BUNDLE_EXIT_STATUS="0"
+
 case "$installMode" in
+    E)
+        # Files are extracted, so just exit
+        cleanup_and_exit 0 "SAVE"
+        ;;
+
     I)
         echo "Installing cross-platform agent ..."
         if [ "$PLATFORM" = "SunOS" ]; then
@@ -536,6 +586,18 @@ case "$installMode" in
 
         pkg_add $OM_PKG scx
         SCX_EXIT_STATUS=$?
+
+        # Installed bundled providers
+        [ -n "${forceFlag}" ] && FORCE="--force"
+        for i in *-oss-test.sh; do
+            ./$i
+            if [ $? -eq 0 ]; then
+                OSS_BUNDLE=`basename $i -oss-test.sh`
+                ./${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies
+                TEMP_STATUS=$?
+                [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
+            fi
+        done
         ;;
 
     U)
@@ -551,9 +613,21 @@ case "$installMode" in
             pkg_add $OMI_PKG omi
             OMI_EXIT_STATUS=$?  
         fi
-        
+
         pkg_upd $OM_PKG scx
         SCX_EXIT_STATUS=$?
+
+        # Upgrade bundled providers
+        [ -n "${forceFlag}" ] && FORCE="--force"
+        for i in *-oss-test.sh; do
+            ./$i
+            if [ $? -eq 0 ]; then
+                OSS_BUNDLE=`basename $i -oss-test.sh`
+                ./${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies
+                TEMP_STATUS=$?
+                [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
+            fi
+        done
         ;;
 
     *)
@@ -561,19 +635,9 @@ case "$installMode" in
         cleanup_and_exit 2
 esac
 
-# Remove the package that was extracted as part of the bundle
-# NOTE: Should we run in a temporary directory to not blow away any existing package in pwd?
+# Remove temporary files (now part of cleanup_and_exit) and exit
 
-case "$PLATFORM" in
-    Linux_ULINUX*)
-        rm -rf 098 100
-        ;;
-    *)
-        rm $OM_PKG $OMI_PKG
-        ;;
-esac
-
-if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" ]; then
+if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" -o "$BUNDLE_EXIT_STATUS" -ne "0" ]; then
     cleanup_and_exit 1
 else
     cleanup_and_exit 0
