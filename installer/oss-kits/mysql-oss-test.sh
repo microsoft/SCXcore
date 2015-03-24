@@ -10,6 +10,22 @@ FindClientLibrary()
     MYSQL_NAME=libmysqlclient.so
     CLIENT_LIBRARY=
 
+    # Note that we do not want to install on a system WITH the client library but
+    # without a server installed. While this is technically possible, it is not
+    # desirable. Thus, pre-flight known MySQL server installations and refuse to
+    # install if it appears that the server location does not exist.
+
+    SERVER_SEARCH_LIST="/var/lib/mysql /usr/local/mysql/data /usr/local/var/mysql /opt/mysql*"
+    SERVER_FOUND=0
+    for i in ${SERVER_SEARCH_LIST}; do
+	if [ -d "$i" ]; then
+	    SERVER_FOUND=1
+	    break
+	fi
+    done
+
+    [ "$SERVER_FOUND" -eq 0 ] && return
+
     # We use a variety of means to find libmysqlclient.so:
     #
     # 1. Via ldd of 'mysql' client program (may not be installed, or may link statically to MySQL)
@@ -28,7 +44,7 @@ FindClientLibrary()
         SEARCH_LIST_64="/usr/lib64 /usr/lib64/mysql /lib64 /lib64/mysql /usr/lib/x86_64-linux-gnu"
         SEARCH_LIST_32="/usr/lib /usr/lib/mysql /lib /lib/mysql /usr/lib/*86-linux-gnu /usr/local/mysql/lib"
         # Fix for Debian systems - packages installed in /opt, library built into mysql cli program statically
-        SEARCH_LIST_32="$SEARCH_LIST_32 /opt/mysql/*/lib"
+        SEARCH_LIST_32="$SEARCH_LIST_32 /opt/mysql*/*/lib"
 
         if [ `uname -m` = "x86_64" ]; then
             SEARCH_LIST="${SEARCH_LIST_64} ${SEARCH_LIST_32}"
