@@ -418,9 +418,9 @@ public:
         SCXCoreLib::SelfDeletingFilePath sdKeyPath(L"./testfiles/omikey.pem");
         
         std::wstring scxsslconfigPath(L"./scxsslconfig");
-        if (SCXCoreLib::SCXFile::Exists(L"./openssl_0.9.8/scxsslconfig"))
+        if (SCXCoreLib::SCXFile::Exists(L"./openssl_1.0.0/scxsslconfig"))
         {
-            scxsslconfigPath = L"./openssl_0.9.8/scxsslconfig";
+            scxsslconfigPath = L"./openssl_1.0.0/scxsslconfig";
         }
 
         // When the "-r" flag is specified with a non RFC compliant domain name, scxsslconfig should try a fallback and succeed.
@@ -461,9 +461,9 @@ public:
         SCXCoreLib::SelfDeletingFilePath sdKeyPath(L"./testfiles/omikey.pem");
         
         std::wstring scxsslconfigPath(L"./scxsslconfig");
-        if (SCXCoreLib::SCXFile::Exists(L"./openssl_0.9.8/scxsslconfig"))
+        if (SCXCoreLib::SCXFile::Exists(L"./openssl_1.0.0/scxsslconfig"))
         {
-            scxsslconfigPath = L"./openssl_0.9.8/scxsslconfig";
+            scxsslconfigPath = L"./openssl_1.0.0/scxsslconfig";
         }
 
         // When the "-r" flag is not specified, scxsslconfig will not try to recover from a non RFC compliant domainname and should fail.
