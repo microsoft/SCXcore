@@ -31,11 +31,13 @@ DISTRO_TYPE = $(PF)_$(PF_DISTRO)_D
 endif
 
 ifneq ($(PF),SunOS)
-ifeq ($(PF_ARCH),x86)
-OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
-else if ($(PF_ARCH),x64)
-OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
-endif
+  ifeq ($(PF_ARCH),x86)
+    OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
+  else
+    ifeq ($(PF_ARCH),x64)
+      OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
+    endif
+  endif
 endif
 
 installerOnly: compressed_kit bundle
@@ -111,15 +113,15 @@ else
 endif
 
 bundle: native_kit
-	# Copy OSS kit files to target directory if Linux or ULINUX
 ifneq ($(OSS_KITS),)
-	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); chmod u+x $(OSS_KITS)
+	# Copy OSS kit files to target directory if Linux or ULINUX
+	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR)
 endif
 	# Copy remaining kit files to target directory
 ifneq ($(PF_DISTRO),ULINUX)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(TARGET_DIR)/omi_package_filename
-	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
+	cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
                                              $(TARGET_DIR) \
                                              `cat $(TARGET_DIR)/package_filename`.tar \
@@ -130,7 +132,7 @@ else
 	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name package_filename` $(TARGET_DIR)/098/omi_package_filename
 	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/100/
 	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name package_filename` $(TARGET_DIR)/100/omi_package_filename
-	cd $(TARGET_DIR); tar cvf `cat 098/package_filename`.tar 098/`cat 098/package_filename` 098/`cat 098/omi_package_filename` 100/`cat 100/package_filename` 100/`cat 100/omi_package_filename`
+	cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); tar cvf `cat 098/package_filename`.tar 098/`cat 098/package_filename` 098/`cat 098/omi_package_filename` 100/`cat 100/package_filename` 100/`cat 100/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
 					     $(TARGET_DIR)  \
                                              `cat $(TARGET_DIR)/098/package_filename`.tar \

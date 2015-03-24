@@ -82,14 +82,14 @@ usage()
 cleanup_and_exit()
 {
     # $1: Exit status
-    # $2: "SAVE" (if we're not to delete bundles), otherwise empty
+    # $2: Non-blank (if we're not to delete bundles), otherwise empty
 
     if [ "$PLATFORM" = "SunOS" ]; then
         rm -f scx-admin scx-admin-upgrade
         rm -f /tmp/.ai.pkg.zone.lock*
     fi
 
-    if [ -z "$2" ]; then
+    if [ -z "$2" -a -d "$EXTRACT_DIR" ]; then
         cd $EXTRACT_DIR/..
         rm -rf $EXTRACT_DIR
     fi
