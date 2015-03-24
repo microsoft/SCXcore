@@ -26,12 +26,12 @@ It is assumed that each bundle will conform to the following:
 
     1) Will at least create a directory named
            /opt/microsoft/<provider-name>-cimprov.
-       This is used for removal of the packing during SCX removal,
+       This is used for removal of the package during SCX removal,
     2) For purposes of purging, after removal of the kit, the following
        directories will be deleted:
            /etc/opt/microsoft/<provider-name>-cimprov
            /opt/microsoft/<provider-name>-cimprov
-           /opt/microsoft/<provider-name>-cimprov
+           /var/opt/microsoft/<provider-name>-cimprov
 
 If files are created in other locations, the package should remove the files
 as part of the uninstall process.
