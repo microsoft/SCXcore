@@ -63,7 +63,7 @@ FindClientLibrary()
     fi
 }
 
-echo "Checking of MySQL is installed ..."
+echo "Checking if MySQL is installed ..."
 
 # Find anything?
 FindClientLibrary

@@ -44,7 +44,7 @@ FindApacheConfigFile()
     fi
 }
 
-echo "Checking of Apache is installed ..."
+echo "Checking if Apache is installed ..."
 
 # Find anything?
 FindApacheConfigFile
