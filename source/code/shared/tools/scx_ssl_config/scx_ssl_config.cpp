@@ -36,9 +36,8 @@ using SCXCoreLib::SCXFilePath;
 
 static void usage(const char * name, int exitValue);
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
-                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false,
-                      bool domainRecovery=false, bool domainSpecified=false );
-
+                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false);
+const int ERROR_CERT_GENERATE = 3;
 
 
 /*----------------------------------------------------------------------------*/
@@ -58,7 +57,6 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
    \n -d domain      domain name
    \n -h host        hostname
    \n -b bits        number of key bits (defaults to 2048)
-   \n -r             allow the domain to change even if it is specified with -d
 
    Result Code
    \n -1  an exception has occured
@@ -78,12 +76,11 @@ int main(int argc, char *argv[])
     const string hostFlag       ("-h");
     const string startdaysFlag  ("-s");
     const string debugFlag      ("-v");
-    const string recoveryFlag   ("-r");
+    const string testFlag       ("-t"); // Undocummented, for testing only
 
     // Control variables built from command line arguments (defaulted as needed by SCX)
     bool debugMode = false;
-    bool domainRecovery = false;
-    bool domainSpecified = false;
+    bool testMode = false;
     bool doGenerateCert = false;
     wstring targetPath = L"/etc/opt/microsoft/omi/ssl";
     int startDays = -365;
@@ -95,8 +92,11 @@ int main(int argc, char *argv[])
 #endif
     
     SCXCoreLib::NameResolver mi;
-    wstring hostname; 
-    wstring domainname; 
+    wstring hostname;
+    wstring domainname;
+
+    wstring specified_hostname; 
+    wstring specified_domainname; 
 
     int i = 1;
     for (; i < argc; ++i)
@@ -105,10 +105,6 @@ int main(int argc, char *argv[])
         {
             debugMode = ! debugMode;
             wcout << L"Setting debugMode=" << (debugMode ? L"true" :L"false") << endl;
-        }
-        else if (recoveryFlag == argv[i])
-        {
-            domainRecovery = true;
         }
         else if (helpFlag == argv[i])
         {
@@ -147,8 +143,7 @@ int main(int argc, char *argv[])
             // non-convertible string at all.... 
             try
             {
-                domainname = SCXCoreLib::StrFromMultibyte(argv[i], true);
-                domainSpecified = true;
+                specified_domainname = SCXCoreLib::StrFromMultibyte(argv[i], true);
             }
             catch(SCXCoreLib::SCXStringConversionException ex)
             {
@@ -168,7 +163,7 @@ int main(int argc, char *argv[])
             // If it fails prompt user and quit
             try
             {
-                hostname = SCXCoreLib::StrFromMultibyte(argv[i], true);
+                specified_hostname = SCXCoreLib::StrFromMultibyte(argv[i], true);
             }
             catch(SCXCoreLib::SCXStringConversionException e)
             {
@@ -217,6 +212,10 @@ int main(int argc, char *argv[])
             }
             endDays = atoi(argv[i]);
         }
+        else if (testFlag == argv[i])
+        {
+            testMode = true;
+        }
         else
         {
             break;
@@ -234,7 +233,10 @@ int main(int argc, char *argv[])
         usage(argv[0], 1);
     }
 
-     if(hostname.length() == 0)
+    hostname = specified_hostname;
+    domainname = specified_domainname;
+
+    if(hostname.empty())
     {
         std::string hostname_raw = "";
         try
@@ -255,23 +257,25 @@ int main(int argc, char *argv[])
     }
 
     // If the user did not supply a domain name, use default.
-    if(domainname.length() == 0)
+    if(domainname.empty())
+    {
         domainname = mi.GetDomainname();
+    }
 
     if(debugMode)
     {
         // Show what we would have used - even if user specified specific host/domain
-        wcout << "Generated hostname:   \"" << mi.GetHostname()
-              << "\" (" << mi.DumpSourceString(mi.GetHostnameSource()) << ")" << endl;
-        wcout << "Generated domainname: \"" << mi.GetDomainname()
-              << "\" (" << mi.DumpSourceString(mi.GetDomainnameSource()) << ")" << endl << endl;
+        wcout << L"Generated hostname:   \"" << mi.GetHostname()
+              << L"\" (" << mi.DumpSourceString(mi.GetHostnameSource()) << L")" << endl;
+        wcout << L"Generated domainname: \"" << mi.GetDomainname()
+              << L"\" (" << mi.DumpSourceString(mi.GetDomainnameSource()) << L")" << endl << endl;
 
-        wcout << L"Original Host Name:     " << hostname << endl;
-        wcout << L"Original Domain Name:   " << domainname << endl;
-        wcout << L"Start Days:    " << startDays << endl;
-        wcout << L"End Days:      " << endDays << endl;
-        wcout << L"Cert Length:   " << bits << endl;
-        wcout << L"Target Path:   " << targetPath << endl << endl;
+        wcout << L"Using Host Name:     " << hostname << endl;
+        wcout << L"Using Domain Name:   " << domainname << endl;
+        wcout << L"Start Days:          " << startDays << endl;
+        wcout << L"End Days:            " << endDays << endl;
+        wcout << L"Cert Length:         " << bits << endl;
+        wcout << L"Target Path:         " << targetPath << endl << endl;
     }
 
     // We only generate the certificate if "-f" was specified, or if no certificate exists
@@ -296,8 +300,20 @@ int main(int argc, char *argv[])
     int rc = 0;
     if (doGenerateCert)
     {
-        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode,
-            domainRecovery, domainSpecified);
+        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode);
+        
+        // When the domain or host name is specified through the command line we do not allow recovery.
+        // Add an exception to this rule for testing purposes.
+        if  ( (specified_domainname.empty() && specified_hostname.empty()) || testMode )
+        {
+            // When the domain or hostname is not RFC compliant, openssl fails to generate a cerificate.
+            // We will try to fallback.
+            if ( rc == ERROR_CERT_GENERATE )
+            {
+                wcout << "Hostname or domain likely not RFC compliant, trying fallback: \"localhost.local\"" << endl;
+                rc = DoGenerate(targetPath, startDays, endDays, L"localhost", L"local", bits, debugMode);
+            }
+        } 
     }
 
     if (debugMode)
@@ -320,7 +336,7 @@ int main(int argc, char *argv[])
 */
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname,
-                      int bits, bool bDebug, bool domainRecovery, bool domainSpecified)
+                      int bits, bool bDebug)
 {
     // Output what we'll be using for certificate generation
     wcout << L"Generating certificate with hostname=\"" << hostname << L"\"";
@@ -369,30 +385,14 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         }
         catch(SCXSSLException e_ssl)
         {
-            // When the domain is specified through the command line "-d", we only allow recovery if the 
-            // recovery flag "-r" is also present. If the domain is not specified on the command line,
-            // we also allow recovery.
-            if ( domainname != L"local" && ( (domainSpecified && domainRecovery) || !domainSpecified ) )
+            if(bDebug)
             {
-                // When the domain is not RFC compliant, openssl fails to generate a cerificate.
-                // We will try a fallback for it. We do this here because we do not want to print
-                // an error if the fallback succeeds.
-                wcerr << e_ssl.What() << endl;
-                wcout << "Domain likely not RFC compliant, trying fallback domain name: \"local\"" << endl;
-
-                rc = DoGenerate(targetPath, startDays, endDays, hostname, L"local", bits, bDebug,
-                    domainRecovery, domainSpecified);
-                if (rc == 0)
-                {
-                    return 0;
-                }
+                wcout << debugChatter.str().c_str();
+                debugChatter.str("");
             }
 
-            if(bDebug)
-                wcout << debugChatter.str().c_str();
-
             wcerr << e_ssl.What() << endl;
-            return 3;
+            return ERROR_CERT_GENERATE;
         }
 
         if(bDebug)
@@ -472,7 +472,6 @@ static void usage(char const * const name, int exitValue)
           << L"-d domain      - domain name" << endl
           << L"-h host        - host name" << endl
           << L"-b bits        - number of key bits" << endl
-          << L"-r             - allow recovery for domains that are not RFC compliant even if the domain is specified with -d" << endl
           << L"-?             - this help message" << endl
     ;
     exit(exitValue);
