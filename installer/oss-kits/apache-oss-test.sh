@@ -44,9 +44,54 @@ FindApacheConfigFile()
     fi
 }
 
+CheckIfApacheIsInstalled()
+{
+    # See if the service actually exists
+
+    ISRPM=`(which rpm | grep /rpm | wc -l) 2>/dev/null`
+    ISDPKG=`(which dpkg | grep /dpkg | wc -l) 2>/dev/null`
+
+    if [ $ISRPM -eq 1 ]; then
+        if [ `(rpm -q httpd | grep httpd- | wc -l) 2>/dev/null` -eq 1 ]; then
+            # Found package httpd-*
+            return 0
+        fi
+
+        if [ `(rpm -q apache2 | grep apache2- | wc -l) 2>/dev/null` -eq 1 ]; then
+            # Found package apache2-*
+            return 0
+        fi
+    fi
+
+    if [ $ISDPKG -eq 1 ]; then
+        if [ `(dpkg -l apache2 | grep -e '^ii' | wc -l) 2>/dev/null` -eq 1 ]; then
+            # Found package apache2-*
+            return 0
+        fi
+    fi
+
+    # Check source
+
+    if [ -e "/usr/local/apache2/conf/httpd.conf" ]; then
+        # Found source
+        return 0
+    fi
+
+    return 1
+}
+
 echo "Checking if Apache is installed ..."
 
-# Find anything?
+# Find the service?
+
+CheckIfApacheIsInstalled
+if [ $? -ne 0 ]; then
+    echo "  Apache not found, will not install"
+    exit 1
+fi
+
+# Verify that we can find configuration files
+
 FindApacheConfigFile
 if [ -z "${APACHE_CONF}" -o -z "${CONF_STYLE}" ]; then
     echo "  Apache not found, will not install"
