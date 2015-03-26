@@ -327,24 +327,24 @@ pkg_upd() {
 
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            [ -n "${forceFlag}" ] && FORCE="--force"
+            [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
             rpm --upgrade $FORCE $pkg_filename
             ;;
         
         Linux_ULINUX_D)
-            [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade"
+            [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
             dpkg --install $FORCE $pkg_filename
             
             export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
             ;;
         
         AIX)
-            [ -n "${forceFlag}" ] && FORCE="-F"
+            [ -n "${forceFlag}" ] && FORCE="-F" || FORCE=""
             /usr/sbin/installp -X $FORCE -d $1 $2.rte
             ;;
         
         HPUX)
-            [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true"
+            [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true" || FORCE=""
 
             /usr/sbin/swinstall $FORCE -s $PWD/$1 $2
             ;;
@@ -567,7 +567,6 @@ case "$installMode" in
             check_if_pkg_is_installed scx
             if [ $? -eq 0 ]; then
                 echo "ERROR: SCX package is already installed"
-                rm $OM_PKG $OMI_PKG $TAR_FILE
                 cleanup_and_exit 2
             fi
         fi      
@@ -588,10 +587,10 @@ case "$installMode" in
         SCX_EXIT_STATUS=$?
 
         # Installed bundled providers
-        [ -n "${forceFlag}" ] && FORCE="--force"
+        [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
         for i in *-oss-test.sh; do
             # If filespec didn't expand, break out of loop
-            [ ! -e $i ] && break
+            [ ! -f $i ] && break
             ./$i
             if [ $? -eq 0 ]; then
                 OSS_BUNDLE=`basename $i -oss-test.sh`
@@ -620,10 +619,10 @@ case "$installMode" in
         SCX_EXIT_STATUS=$?
 
         # Upgrade bundled providers
-        [ -n "${forceFlag}" ] && FORCE="--force"
+        [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
         for i in *-oss-test.sh; do
             # If filespec didn't expand, break out of loop
-            [ ! -e $i ] && break
+            [ ! -f $i ] && break
             ./$i
             if [ $? -eq 0 ]; then
                 OSS_BUNDLE=`basename $i -oss-test.sh`
