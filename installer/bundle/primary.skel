@@ -590,6 +590,8 @@ case "$installMode" in
         # Installed bundled providers
         [ -n "${forceFlag}" ] && FORCE="--force"
         for i in *-oss-test.sh; do
+            # If filespec didn't expand, break out of loop
+            [ ! -e $i ] && break
             ./$i
             if [ $? -eq 0 ]; then
                 OSS_BUNDLE=`basename $i -oss-test.sh`
@@ -620,6 +622,8 @@ case "$installMode" in
         # Upgrade bundled providers
         [ -n "${forceFlag}" ] && FORCE="--force"
         for i in *-oss-test.sh; do
+            # If filespec didn't expand, break out of loop
+            [ ! -e $i ] && break
             ./$i
             if [ $? -eq 0 ]; then
                 OSS_BUNDLE=`basename $i -oss-test.sh`
