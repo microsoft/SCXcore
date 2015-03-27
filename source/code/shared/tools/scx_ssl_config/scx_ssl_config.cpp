@@ -90,13 +90,13 @@ int main(int argc, char *argv[])
 #else
     int bits = 2048;
 #endif
-    
+
     SCXCoreLib::NameResolver mi;
     wstring hostname;
     wstring domainname;
 
-    wstring specified_hostname; 
-    wstring specified_domainname; 
+    wstring specified_hostname;
+    wstring specified_domainname;
 
     int i = 1;
     for (; i < argc; ++i)
@@ -135,19 +135,19 @@ int main(int argc, char *argv[])
                 wcout << L"Enter a domain name." << endl;
                 usage(argv[0], 1);
             }
-            
-            // Some platforms fail to convert if locale is not right (SLES 11 for instance). 
-            // Note we do not print domain name  because wcout will also fail to 
-            // properly convert, displaying a mangled string and further confusing 
-            // the user. Using cout is not an option because it will not print a 
-            // non-convertible string at all.... 
+
+            // Some platforms fail to convert if locale is not right (SLES 11 for instance).
+            // Note we do not print domain name  because wcout will also fail to
+            // properly convert, displaying a mangled string and further confusing
+            // the user. Using cout is not an option because it will not print a
+            // non-convertible string at all....
             try
             {
                 specified_domainname = SCXCoreLib::StrFromMultibyte(argv[i], true);
             }
-            catch(SCXCoreLib::SCXStringConversionException ex)
+            catch(const SCXCoreLib::SCXStringConversionException &ex)
             {
-                wcout << L"Not able to convert domain name. Consider adjusting your locale setting. Exiting." << endl; 
+                wcout << L"Not able to convert domain name. Consider adjusting your locale setting. Exiting." << endl;
                 exit(3);
             }
         }
@@ -165,10 +165,10 @@ int main(int argc, char *argv[])
             {
                 specified_hostname = SCXCoreLib::StrFromMultibyte(argv[i], true);
             }
-            catch(SCXCoreLib::SCXStringConversionException e)
+            catch(const SCXCoreLib::SCXStringConversionException &e)
             {
-                wcout << L"Not able to convert host name, \'" << argv[i] << "\'." << endl; 
-                wcout << L"Please specify a host name that uses only 7-bit ASCII characters." << endl; 
+                wcout << L"Not able to convert host name, \'" << argv[i] << "\'." << endl;
+                wcout << L"Please specify a host name that uses only 7-bit ASCII characters." << endl;
                 exit(4);
             }
         }
@@ -187,8 +187,8 @@ int main(int argc, char *argv[])
             }
             catch(SCXCoreLib::SCXStringConversionException)
             {
-                wcout << L"Not able to convert target path, \'" << argv[i] << "\'." << endl; 
-                wcout << L"Consider adjusting your locale by changing the LC_CTYPE environment variable." << endl; 
+                wcout << L"Not able to convert target path, \'" << argv[i] << "\'." << endl;
+                wcout << L"Consider adjusting your locale by changing the LC_CTYPE environment variable." << endl;
                 exit(4);
             }
         }
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Fail if all arguments are not used. 
+    // Fail if all arguments are not used.
     if (i < argc) {
         wcout << L"Unused arguments:" << endl;
         for (; i < argc; ++i)
@@ -247,8 +247,8 @@ int main(int argc, char *argv[])
         catch(SCXCoreLib::SCXStringConversionException)
         {
             // Note: We should never see this because host names are s'pose to be 7 bit ASCII
-            // Can get away with conversion of stdout here because we are dying, and can do it exactly once ... 
-            fwide(stdout, -1); 
+            // Can get away with conversion of stdout here because we are dying, and can do it exactly once ...
+            fwide(stdout, -1);
             cout << "Unable to convert default host name \'" << hostname_raw << "\'." << endl;
             cout << "This might be caused by a host name that contains UTF-8 characters that are invalid given your current locale." << endl;
             // MUST exit here, due to fwide() call above ... cannot call fwide() more than once w/out closing/reopening handle
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
     if (doGenerateCert)
     {
         rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode);
-        
+
         // When the domain or host name is specified through the command line we do not allow recovery.
         // Add an exception to this rule for testing purposes.
         if  ( (specified_domainname.empty() && specified_hostname.empty()) || testMode )
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
                 wcout << "Hostname or domain likely not RFC compliant, trying fallback: \"localhost.local\"" << endl;
                 rc = DoGenerate(targetPath, startDays, endDays, L"localhost", L"local", bits, debugMode);
             }
-        } 
+        }
     }
 
     if (debugMode)
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
 }
 
 /*----------------------------------------------------------------------------*/
-/** 
+/**
     Generate Key and Certificate
     \param[in] targetPath Path where the certificates should be written.
     \param[in] startDays Days to offset valid start date.
@@ -345,7 +345,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         wcout << L", domainname=\"" << domainname << L"\"" ;
     }
     wcout << endl;
-    
+
     std::wstring c_certFilename(L"omi-host-");  // Remainder must be generated
     const std::wstring c_keyFilename(L"omikey.pem");
 
@@ -364,7 +364,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         certPath.SetDirectory(targetPath);
         certPath.SetFilename(c_certFilename);
         SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, startDays, endDays, hostname, domainname, bits);
-        
+
         std::ostringstream debugChatter;
         debugChatter << endl;
 
@@ -372,18 +372,18 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         {
             cert.Generate(debugChatter);
         }
-        catch(SCXCoreLib::SCXStringConversionException ex)
+        catch(const SCXCoreLib::SCXStringConversionException &ex)
         {
             if(bDebug)
-                wcout << debugChatter.str().c_str(); 
+                wcout << debugChatter.str().c_str();
 
-            wcerr  << endl << "Generation of certificate raised an exception" << endl; 
-            wcerr << ex.Where() << endl; 
+            wcerr  << endl << "Generation of certificate raised an exception" << endl;
+            wcerr << ex.Where() << endl;
             wcerr << ex.What() << endl;
-                          
-            return 2; 
+
+            return 2;
         }
-        catch(SCXSSLException e_ssl)
+        catch(const SCXSSLException &e_ssl)
         {
             if(bDebug)
             {
@@ -394,9 +394,17 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
             wcerr << e_ssl.What() << endl;
             return ERROR_CERT_GENERATE;
         }
+        catch(const SCXCoreLib::SCXFilePathNotFoundException &ex)
+        {
+            wcerr  << endl << "Generation of certificate raised an exception" << endl;
+            wcerr  << "Output path \"" << ex.GetPath().Get() << "\" does not exist" << endl;
+            return 4;
+        }
 
         if(bDebug)
-            wcout << debugChatter.str().c_str(); 
+        {
+            wcout << debugChatter.str().c_str();
+        }
 
         /*
         ** We actually have three certificate files in total:
@@ -442,7 +450,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
             throw SCXCoreLib::SCXErrnoFileException(L"chmod", keyPath.Get(), errno, SCXSRCLOCATION);
         }
     }
-    catch(SCXCoreLib::SCXException & e)
+    catch(const SCXCoreLib::SCXException & e)
     {
         wcout << e.Where() << endl
               << e.What() << endl;
@@ -455,7 +463,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
 /*----------------------------------------------------------------------------*/
 /**
    Output a usage message.
-   
+
    \param name Application name (derived from argv[0]).
    \param exitValue Value to return after writing the usage message.
    \return Does not return.
@@ -475,4 +483,4 @@ static void usage(char const * const name, int exitValue)
           << L"-?             - this help message" << endl
     ;
     exit(exitValue);
-} 
+}
