@@ -78,27 +78,27 @@ const char *s_idnLibraryName = "libcidn.so";
 
 
 /******************************************************************************
- *  
- *  SCXSSLException Implementation 
- *  
+ *
+ *  SCXSSLException Implementation
+ *
  ******************************************************************************/
 
 /*----------------------------------------------------------------------------*/
 /* (overload)
    Format which pointer was NULL
-   
+
 */
-wstring SCXSSLException::What() const 
-{ 
+wstring SCXSSLException::What() const
+{
     return L"Error generating SSL certificate.  Use scxsslconfig to "
         L"generate a new certificate, specifying host and domain names if "
         L"necessary.  The error was: '" + m_Reason + L"'";
  }
 
 /******************************************************************************
- *  
- *  SCXSSLCertificate Implementation 
- *  
+ *
+ *  SCXSSLCertificate Implementation
+ *
  ******************************************************************************/
 
 //------------------------------------------------------------------------------
@@ -180,7 +180,7 @@ size_t SCXSSLCertificate::LoadRandomFromFile(const char* file, size_t num)
         close(fd);
     return result;
 }
-    
+
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -197,7 +197,7 @@ void SCXSSLCertificate::LoadRndNumber()
 
     nLoadedBytes = LoadRandomFromUserFile();
 
-    // Even if we got a lot of good data from the user rnd file we add extra entropy 
+    // Even if we got a lot of good data from the user rnd file we add extra entropy
     // from /dev/random if we can to get an even better seed.
     // In the best case scenario this means we have 2048 bytes of random to seed with
     nLoadedBytes += LoadRandomFromDevRandom(randomNeeded);
@@ -208,7 +208,7 @@ void SCXSSLCertificate::LoadRndNumber()
     // in case if file is missing, we take it from "random" device,
     // which is blocking (on some platforms) if there is not enough entropy
     // in that case we log a warning to the user and try to read the rest from urandom device
-    // that is not a "good" source. 
+    // that is not a "good" source.
     if ( nLoadedBytes < goodRandomNeeded )
     {
         DisplaySeedWarning(goodRandomNeeded);
@@ -242,7 +242,7 @@ void SCXSSLCertificate::SaveRndNumber()
 /*----------------------------------------------------------------------------*/
 /**
    Generate the certificates.
-  
+
    \throws SCXCoreLib::SCXInvalidArgumentException
 
    \date   1-17-2008
@@ -267,11 +267,11 @@ void SCXSSLCertificate::Generate()
         SCXCoreLib::SCXFileInfo certInfo(m_CertPath.GetDirectory());
         if( ! keyInfo.PathExists())
         {
-            throw SCXCoreLib::SCXInvalidArgumentException(L"keyPath", L"Path does not exist.", SCXSRCLOCATION);
+            throw SCXCoreLib::SCXFilePathNotFoundException(m_KeyPath.GetDirectory(), SCXSRCLOCATION);
         }
         if( ! certInfo.PathExists())
         {
-            throw SCXCoreLib::SCXInvalidArgumentException(L"certPath", L"Path does not exist.", SCXSRCLOCATION);
+            throw SCXCoreLib::SCXFilePathNotFoundException(m_CertPath.GetDirectory(), SCXSRCLOCATION);
         }
 
         LoadRndNumber();
@@ -294,7 +294,7 @@ struct LoadASN1 {
         \param m Method function pointer.
         \param s Serial number.
     */
-    LoadASN1( X509V3_EXT_METHOD * m, const char * s) : m_Method(m), m_SerialNumber(s) 
+    LoadASN1( X509V3_EXT_METHOD * m, const char * s) : m_Method(m), m_SerialNumber(s)
     {
     }
 
@@ -343,7 +343,7 @@ void SCXSSLCertificate::DoGenerate()
         ManagedResource res2(SSL_OpenSSL_add_all_algorithms, EVP_cleanup);
         ManagedResource res3(ENGINE_load_builtin_engines,    ENGINE_cleanup);
 
-        // Serial number is always set to "1". 
+        // Serial number is always set to "1".
         // This is a self-signed certificate. Serial number is unimportant.
         char one[] = "1";
         ManagedValueResource<ASN1_INTEGER> serial(LoadASN1(NULL, one)(), ASN1_INTEGER_free);
@@ -353,19 +353,19 @@ void SCXSSLCertificate::DoGenerate()
         }
 
         ManagedValueResource<BIO> out(BIO_new(BIO_s_file()), BIO_free_all);
-        if (0 == out.Get()) 
+        if (0 == out.Get())
         {
             throw SCXSSLException(L"Failed to open out file", SCXSRCLOCATION);
         }
-    
+
         // Allocate an empty private key structure.
         ManagedValueResource<EVP_PKEY> pkey(EVP_PKEY_new(), EVP_PKEY_free);
-        if (pkey.Get() == 0) 
+        if (pkey.Get() == 0)
         {
             throw SCXNULLPointerException(L"Unable to allocate empty private key structure.",
                                                       SCXSRCLOCATION);
         }
-    
+
         {
             RSA * rsa = RSA_generate_key(newKeyLength, 0x10001, 0, 0);
             if ( ! rsa )
@@ -403,7 +403,7 @@ void SCXSSLCertificate::DoGenerate()
         {
             throw SCXSSLException(L"Error writing private key file", SCXSRCLOCATION);
         }
-    
+
         // Allocate a new X509_REQ structure
         ManagedValueResource<X509_REQ> req(X509_REQ_new(), X509_REQ_free);
         if (0 == req.Get())
@@ -411,12 +411,12 @@ void SCXSSLCertificate::DoGenerate()
             throw SCXNULLPointerException(L"Unable to allocate memory for an X509_REQ struct.",
                                           SCXSRCLOCATION);
         }
-    
+
         // Set the properties in the req structure from the private key.
         SetX509Properties(req.Get(),pkey.Get());
-    
+
         ManagedValueResource<X509> x509ss(X509_new(), X509_free);
-        if (0 == x509ss.Get()) 
+        if (0 == x509ss.Get())
         {
             throw SCXNULLPointerException(L"Error allocating X509 structure x509ss.",
                                           SCXSRCLOCATION);
@@ -426,27 +426,27 @@ void SCXSSLCertificate::DoGenerate()
         {
             throw SCXSSLException(L"Unable to set certificate serial nubmer.", SCXSRCLOCATION);
         }
-   
+
         // Copy the issuer name from the request.
-        if (!X509_set_issuer_name(x509ss.Get(), X509_REQ_get_subject_name(req.Get()))) 
+        if (!X509_set_issuer_name(x509ss.Get(), X509_REQ_get_subject_name(req.Get())))
         {
             throw SCXSSLException(L"Unable to set issuer name.", SCXSRCLOCATION);
         }
 
         // Ensure the time is not before the certificate time.
-        if (!X509_gmtime_adj(X509_get_notBefore(x509ss.Get()),(long)60*60*24*m_startDays)) 
+        if (!X509_gmtime_adj(X509_get_notBefore(x509ss.Get()),(long)60*60*24*m_startDays))
         {
             throw SCXSSLException(L"Invalid time range.", SCXSRCLOCATION);
         }
 
         // Ensure the time is not after the certificate time.
-        if (!X509_gmtime_adj(X509_get_notAfter(x509ss.Get()), (long)60*60*24*m_endDays)) 
+        if (!X509_gmtime_adj(X509_get_notAfter(x509ss.Get()), (long)60*60*24*m_endDays))
         {
             throw SCXSSLException(L"Invalid time range", SCXSRCLOCATION);
         }
 
         // Copy the subject name from the request.
-        if (!X509_set_subject_name(x509ss.Get(), X509_REQ_get_subject_name(req.Get()))) 
+        if (!X509_set_subject_name(x509ss.Get(), X509_REQ_get_subject_name(req.Get())))
         {
             throw SCXSSLException(L"Unable to set subject name.", SCXSRCLOCATION);
         }
@@ -454,48 +454,48 @@ void SCXSSLCertificate::DoGenerate()
         {
             // Get the public key from the request, and set it in our cert.
             ManagedValueResource<EVP_PKEY> tmppkey(X509_REQ_get_pubkey(req.Get()), EVP_PKEY_free);
-            if (!tmppkey.Get() || !X509_set_pubkey(x509ss.Get(),tmppkey.Get())) 
+            if (!tmppkey.Get() || !X509_set_pubkey(x509ss.Get(),tmppkey.Get()))
             {
                 throw SCXSSLException(L"Unable to set the public key in the certificate", SCXSRCLOCATION);
             }
         }
 
         /* Set up V3 context struct */
-        
+
         X509V3_CTX ext_ctx;
         X509V3_set_ctx(&ext_ctx, x509ss.Get(), x509ss.Get(), NULL, NULL, 0);
 
-        // Add serverAuth extension ... this magic OID is defined in RFC 3280, 
+        // Add serverAuth extension ... this magic OID is defined in RFC 3280,
         // section 4.2.1.13 "Extended Key Usage", as "1.3.6.1.5.5.7.3.1"
-        // We will access it the right way ... 
+        // We will access it the right way ...
         // There is no need to free the pointer returned here, no memory is allocated
-        ASN1_OBJECT * serverAuthOBJ = OBJ_nid2obj(NID_server_auth); 
+        ASN1_OBJECT * serverAuthOBJ = OBJ_nid2obj(NID_server_auth);
         if(serverAuthOBJ == NULL)
         {
-            throw SCXSSLException(L"Unable to get serverAuth ASN1_OBJECT pointer", SCXSRCLOCATION); 
+            throw SCXSSLException(L"Unable to get serverAuth ASN1_OBJECT pointer", SCXSRCLOCATION);
         }
 
-        // The oid is of known length, 17 bytes  ... pad it a little ... 
+        // The oid is of known length, 17 bytes  ... pad it a little ...
         char serverAuthOIDBuf[24] = {0};
 
         // The flag 1 denotes that the numeric form of the answer (not long or short name) will be used
-        // The return is (apparently) the string length of the converted string (this is undocumented) .. 
+        // The return is (apparently) the string length of the converted string (this is undocumented) ..
         if(OBJ_obj2txt(serverAuthOIDBuf, static_cast<int> (sizeof(serverAuthOIDBuf)/sizeof(*serverAuthOIDBuf)), serverAuthOBJ, 1) <= 0)
         {
             throw SCXSSLException(L"Not able to convert OBJ_server_auth to text", SCXSRCLOCATION);
         }
- 
-        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, serverAuthOIDBuf); 
-        if(!ext) 
+
+        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, serverAuthOIDBuf);
+        if(!ext)
         {
-            throw SCXSSLException(L"Unable to get extension pointer for serverAuth extension", SCXSRCLOCATION);  
+            throw SCXSSLException(L"Unable to get extension pointer for serverAuth extension", SCXSRCLOCATION);
         }
 
-        int ext_OK = X509_add_ext(x509ss.Get(), ext, -1); 
-        X509_EXTENSION_free(ext); 
+        int ext_OK = X509_add_ext(x509ss.Get(), ext, -1);
+        X509_EXTENSION_free(ext);
         if(!ext_OK)
         {
-            throw SCXSSLException(L"Unable to add serverAuth extension", SCXSRCLOCATION);  
+            throw SCXSSLException(L"Unable to add serverAuth extension", SCXSRCLOCATION);
         }
 
         // Sign the certificate
@@ -519,18 +519,18 @@ void SCXSSLCertificate::DoGenerate()
 
         // Cleanup the rest of the resources that may have been allocated internally.
         OBJ_cleanup();
-        CONF_modules_unload(1); 
-        CRYPTO_cleanup_all_ex_data(); 
+        CONF_modules_unload(1);
+        CRYPTO_cleanup_all_ex_data();
         ERR_remove_state(0);
-    } 
+    }
     catch (SCXCoreLib::SCXException & e)
     {
         // Blunt force resource release functions.
         OBJ_cleanup();
         CONF_modules_free();
-        CRYPTO_cleanup_all_ex_data(); 
+        CRYPTO_cleanup_all_ex_data();
         ERR_remove_state(0);
-        
+
         throw;
     }
 }
@@ -538,7 +538,7 @@ void SCXSSLCertificate::DoGenerate()
 /*----------------------------------------------------------------------------*/
 /**
    Set the properties in the X509_REQ object.
-   
+
    \param req pointer to openSSL X509 request information object.
    \param pkey pointer to PEM Private Key object.
    \throws SCXSSLException if unsuccessful.
@@ -565,7 +565,7 @@ void SCXSSLCertificate::SetX509Properties(X509_REQ *req, EVP_PKEY *pkey)
         if(wstring::npos != (pos = tmp.find_last_of(L'.')))
         {
             // Add the domain part to the subject.
-            if ( ! X509_NAME_add_entry_by_txt(subj, dcPart, MBSTRING_ASC, 
+            if ( ! X509_NAME_add_entry_by_txt(subj, dcPart, MBSTRING_ASC,
                 reinterpret_cast<unsigned char*>(const_cast<char*>(StrToMultibyte(tmp.substr(pos+1)).c_str())), -1, -1, 0))
             {
                 throw SCXSSLException(L"Unable to add the domain to the subject.", SCXSRCLOCATION);
@@ -574,8 +574,8 @@ void SCXSSLCertificate::SetX509Properties(X509_REQ *req, EVP_PKEY *pkey)
         }
         else
         {
-            // Add the domain part to the subject. 
-            if ( ! X509_NAME_add_entry_by_txt(subj, dcPart, MBSTRING_ASC, 
+            // Add the domain part to the subject.
+            if ( ! X509_NAME_add_entry_by_txt(subj, dcPart, MBSTRING_ASC,
                 reinterpret_cast<unsigned char*>(const_cast<char*>(StrToMultibyte(tmp).c_str())), -1, -1, 0))
             {
                 throw SCXSSLException(L"Unable to add the domain to the subject.", SCXSRCLOCATION);
@@ -585,7 +585,7 @@ void SCXSSLCertificate::SetX509Properties(X509_REQ *req, EVP_PKEY *pkey)
     }
 
     char cnPart[] = "CN";
-    if ( ! X509_NAME_add_entry_by_txt(subj, cnPart, MBSTRING_ASC, 
+    if ( ! X509_NAME_add_entry_by_txt(subj, cnPart, MBSTRING_ASC,
         reinterpret_cast<unsigned char*>(const_cast<char*>(StrToMultibyte(m_hostname).c_str())), -1, -1, 0))
     {
         throw SCXSSLException(L"Unable to add hostname to the subject.", SCXSRCLOCATION);
@@ -596,12 +596,12 @@ void SCXSSLCertificate::SetX509Properties(X509_REQ *req, EVP_PKEY *pkey)
     {
         cn = SCXCoreLib::StrAppend(m_hostname,SCXCoreLib::StrAppend(L".",m_domainname));
     }
-    if ( ! X509_NAME_add_entry_by_txt(subj, cnPart, MBSTRING_ASC, 
+    if ( ! X509_NAME_add_entry_by_txt(subj, cnPart, MBSTRING_ASC,
         reinterpret_cast<unsigned char*>(const_cast<char*>(StrToMultibyte(cn).c_str())), -1, -1, 0))
     {
         throw SCXSSLException(L"Unable to add the domain name to the subject.", SCXSRCLOCATION);
     }
-    
+
     if ( ! X509_REQ_set_pubkey(req,pkey))
     {
         throw SCXSSLException(L"Unable to set the public key in the request.", SCXSRCLOCATION);
@@ -612,10 +612,10 @@ void SCXSSLCertificate::SetX509Properties(X509_REQ *req, EVP_PKEY *pkey)
 /*----------------------------------------------------------------------------*/
 /**
    Load random data from /dev/random
-   
+
    \param randomNeeded Bytes of random data to read
    \returns Number of bytes read
-   
+
 */
 size_t SCXSSLCertificate::LoadRandomFromDevRandom(size_t randomNeeded)
 {
@@ -625,10 +625,10 @@ size_t SCXSSLCertificate::LoadRandomFromDevRandom(size_t randomNeeded)
 /*----------------------------------------------------------------------------*/
 /**
    Load random data from /dev/urandom
-   
+
    \param randomNeeded Bytes of random data to read
    \returns Number of bytes read
-   
+
 */
 size_t SCXSSLCertificate::LoadRandomFromDevUrandom(size_t randomNeeded)
 {
@@ -638,9 +638,9 @@ size_t SCXSSLCertificate::LoadRandomFromDevUrandom(size_t randomNeeded)
 /*----------------------------------------------------------------------------*/
 /**
    Load random data from user rnd file
-   
+
    \returns Number of bytes read
-   
+
 */
 size_t SCXSSLCertificate::LoadRandomFromUserFile()
 {
@@ -659,9 +659,9 @@ size_t SCXSSLCertificate::LoadRandomFromUserFile()
 /*----------------------------------------------------------------------------*/
 /**
    Display warning to the user that not enough good random data could be read
-   
+
    \param goodRandomNeeded Bytes of random data that was needed
-   
+
 */
 void SCXSSLCertificate::DisplaySeedWarning(size_t goodRandomNeeded)
 {
@@ -684,21 +684,21 @@ void SCXSSLCertificate::DisplaySeedWarning(size_t goodRandomNeeded)
    \param[in] hostname Hostname to use in the certificates.
    \param[in] domainname Domainname to use in the certificates.
    \param[in] bits Number of bits in key.
-   
-   Note that it passes an empty string for the domain to the parent. It is expected that 
-the user will call Generate() to create a punycode domain string after this is called. 
+
+   Note that it passes an empty string for the domain to the parent. It is expected that
+the user will call Generate() to create a punycode domain string after this is called.
 */
 SCXSSLCertificateLocalizedDomain::SCXSSLCertificateLocalizedDomain(SCXCoreLib::SCXFilePath keyPath, SCXCoreLib::SCXFilePath certPath,
                                      int startDays, int endDays, const wstring & hostname,
                                      const wstring & domainname_raw, int bits)
     :SCXSSLCertificate(keyPath, certPath, startDays, endDays, hostname, wstring(L""), bits), m_domainname_raw(domainname_raw)
-{    
+{
 }
 
 /*----------------------------------------------------------------------------*/
 /**
-   CleanupErrorOutput() - post processing of error strings returned by the system, 
-   which can contain problematic characters. 
+   CleanupErrorOutput() - post processing of error strings returned by the system,
+   which can contain problematic characters.
 
    \param[in] sErr  Returned by dlerror().
    \param[in] verbage Stringstream for error output.
@@ -713,12 +713,12 @@ void SCXSSLCertificateLocalizedDomain::CleanupErrorOutput(const char * sErr, std
         string strRaw = std::string(sErr);
         // Strip out linefeeds
         for(size_t offset = strRaw.find('\x0a'); offset != string::npos; offset = strRaw.find('\x0a'))
-            strRaw.replace(offset, 1, string(" ")); 
+            strRaw.replace(offset, 1, string(" "));
 
-        // Collapse all the doubled up spaces too ... 
+        // Collapse all the doubled up spaces too ...
         for(size_t offset = strRaw.find("  "); offset != string::npos; offset = strRaw.find("  "))
-            strRaw.replace(offset, 2, string(" ")); 
-                
+            strRaw.replace(offset, 2, string(" "));
+
         verbage << ", reason given: \'" << strRaw  << "\'";
     }
 #else
@@ -730,7 +730,7 @@ void SCXSSLCertificateLocalizedDomain::CleanupErrorOutput(const char * sErr, std
 
 /*----------------------------------------------------------------------------*/
 /**
-   Generate() - Punycode-converts domain string, and calls base 
+   Generate() - Punycode-converts domain string, and calls base
    class Generate() to create certificates.
 
    \param[in] verbage Stream to receive chatter when user chooses verbose output.
@@ -738,41 +738,41 @@ void SCXSSLCertificateLocalizedDomain::CleanupErrorOutput(const char * sErr, std
 */
 void SCXSSLCertificateLocalizedDomain::Generate(std::ostringstream& verbage)
 {
-    std::wstring domainname_processed; 
+    std::wstring domainname_processed;
     bool bConverted = false;
     const char * sErr = 0;
 
-    // Get library handle if you can, but first clear errors  
-    dlerror(); 
+    // Get library handle if you can, but first clear errors
+    dlerror();
     void * hLib = GetLibIDN();
 
     if(hLib)
     {
         AutoClose aclib(hLib);
-        
+
         // Get function pointer if you can
         IDNFuncPtr pCvt = GetIDNAToASCII(hLib);
- 
+
         if(pCvt)
         {
             verbage << "Using punycode library for certificate generation" << endl;
- 
-            std::string domainname_raw_skinny = SCXCoreLib::StrToMultibyte(m_domainname_raw, true); 
 
-            // Now we can convert, or try to ... 
+            std::string domainname_raw_skinny = SCXCoreLib::StrToMultibyte(m_domainname_raw, true);
+
+            // Now we can convert, or try to ...
             // Get locale, OK if it returns null
             const char * sLoc = setlocale(LC_CTYPE, "");
-                    
-            char * pout = 0; 
-            int nSuccess = pCvt(domainname_raw_skinny.c_str(), &pout, 0); 
-                            
+
+            char * pout = 0;
+            int nSuccess = pCvt(domainname_raw_skinny.c_str(), &pout, 0);
+
             // Restore locale, harmless if sLoc is null
-            setlocale(LC_CTYPE, sLoc); 
-                
+            setlocale(LC_CTYPE, sLoc);
+
             // Zero means it worked ... a 7 bit string will pass through unchanged
             if(nSuccess == 0)
             {
-                verbage << "Conversion succeeded" << endl; 
+                verbage << "Conversion succeeded" << endl;
 
                 domainname_processed = SCXCoreLib::StrFromMultibyte(pout, true);
                 bConverted = true;
@@ -781,7 +781,7 @@ void SCXSSLCertificateLocalizedDomain::Generate(std::ostringstream& verbage)
             {
                 verbage << "Found library and function, but not able to convert string, returned value is " << nSuccess << endl;
                 if(nSuccess == 1)
-                    verbage << "Return code of 1 indicates a problem with locale. Consider using the LC_CTYPE environment variable to adjust locale settings." << endl; 
+                    verbage << "Return code of 1 indicates a problem with locale. Consider using the LC_CTYPE environment variable to adjust locale settings." << endl;
             }
         }
         else
@@ -796,18 +796,18 @@ void SCXSSLCertificateLocalizedDomain::Generate(std::ostringstream& verbage)
     {
         sErr = dlerror();
         verbage << "Not using punycode because library not found";
-        CleanupErrorOutput(sErr, verbage); 
+        CleanupErrorOutput(sErr, verbage);
     }
 
     if(!bConverted)
     {
-        // This in theory can produce an SCXCoreLib::SCXStringConversionException, 
-        // which will have to be handled in client code. We can do nothing 
+        // This in theory can produce an SCXCoreLib::SCXStringConversionException,
+        // which will have to be handled in client code. We can do nothing
         // about converting this string if this fails
         verbage << "Converting string in raw form, \'" << SCXCoreLib::StrToMultibyte(m_domainname_raw, true) << "\'." << endl;
         domainname_processed = m_domainname_raw;
      }
-  
+
     // Store processed domain name, ::Generate() will use it
     // Do not trap exception because we do not expect ever to see it .. if domainname were
     // unconvertible we would know it by now
@@ -817,7 +817,7 @@ void SCXSSLCertificateLocalizedDomain::Generate(std::ostringstream& verbage)
     try
     {
         SCXSSLCertificate::Generate();
-        verbage << "Generated certificate" << endl; 
+        verbage << "Generated certificate" << endl;
     }
     catch(SCXCoreLib::SCXStringConversionException)
     {
@@ -827,22 +827,22 @@ void SCXSSLCertificateLocalizedDomain::Generate(std::ostringstream& verbage)
 
 /*----------------------------------------------------------------------------*/
 /**
-   Loads and returns handle to libcidn library, if it is installed. 
-   
-   \return Opaque library handle, or null. 
+   Loads and returns handle to libcidn library, if it is installed.
+
+   \return Opaque library handle, or null.
 */
 void * SCXSSLCertificateLocalizedDomain::GetLibIDN(void)
 {
-    void * pLib = NULL; 
+    void * pLib = NULL;
 
     // Use dlopen() to look in the usual places ... this will
-    // work if libcidn.so is a softlink chaining to a binary, 
+    // work if libcidn.so is a softlink chaining to a binary,
     // which will be the case if the idn devel library is installed.
-    pLib = dlopen(s_idnLibraryName, RTLD_LOCAL|RTLD_LAZY); 
+    pLib = dlopen(s_idnLibraryName, RTLD_LOCAL|RTLD_LAZY);
     if(pLib)
-        return pLib; 
+        return pLib;
 
-    // Above did not work, look in directories for libcidn.so.<N>, 
+    // Above did not work, look in directories for libcidn.so.<N>,
     // taking the largest <N> preferentially.
     const char * sDir = NULL;
 
@@ -854,84 +854,84 @@ void * SCXSSLCertificateLocalizedDomain::GetLibIDN(void)
 
     pLib = GetLibIDNByDirectory(sDir);
     if(pLib)
-        return pLib; 
+        return pLib;
 
-    // Some systems (Ubuntu) put libraries into a directory of the form /lib/x86_64-linux-gnu. 
-    // The leading part of the subdirectory is uname-derived, being obviously just the machine 
-    // type. Rather than guess how it puts together the rest of the name, we will pass in a wild 
-    // card and let glob() figure it out. 
-    struct utsname uts; 
+    // Some systems (Ubuntu) put libraries into a directory of the form /lib/x86_64-linux-gnu.
+    // The leading part of the subdirectory is uname-derived, being obviously just the machine
+    // type. Rather than guess how it puts together the rest of the name, we will pass in a wild
+    // card and let glob() figure it out.
+    struct utsname uts;
     if(uname(&uts) == 0)
     {
-        std::stringstream sDirMachine; 
-        sDirMachine << "/lib/" << uts.machine << "*/"; 
-        pLib = GetLibIDNByDirectory(sDirMachine.str().c_str()); 
+        std::stringstream sDirMachine;
+        sDirMachine << "/lib/" << uts.machine << "*/";
+        pLib = GetLibIDNByDirectory(sDirMachine.str().c_str());
         if(pLib)
             return pLib;
     }
-    // Fail ... 
+    // Fail ...
     return NULL;
-} 
+}
 
 
 /*----------------------------------------------------------------------------*/
 /**
    Searches directory for libcidn.so.* library file, and loads library if it is found.
-   Sorts on suffix as integer, preferring (for instance) libcidn.so.2 over libcidn.so.1. 
-   This is to ensure getting the latest library. 
-   
+   Sorts on suffix as integer, preferring (for instance) libcidn.so.2 over libcidn.so.1.
+   This is to ensure getting the latest library.
+
    \param sDir Name of directory in which to search, e.g. /usr/lib/ . Assumed
-   to be non-null and to end with a '/' char. 
+   to be non-null and to end with a '/' char.
    \return Handle to library returned by dlopen().
 */
 void * SCXSSLCertificateLocalizedDomain::GetLibIDNByDirectory(const char * sDir)
 {
-    SCXCoreLib::SCXFilePath file_path; 
+    SCXCoreLib::SCXFilePath file_path;
 
     // Note that this is safe only because we know the dirs passed in will have no Unicode chars
     file_path.SetDirectory(SCXCoreLib::StrFromMultibyte(sDir));
-    
-    // It is tempting to get clever with globbing here but _caveat programmer_ : 
+
+    // It is tempting to get clever with globbing here but _caveat programmer_ :
     // glob strings are not regular expressions and it is not trivial to write
     // one that will trap any positive integer of any length and exclude all
-    // non-digits. So this is done the old fashioned way, with a trailing '*' and a 
-    // validation routine. 
+    // non-digits. So this is done the old fashioned way, with a trailing '*' and a
+    // validation routine.
     std::wstring idnName(SCXCoreLib::StrFromUTF8(s_idnLibraryName));
     idnName += L".*";
     file_path.SetFilename(idnName);
 
     SCXCoreLib::SCXGlob glob(file_path.Get());
-    SCXCoreLib::SCXFilePath path; 
+    SCXCoreLib::SCXFilePath path;
 
     glob.DoGlob();
     glob.Next();
 
-    // Sorts by trailing integer 
-    SuffixSortedFileSet file_set; 
-        
+    // Sorts by trailing integer
+    SuffixSortedFileSet file_set;
+
     do
     {
-        path = glob.Current();                
+        path = glob.Current();
 
-        // Validate for nice file names .. 
+        // Validate for nice file names ..
         if(IntegerSuffixComparator::IsGoodFileName(path))
             file_set.insert(new SCXCoreLib::SCXFilePath(path));
 
     } while(glob.Next());
 
-    void * pLib; 
-    SuffixSortedFileSet::iterator si; 
-    
+    void * pLib;
+    SuffixSortedFileSet::iterator si;
+
     // Fetch top file name, should have biggest suffix value
-    si = file_set.begin(); 
+    si = file_set.begin();
     if(si == file_set.end())
-        pLib = NULL; 
+        pLib = NULL;
     else
     {
-        pLib = dlopen(SCXCoreLib::StrToMultibyte((*si)->Get()).c_str(), RTLD_LOCAL|RTLD_LAZY); 
+        pLib = dlopen(SCXCoreLib::StrToMultibyte((*si)->Get()).c_str(), RTLD_LOCAL|RTLD_LAZY);
         // Free alloc'd pointers here ...
         for(si = file_set.begin(); si != file_set.end(); ++si)
-            delete (*si); 
+            delete (*si);
     }
 
     // Clean up struct ...
@@ -942,23 +942,23 @@ void * SCXSSLCertificateLocalizedDomain::GetLibIDNByDirectory(const char * sDir)
 
 /*----------------------------------------------------------------------------*/
 /**
-   Validates file path is of the form /dir/subdir/file.ext.<N>, with <N> being 
-   a decimal integer. 
-   This function does input validation for the convenience of 
-   operator(), which is fussy about input by design. 
-   
-   \param path Path to file. 
-   \return True/false for is/is not in correct form. 
+   Validates file path is of the form /dir/subdir/file.ext.<N>, with <N> being
+   a decimal integer.
+   This function does input validation for the convenience of
+   operator(), which is fussy about input by design.
+
+   \param path Path to file.
+   \return True/false for is/is not in correct form.
 */
 bool IntegerSuffixComparator::IsGoodFileName(const SCXCoreLib::SCXFilePath& path)
 {
-    std::wstring str_path = path.Get(); 
-    
-    if(str_path.length() == 0)
-        return false; 
+    std::wstring str_path = path.Get();
 
-    size_t offset; 
-    
+    if(str_path.length() == 0)
+        return false;
+
+    size_t offset;
+
     offset = str_path.find_last_of('.');
 
     // No dots, not a nice path
@@ -968,9 +968,9 @@ bool IntegerSuffixComparator::IsGoodFileName(const SCXCoreLib::SCXFilePath& path
     // Do not want dot at end of name
     if(offset == str_path.length() - 1)
         return false;
-       
+
     // Must be all digits after the last dot
-    static const wchar_t * sDigits = L"0123456789"; 
+    static const wchar_t * sDigits = L"0123456789";
     if(str_path.find_first_not_of(sDigits, offset + 1) != std::wstring::npos)
         return false;
 
@@ -979,35 +979,35 @@ bool IntegerSuffixComparator::IsGoodFileName(const SCXCoreLib::SCXFilePath& path
 
 /*----------------------------------------------------------------------------*/
 /**
-   Sort on integer file name suffix, e.g. libcidn.so.3 sorts before libcidn.so.2 . 
-   
-   \param pa, pb are pointers to SCXFilePath's that are pre-groomed and have nice 
-   file names with trailing integer suffixes. 
-   \return True/false to sort by descending order of suffixes. 
+   Sort on integer file name suffix, e.g. libcidn.so.3 sorts before libcidn.so.2 .
+
+   \param pa, pb are pointers to SCXFilePath's that are pre-groomed and have nice
+   file names with trailing integer suffixes.
+   \return True/false to sort by descending order of suffixes.
 */
-bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, const SCXCoreLib::SCXFilePath * pb) const 
+bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, const SCXCoreLib::SCXFilePath * pb) const
 {
     // No checking is done for pa and pb because functor is called by set::insert() and they are known good
     // before insertion.
-    // Also note that the file names are assumed to be OK because they passed through 
-    // IntegerSuffixComparator::IsGoodFileName() to get here. 
+    // Also note that the file names are assumed to be OK because they passed through
+    // IntegerSuffixComparator::IsGoodFileName() to get here.
     // Could do input validation here but this functor could be called many times during sorts / inserts
-    // so it is more efficient to do it before insertion. 
+    // so it is more efficient to do it before insertion.
 
     std::wstring file_a, file_b; // file names
-    file_a = pa->Get(); 
-    file_b = pb->Get(); 
+    file_a = pa->Get();
+    file_b = pb->Get();
 
     int sfx_a, sfx_b; // file name suffixes in integer form
-    size_t offset_a, offset_b; 
+    size_t offset_a, offset_b;
 
     // Validation routine verified that the strings contain a '.' before insertion.
-    // We will not be seeing npos here .... no check. 
-    offset_a = file_a.find_last_of('.'); 
-    offset_b = file_b.find_last_of('.'); 
+    // We will not be seeing npos here .... no check.
+    offset_a = file_a.find_last_of('.');
+    offset_b = file_b.find_last_of('.');
 
     // Do not handle exceptions, we won't be getting any ... file and directory names are clean 7-bit strings.
-    // We also already know that offsets do not point to last char in string ...  
+    // We also already know that offsets do not point to last char in string ...
     sfx_a = atoi(SCXCoreLib::StrToMultibyte(file_a.substr(offset_a + 1)).c_str());
     sfx_b = atoi(SCXCoreLib::StrToMultibyte(file_b.substr(offset_b + 1)).c_str());
     return sfx_a > sfx_b;
@@ -1016,36 +1016,36 @@ bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, con
 /*----------------------------------------------------------------------------*/
 /**
    Closes handle returned by GetLibIDN().
-   
+
    \param hLib Handle returned by GetLibIDN().
    \return Does not return.
 */
 void SCXSSLCertificateLocalizedDomain::CloseLibIDN(void * hLib)
 {
-    assert(hLib); 
+    assert(hLib);
     dlclose(hLib);
 }
 
 /*----------------------------------------------------------------------------*/
 /**
-   Gets pointer to punycode string conversion function from libcidna library. 
-   
+   Gets pointer to punycode string conversion function from libcidna library.
+
    \param hLib Handle to libcidn library returned by GetLibIDN().
-   \return Pointer to function idna_to_ascii_lz(), or null. 
+   \return Pointer to function idna_to_ascii_lz(), or null.
 */
 IDNFuncPtr SCXSSLCertificateLocalizedDomain::GetIDNAToASCII(void * hLib)
 {
-    void * p = dlsym(hLib, "idna_to_ascii_lz"); 
+    void * p = dlsym(hLib, "idna_to_ascii_lz");
     if(!p)
-        return NULL; 
+        return NULL;
 
-// compilers on some platforms do not support the __extension__ keyword; 
-// others require it. 
+// compilers on some platforms do not support the __extension__ keyword;
+// others require it.
 #if defined(sun) || defined(hpux)
     return (IDNFuncPtr)p;
 #else
     return __extension__(IDNFuncPtr)p;
-#endif 
+#endif
 }
 
 /** Autoclose destructor **/
@@ -1053,7 +1053,7 @@ SCXSSLCertificateLocalizedDomain::AutoClose::~AutoClose()
 {
     if(m_hLib != 0)
     {
-        CloseLibIDN(m_hLib); 
+        CloseLibIDN(m_hLib);
     }
 }
 
