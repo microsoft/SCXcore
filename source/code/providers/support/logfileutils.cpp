@@ -37,8 +37,8 @@ namespace SCXCore {
     const SCXCoreLib::SCXPatternFinder::SCXPatternCookie LogFileReader::s_patternID = 1;
     const std::wstring LogFileReader::s_pattern = L"SELECT * FROM SCX_LogFileRecord WHERE FileName=%PATH";
     const std::wstring LogFileReader::s_patternParameter = L"PATH";
-    const unsigned int cMaxRows = 5000;   //!< max number of log rows return limit 
     const unsigned int cMaxMatchedRows = 500;   //!< max number of matched log rows return limit, 1000 rows from scx log file does not work, 750 does
+    const size_t cMaxTotalBytes = 60 * 1024;    //!< max number of bytes to return in a single instance
 
     /*----------------------------------------------------------------------------*/
     /* LogFileReader::LogFilePositionRecord                                     */
@@ -542,9 +542,11 @@ namespace SCXCore {
 
         unsigned int rows = 0;
         unsigned int matched_rows = 0;
+        size_t total_bytes = 0;
 
         // Read rows from log file
-        while (matched_rows < cMaxMatchedRows && SCXStream::IsGood(*logfile))
+        while ((matched_rows < cMaxMatchedRows && total_bytes < cMaxTotalBytes)
+               && SCXStream::IsGood(*logfile))
         {
             wstring line;
             SCXStream::NLF nlf;
@@ -572,13 +574,16 @@ namespace SCXCore {
 
             if (matches > 0)
             {
-                matchedLines.push_back(StrAppend(StrAppend(res, L";"), line));
+                wstring retEntry = StrAppend(StrAppend(res, L";"), line);
+                matchedLines.push_back(retEntry);
                 matched_rows++;
+                total_bytes += retEntry.size();
             }
         }
 
         // Check if we read all rows, if not add special row to beginning of result
-        if (matched_rows >= cMaxMatchedRows && SCXStream::IsGood(*logfile))
+        if ((matched_rows >= cMaxMatchedRows || total_bytes >= cMaxTotalBytes)
+            && SCXStream::IsGood(*logfile))
         {
 //TODO: logging policy not set so by default may write into stdout and therefore interfere with the normal operation.
 //          SCX_LOGINFO(m_log, StrAppend(L"LogFileProvider DoInvokeMethod - Breaking after matching max number of rows : ", cMaxMatchedRows));

@@ -96,6 +96,12 @@ namespace SCXCore
             SCX_LOGHYSTERICAL(m_log, L"stdout: " + resultOut);
             resultErr = StrFromMultibyte(processError.str());
             SCX_LOGHYSTERICAL(m_log, L"stderr: " + resultErr);
+
+            // Trim output if necessary
+            if ( OutputLimiter(resultOut, resultErr) )
+            {
+                SCX_LOGWARNING(m_log, StrAppend(L"ExecuteCommand: Exceeded maximum output size for provider (64k), output truncated. Monitoring will not be reliable! Command executed: ", command));
+            }
         }
         catch (SCXCoreLib::SCXException& e)
         {
@@ -148,11 +154,18 @@ namespace SCXCore
         {
             returncode = SCXCoreLib::SCXProcess::Run(shellcommand, processInput, processOutput, processError,
                 timeout * 1000, m_Configurator->GetCWD(), m_Configurator->GetChRootPath());
+
             SCX_LOGHYSTERICAL(m_log, L"\"" + shellcommand + L"\" returned " + StrFrom(returncode));
             resultOut = StrFromMultibyte(processOutput.str());
             SCX_LOGHYSTERICAL(m_log, L"stdout: " + resultOut);
             resultErr = StrFromMultibyte(processError.str());
             SCX_LOGHYSTERICAL(m_log, L"stderr: " + resultErr);
+
+            // Trim output if necessary
+            if ( OutputLimiter(resultOut, resultErr) )
+            {
+                SCX_LOGWARNING(m_log, StrAppend(L"ExecuteShellCommand: Exceeded maximum output size for provider (64k), output truncated. Monitoring will not be reliable! Command executed: ", command));
+            }
         }
         catch (SCXCoreLib::SCXException& e)
         {
@@ -219,6 +232,12 @@ namespace SCXCore
             SCX_LOGHYSTERICAL(m_log, L"stdout: " + resultOut);
             resultErr = StrFromMultibyte(processError.str());
             SCX_LOGHYSTERICAL(m_log, L"stderr: " + resultErr);
+
+            // Trim output if necessary
+            if ( OutputLimiter(resultOut, resultErr) )
+            {
+                SCX_LOGWARNING(m_log, L"ExecuteScript: Exceeded maximum output size for provider (64k), output truncated. Monitoring will not be reliable! Script contents logged only with hysterical logging.");
+            }
         }
         catch (SCXCoreLib::SCXException& e)
         {
@@ -266,10 +285,45 @@ namespace SCXCore
         return newCommand;
     }
 
+    // Limit stdout/stderr length to avoid bumping up against OMI's 64k limit per instance
+    // (Not a whole lot of sense in raising that, since WS-Man has a limit as well)
+    bool RunAsProvider::OutputLimiter(std::wstring& resultOut, std::wstring& resultErr)
+    {
+        const size_t maxOutputSize = 60*1024;
+
+        // Do we need to truncate the output?
+        if (resultOut.size() + resultErr.size() <= maxOutputSize)
+        {
+            // Nope, we're good
+            return false;
+        }
+
+        if ( resultErr.size() == 0 )
+        {
+            // Truncate stdout only
+            resultOut = resultOut.substr(0, maxOutputSize-1);
+        }
+        else if ( resultOut.size() == 0 )
+        {
+            // Truncate stderr only
+            resultErr = resultErr.substr(0, maxOutputSize-1);
+        }
+        else
+        {
+            // They are both non-zero in size. There are a number of ways to do
+            // this, but PM said to keep it simple and do this ...
+
+            resultOut = resultOut.substr(0, maxOutputSize - 1 - 1024);
+            resultErr = resultErr.substr(0, 1024 - 1);
+        }
+
+        return true;
+    }
+
     // Only construct ApplicationServer class once
     int RunAsProvider::ms_loadCount = 0;
     RunAsProvider g_RunAsProvider;
 }
 
-/*----------------------------E-N-D---O-F---F-I-L-E---------------------------*/
 
+/*----------------------------E-N-D---O-F---F-I-L-E---------------------------*/
