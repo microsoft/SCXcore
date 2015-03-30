@@ -60,6 +60,7 @@ namespace SCXCore
 
         std::wstring ConstructCommandWithElevation(const std::wstring &command, const std::wstring &elevationtype);
         std::wstring ConstructShellCommandWithElevation(const std::wstring &command, const std::wstring &elevationtype);
+        bool OutputLimiter(std::wstring& resultOut, std::wstring& resultErr);
 
         //! Configurator.
         SCXCoreLib::SCXHandle<RunAsConfigurator> m_Configurator;
