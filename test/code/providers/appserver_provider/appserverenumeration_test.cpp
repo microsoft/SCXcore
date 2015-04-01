@@ -269,6 +269,7 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( WebSphere_JBoss_Tomcat_Process_MixedGoodBad );
     
     CPPUNIT_TEST( Weblogic_Process_Good_Params );
+	CPPUNIT_TEST( Weblogic_12cR1_Process_Good_Params );
     CPPUNIT_TEST( Weblogic_Process_Good_Params_NodeManager );
     CPPUNIT_TEST( Weblogic_Process_Bad_Params );
     CPPUNIT_TEST( Weblogic_Process_Good_Params_Two_Instances );
@@ -1664,6 +1665,49 @@ public:
         asEnum.CleanUp();
     }
 
+	/**************************************************************************************/
+    //
+    // Verify that a valid instance of WebLogic 12.1.3 is discovered, this perticular
+    // instance is started using the command line scripts.
+    // A valid Weblogic instance should be created.
+	// 
+	// WebLogic 12.1.2 and 12.1.3 remove the following command line parameters
+	// -Dbea.home, -Dplatform.home, and -Dweblogic.system.BootIdentityFile
+	// This test makes sure that using -Dweblogic.home is sufficient
+    // 
+    /**************************************************************************************/
+    void Weblogic_12cR1_Process_Good_Params()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/bin/java");
+        inst->AddParameter("-Xms512m");
+        inst->AddParameter("-Xmx512m");
+        inst->AddParameter("-Dweblogic.Name=myserver");
+        inst->AddParameter("-Djava.security.policy=/root/WebLogic/wls12120/wlserver/server/lib/weblogic.policy");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/endorsed:/root/WebLogic/wls12120/wlserver/../oracle_common/modules/endorsed");
+		inst->AddParameter("-da");
+        inst->AddParameter("-Dwls.home=/root/WebLogic/wls12120/wlserver/server");
+        inst->AddParameter("-Dweblogic.home=/root/WebLogic/wls12120/wlserver/server");
+        inst->AddParameter("weblogic.Server");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 1);
+        
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Assert correct diskpath/id returned from WebLogic 12.1.3 Instance", L"/root/WebLogic/wls12120", (*it)->GetId());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Assert type of AppServer returned", L"Weblogic", (*it)->GetType());
+        
+        asEnum.CleanUp();
+    }
+
     /**************************************************************************************/
     //
     // Verify that no instance of WebLogic is discovered, this perticular
@@ -1693,9 +1737,11 @@ public:
         inst->AddParameter("-Xverify:none");
         inst->AddParameter("-da");
         // Without setting the platform.home will cause the failure
-        //inst->AddParameter("-Dplatform.home=/opt/Oracle/Middleware/wlserver_10.3");
+        // inst->AddParameter("-Dplatform.home=/opt/Oracle/Middleware/wlserver_10.3");
         inst->AddParameter("-Dwls.home=/opt/Oracle/Middleware/wlserver_10.3/server");
-        inst->AddParameter("-Dweblogic.home=/opt/Oracle/Middleware/wlserver_10.3/server");
+        // With addition for -Dweblogic.home as a supported parameter to determine installation directory we 
+		// need to remove this in unit test
+		// inst->AddParameter("-Dweblogic.home=/opt/Oracle/Middleware/wlserver_10.3/server");
         inst->AddParameter("-Dweblogic.management.discover=true");
         inst->AddParameter("-Dwlw.iterativeDev=");
         inst->AddParameter("-Dwlw.testConsole=");
@@ -2117,7 +2163,8 @@ public:
         inst->AddParameter("-Djava.security.policy=/opt/Oracle/Middleware/wlserver_10.3/server/lib/weblogic.policy");
         inst->AddParameter("-Dweblogic.system.BootIdentityFile=/opt/Oracle2/user_projects/domains/base_domain/servers/Managed1/data/nodemanager/boot.properties"); 
         inst->AddParameter("-Dwls.home=/opt/Oracle/Middleware/wlserver_10.3/server");
-        inst->AddParameter("-Dweblogic.home=/opt/Oracle/Middleware/wlserver_10.3/server");
+		// Remove the -Dweblogic.home to complete bad process
+        // inst->AddParameter("-Dweblogic.home=/opt/Oracle/Middleware/wlserver_10.3/server");
         inst->AddParameter("weblogic.Server");
 
         asEnum.Update(false);
