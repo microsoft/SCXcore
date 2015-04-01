@@ -356,10 +356,14 @@ namespace SCXSystemLib
     {
         string wlPlatformHome;
         string wlPlatformHome12c;
+		string wlPlatformHome12c3;
         wstring PlatformHome;
         
         wlPlatformHome = ParseOutCommandLineArg(params, "-Dplatform.home",true,true);
         wlPlatformHome12c = ParseOutCommandLineArg(params, "-Dbea.home", true, true);
+		// With WebLogic 12.1.2 and 12.1.3 Oracle has removed -Dbea.home, -Dplatform.home, and -Dweblogic.system.BootIdentityFile
+		wlPlatformHome12c3 = ParseOutCommandLineArg(params, "-Dweblogic.home", true, true);
+
         if ( !wlPlatformHome.empty() )
         {
              // Commandline entry for "-Dplatform.home" looks like this
@@ -369,18 +373,25 @@ namespace SCXSystemLib
              // There is the possibility that the wlPlatformHome ends with a
              // trailing '/', we need to strip it off.
              PlatformHome = StrFromUTF8(GetParentDirectory(wlPlatformHome));
-             SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic");
+             SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic with -Dplatform.home");
         }
         else if( !wlPlatformHome12c.empty() )
         {
-            //Commandline entry for "-Dbea.home" looks like this
-            //"-Dbea.home=/root/Oracle/Middleware"
+            // Commandline entry for "-Dbea.home" looks like this
+            // "-Dbea.home=/root/Oracle/Middleware"
             PlatformHome = StrFromUTF8(wlPlatformHome12c);
-            SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic");
+            SCX_LOGTRACE(m_log, L"Found a running instance of Weblogic with -Dbea.home");
         }
+		else if( !wlPlatformHome12c3.empty() )
+		{
+			// CommandLie entry for "-Dweblogic.home" looks like this
+			// "-Dweblogic.home=/opt/Oracle/Middleware/wlserver_10.3/server"
+			PlatformHome = StrFromUTF8(GetParentDirectory(GetParentDirectory(wlPlatformHome12c3)));
+			SCX_LOGTRACE(m_log, L"Found a running instance of WebLogic with -Dweblogic.home");
+		}
         else
         {
-            //-Dweblogic.system.BootIdentityFile=/opt/Oracle/Middleware/user_projects/domains/base_domain/servers/Managed1/data/nodemanager/boot.properties 
+            // -Dweblogic.system.BootIdentityFile=/opt/Oracle/Middleware/user_projects/domains/base_domain/servers/Managed1/data/nodemanager/boot.properties 
             string wlBootId = ParseOutCommandLineArg(params, "-Dweblogic.system.BootIdentityFile",true,true);
             if ( !wlBootId.empty() )
             {
@@ -388,7 +399,7 @@ namespace SCXSystemLib
             }
             else
             {
-                SCX_LOGTRACE(m_log, L"Weblogic process does not contain the 'platform.home' or 'weblogic.system.BootIdentityFile' commandline argument.");
+                SCX_LOGTRACE(m_log, L"Weblogic process does not contain the 'platform.home', 'weblogic.home', or 'weblogic.system.BootIdentityFile' commandline argument.");
             }
         }
         return PlatformHome;
