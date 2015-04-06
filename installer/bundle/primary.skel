@@ -586,7 +586,7 @@ case "$installMode" in
         pkg_add $OM_PKG scx
         SCX_EXIT_STATUS=$?
 
-        # Installed bundled providers
+        # Install bundled providers
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
         for i in *-oss-test.sh; do
             # If filespec didn't expand, break out of loop
@@ -619,7 +619,10 @@ case "$installMode" in
         SCX_EXIT_STATUS=$?
 
         # Upgrade bundled providers
-        [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+        #   Temporarily force upgrades via --force; this will unblock the test team
+        #   This change may or may not be permanent; we'll see
+        # [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+        FORCE="--force"
         for i in *-oss-test.sh; do
             # If filespec didn't expand, break out of loop
             [ ! -f $i ] && break
