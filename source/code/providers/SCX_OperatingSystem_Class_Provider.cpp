@@ -540,6 +540,7 @@ static void Invoke_ExecuteCommand_ThreadBody(SCXCoreLib::SCXThreadParamHandle& p
 
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand - Executing command: " + command);
         cmdok = SCXCore::g_RunAsProvider.ExecuteCommand(command, returnOut, returnErr, returnCode, in.timeout_value(), elevation);
+        SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand - Finished executing: " + command);
 
         // Pass the results back up the chain
 
@@ -646,6 +647,7 @@ static void Invoke_ExecuteShellCommand_ThreadBody(SCXCoreLib::SCXThreadParamHand
 
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand - Executing command: " + command);
         cmdok = SCXCore::g_RunAsProvider.ExecuteShellCommand(command, returnOut, returnErr, returnCode, in.timeout_value(), elevation);
+        SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand - Finished executing: " + command);
 
         // Pass the results back up the chain
 
@@ -762,6 +764,7 @@ static void Invoke_ExecuteScript_ThreadBody(SCXCoreLib::SCXThreadParamHandle& pa
 
         SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript - Executing script: " + strScript);
         bool cmdok = SCXCore::g_RunAsProvider.ExecuteScript(strScript, strArgs, returnOut, returnErr, returnCode, in.timeout_value(), elevation);
+        SCX_LOGTRACE( log, L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript - Finshed executing: " + strScript);
 
         SCX_OperatingSystem_ExecuteScript_Class inst;
 
