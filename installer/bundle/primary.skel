@@ -318,6 +318,7 @@ pkg_rm() {
 # $2 - The package name of the package to be installed
 pkg_upd() {
     pkg_filename=$1
+    pkg_name=$2
     case "$PLATFORM" in
         Linux_ULINUX*)
             ulinux_detect_openssl_version
@@ -327,34 +328,34 @@ pkg_upd() {
 
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+            [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--force" || FORCE=""
             rpm --upgrade $FORCE $pkg_filename
             ;;
-        
+
         Linux_ULINUX_D)
-            [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
+            [ -z "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--refuse-downgrade" || FORCE=""
             dpkg --install $FORCE $pkg_filename
-            
+
             export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
             ;;
-        
-        AIX)
-            [ -n "${forceFlag}" ] && FORCE="-F" || FORCE=""
-            /usr/sbin/installp -X $FORCE -d $1 $2.rte
-            ;;
-        
-        HPUX)
-            [ -n "${forceFlag}" ] && FORCE="-x allow_downdate=true -x reinstall=true" || FORCE=""
 
-            /usr/sbin/swinstall $FORCE -s $PWD/$1 $2
+        AIX)
+            [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="-F" || FORCE=""
+            /usr/sbin/installp -X $FORCE -d $1 $pkg_name.rte
             ;;
-        
+
+        HPUX)
+            [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="-x allow_downdate=true -x reinstall=true" || FORCE=""
+
+            /usr/sbin/swinstall $FORCE -s $PWD/$1 $pkg_name
+            ;;
+
         SunOS)
             # No notion of "--force" since Sun package has no notion of update
-            check_if_pkg_is_installed $2
+            check_if_pkg_is_installed ${pkg_name}
             if [ $? -eq 0 ]; then
                 # Check version numbers of this package, both installed and the new file
-                INSTALLED_VERSION=`pkginfo -l MSFT$2 | grep VERSION | awk '{ print $2 }'`
+                INSTALLED_VERSION=`pkginfo -l MSFT${pkg_name} | grep VERSION | awk '{ print $2 }'`
                 FILE_VERSION=`pkginfo -l -d $1 | grep VERSION | awk '{ print $2 }'`
                 IV_1=`echo $INSTALLED_VERSION | awk -F. '{ print $1 }'`
                 IV_2=`echo $INSTALLED_VERSION | awk -F. '{ print $2 }'`
@@ -364,7 +365,7 @@ pkg_upd() {
                 FV_2=`echo $FILE_VERSION | awk -F. '{ print $2 }'`
                 FV_3=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $1 }'`
                 FV_4=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $2 }'`
-                
+
                 # If the new version is greater than the previous, upgrade it. We expect at least 3 tokens in the version.
                 UPGRADE_PACKAGE=0
                 if [ $FV_1 -gt $IV_1 -o $FV_2 -gt $IV_2 -o  $FV_3 -gt $IV_3 ]; then
@@ -376,11 +377,11 @@ pkg_upd() {
                 fi
 
                 if [ $UPGRADE_PACKAGE -eq 1 ]; then
-                    pkg_rm $2 force
-                    pkg_add $1 $2
+                    pkg_rm $pkg_name force
+                    pkg_add $1 $pkg_name
                 fi
             else
-                pkg_add $1 $2
+                pkg_add $1 $pkg_name
             fi
             ;;
     esac
