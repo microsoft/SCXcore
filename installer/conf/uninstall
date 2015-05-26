@@ -91,7 +91,7 @@ service_action_delay()
 
 
 stop_omiserver() {
-    if [ -f /var/opt/microsoft/omi/run/omiserver.pid ]; then
+    if [ -f /var/opt/omi/run/omiserver.pid ]; then
         case "$PF" in
             AIX)
                 stopsrc -s omiserverd
@@ -183,13 +183,13 @@ start_omiserver() {
             ;;
 
         HPUX)
-            /opt/microsoft/omi/bin/omiserver -d
+            /opt/omi/bin/omiserver -d
             ;;
         
         SunOS)
             case "$PF_MINOR" in
                 9)
-                    /opt/microsoft/omi/bin/omiserver -d
+                    /opt/omi/bin/omiserver -d
                     ;;
                 10|11)
                     svcs -H omiserverd 2> /dev/null | grep -i online 2> /dev/null 1> /dev/null

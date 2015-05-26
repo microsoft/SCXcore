@@ -8,7 +8,7 @@ enable_purify_agent=""
 enable_purify_server=""
 enable_bullseye=""
 
-omi_configure_quals="--prefix=/opt/microsoft/omi --localstatedir=/var/opt/microsoft/omi --sysconfdir=/etc/opt/microsoft/omi/conf --certsdir=/etc/opt/microsoft/omi/ssl"
+omi_configure_quals="--prefix=/opt/omi --localstatedir=/var/opt/omi --sysconfdir=/etc/opt/omi/conf --certsdir=/etc/opt/omi/ssl"
 
 if [ ! -d "$scxpal_dir" ]; then
     echo "PAL directory ($scxpal_dir) does not exist"
