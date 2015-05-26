@@ -16,7 +16,7 @@ StopOmiServer() {
 }
 
 StartOmiServer() {
-    startsrc -s omiserverd -e "LD_LIBRARY_PATH=/opt/microsoft/omi/lib"
+    startsrc -s omiserverd -e "LD_LIBRARY_PATH=/opt/omi/lib"
 }
 
 %Preinstall_10

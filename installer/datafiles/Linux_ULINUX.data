@@ -20,5 +20,5 @@ fi
 
 %Postinstall_999
 # Be certain that OMI linkages exist for SSL prior to running scxsslconfig binary
-/opt/microsoft/omi/bin/support/installssllinks
+/opt/omi/bin/support/installssllinks
 

@@ -8,7 +8,7 @@ PAM_CONF_FILE:           '/etc/pam.conf'
 PAM_CONF_DIR:            '/etc/pam.d'
 RUNAS_CFG:               '/etc/opt/microsoft/scx/conf/scxrunas.conf'
 SSL_DIR:                 '/etc/opt/microsoft/scx/ssl'
-OMI_SSL_DIR:             '/etc/opt/microsoft/omi/ssl'
+OMI_SSL_DIR:             '/etc/opt/omi/ssl'
 GENCERT_CERT_FILE:       'scx-host-`uname -n`.pem'
 SCX_SSL_CONFIG:          '/opt/microsoft/scx/bin/tools/scxsslconfig'
 SUNOS_PKGSAVE:           ''
@@ -46,11 +46,11 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt/microsoft/scx/conf/scxrunas.conf;                              installer/conf/scxrunas.conf;                                     644; root; ${{ROOT_GROUP_NAME}}; conffile
 /etc/opt/microsoft/scx/conf/installinfo.txt;                            installer/conf/installinfo.txt;                                   644; root; ${{ROOT_GROUP_NAME}}
 
-/etc/opt/microsoft/omi/conf/omiregister/root-scx/SCXProvider-root.reg;  installer/conf/omi/SCXProvider-root.reg;                          755; root; ${{ROOT_GROUP_NAME}} 
-/etc/opt/microsoft/omi/conf/omiregister/root-scx/SCXProvider-req.reg;   installer/conf/omi/SCXProvider-req.reg;                           755; root; ${{ROOT_GROUP_NAME}} 
+/etc/opt/omi/conf/omiregister/root-scx/SCXProvider-root.reg;            installer/conf/omi/SCXProvider-root.reg;                          755; root; ${{ROOT_GROUP_NAME}} 
+/etc/opt/omi/conf/omiregister/root-scx/SCXProvider-req.reg;             installer/conf/omi/SCXProvider-req.reg;                           755; root; ${{ROOT_GROUP_NAME}} 
 
 %Links
-/opt/microsoft/omi/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; /opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; 644; root; ${{ROOT_GROUP_NAME}}
+/opt/omi/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; /opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; 644; root; ${{ROOT_GROUP_NAME}}
 %% Create a link to make scxadmin easier to run ...
 %%
 %% On Solaris 5.10 and later, we deal with the /usr/sbin/scxadmin link via postinstall;
@@ -75,7 +75,9 @@ MAINTAINER:              'Microsoft Corporation'
 /opt/microsoft/scx/bin;                                 755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/tools;                           755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/lib;                                 755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/omi/lib;                                 755; root; ${{ROOT_GROUP_NAME}}
+
+/opt/omi;                                               755; root; ${{ROOT_GROUP_NAME}}
+/opt/omi/lib;                                           755; root; ${{ROOT_GROUP_NAME}}
 
 /etc/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx;                                 755; root; ${{ROOT_GROUP_NAME}}
@@ -83,10 +85,10 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt/microsoft/scx/ssl;                             755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx/conf/.baseconf;                  755; root; ${{ROOT_GROUP_NAME}}
 
-/etc/opt/microsoft/omi;                                 755; root; ${{ROOT_GROUP_NAME}}
-/etc/opt/microsoft/omi/conf;                            755; root; ${{ROOT_GROUP_NAME}}
-/etc/opt/microsoft/omi/conf/omiregister/root-omi;       755; root; ${{ROOT_GROUP_NAME}}
-/etc/opt/microsoft/omi/conf/omiregister/root-scx;       755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/omi;                                           755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/omi/conf;                                      755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/conf/omiregister/root-omi;                     755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/omi/conf/omiregister/root-scx;                 755; root; ${{ROOT_GROUP_NAME}}
 
 /var/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
 /var/opt/microsoft/scx;                                 755; root; ${{ROOT_GROUP_NAME}}
@@ -99,9 +101,9 @@ MAINTAINER:              'Microsoft Corporation'
 
 %CheckIfOmiIsRunning
 OMI_IS_RUNNING=1
-if [ -f /var/opt/microsoft/omi/run/omiserver.pid ]; then
+if [ -f /var/omi/run/omiserver.pid ]; then
     #  Check if omiserver is running with this pid.
-    omi_pid=`cat /var/opt/microsoft/omi/run/omiserver.pid`
+    omi_pid=`cat /var/opt/omi/run/omiserver.pid`
     ps -aef | grep $omi_pid | grep omiserver 1> /dev/null 2> /dev/null
     if [ $? -ne 0 ]; then
 	OMI_IS_RUNNING=0
@@ -187,26 +189,26 @@ ConfigureRunAs() {
 }
 
 HandleConfigFiles() {
-    grep -i "sslciphersuite" /etc/opt/microsoft/omi/conf/omiserver.conf 1> /dev/null 2> /dev/null
+    grep -i "sslciphersuite" /etc/opt/omi/conf/omiserver.conf 1> /dev/null 2> /dev/null
     # if there is no sslCipherSuite defined in omiserver.conf, check the previous omiserver/cimserver OM conf files for an sslCipherSuite defined
     if [ $? -ne 0 ]; then
 	if [ -f /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave ]; then
-	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave` >> /etc/opt/microsoft/omi/conf/omiserver.conf
+	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf.pkgsave` >> /etc/opt/omi/conf/omiserver.conf
 	elif [ -f /etc/opt/microsoft/scx/conf/omiserver.conf ]; then
-	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf` >> /etc/opt/microsoft/omi/conf/omiserver.conf
+	    echo `grep sslciphersuite /etc/opt/microsoft/scx/conf/omiserver.conf` >> /etc/opt/omi/conf/omiserver.conf
 	elif [ -f /etc/opt/microsoft/scx/conf/cimserver_current.conf ]; then
-            echo `grep sslCipherSuite /etc/opt/microsoft/scx/conf/cimserver_current.conf` | sed "s@sslCipherSuite@sslciphersuite@" >> /etc/opt/microsoft/omi/conf/omiserver.conf
+            echo `grep sslCipherSuite /etc/opt/microsoft/scx/conf/cimserver_current.conf` | sed "s@sslCipherSuite@sslciphersuite@" >> /etc/opt/omi/conf/omiserver.conf
 	fi
     fi
     rm -f /etc/opt/microsoft/scx/conf/cimserver_current.conf* /etc/opt/microsoft/scx/conf/cimserver_planned.conf* /etc/opt/microsoft/scx/conf/omiserver.conf*
 
     # Set port to 1270
-    cat /etc/opt/microsoft/omi/conf/omiserver.conf | sed "s@httpsport=0@httpsport=1270@" > /etc/opt/microsoft/omi/conf/omiserver.conf_temp
-    mv /etc/opt/microsoft/omi/conf/omiserver.conf_temp /etc/opt/microsoft/omi/conf/omiserver.conf
+    cat /etc/opt/omi/conf/omiserver.conf | sed "s@httpsport=0@httpsport=1270@" > /etc/opt/omi/conf/omiserver.conf_temp
+    mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
 }
 
 GenerateCertificate() {
-    if [ ! -f /etc/opt/microsoft/omi/ssl/.omi_cert_marker ]; then
+    if [ ! -f /etc/opt/omi/ssl/.omi_cert_marker ]; then
 	# No OMI cert marker.  This means that OM has installed certificates to this folder, or there's data corruption.
 	return 0
     fi
@@ -245,8 +247,8 @@ GenerateCertificate() {
 	    fi
             exit 1
 	else
-	    # Certificate generated successfully.  Remove /etc/opt/microsoft/omi/ssl/.omi_cert_marker to signify that we have overwritten omi's cert
-	    rm -f /etc/opt/microsoft/omi/ssl/.omi_cert_marker
+	    # Certificate generated successfully.  Remove /etc/opt/omi/ssl/.omi_cert_marker to signify that we have overwritten omi's cert
+	    rm -f /etc/opt/omi/ssl/.omi_cert_marker
 	    rm -f ${{OMI_SSL_DIR}}/omikey.pem_temp ${{OMI_SSL_DIR}}/omi.pem_temp
         fi
     else

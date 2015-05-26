@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     bool debugMode = false;
     bool testMode = false;
     bool doGenerateCert = false;
-    wstring targetPath = L"/etc/opt/microsoft/omi/ssl";
+    wstring targetPath = L"/etc/opt/omi/ssl";
     int startDays = -365;
     int endDays = 7300;
 #if defined(hpux) && defined(hppa)

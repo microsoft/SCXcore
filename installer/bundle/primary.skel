@@ -458,7 +458,7 @@ then
         # If OMI is not installed, purge its directories as well.
         check_if_pkg_is_installed omi
         if [ $? -ne 0 ]; then
-            rm -rf /etc/opt/microsoft/omi /opt/microsoft/omi /var/opt/microsoft/omi
+            rm -rf /etc/opt/omi /opt/omi /var/opt/omi
         fi
     fi
 fi
