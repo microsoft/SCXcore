@@ -101,7 +101,7 @@ MAINTAINER:              'Microsoft Corporation'
 
 %CheckIfOmiIsRunning
 OMI_IS_RUNNING=1
-if [ -f /var/omi/run/omiserver.pid ]; then
+if [ -f /var/opt/omi/run/omiserver.pid ]; then
     #  Check if omiserver is running with this pid.
     omi_pid=`cat /var/opt/omi/run/omiserver.pid`
     ps -aef | grep $omi_pid | grep omiserver 1> /dev/null 2> /dev/null
@@ -202,8 +202,8 @@ HandleConfigFiles() {
     fi
     rm -f /etc/opt/microsoft/scx/conf/cimserver_current.conf* /etc/opt/microsoft/scx/conf/cimserver_planned.conf* /etc/opt/microsoft/scx/conf/omiserver.conf*
 
-    # Set port to 1270
-    cat /etc/opt/omi/conf/omiserver.conf | sed "s@httpsport=0@httpsport=1270@" > /etc/opt/omi/conf/omiserver.conf_temp
+    # Add port 1270 to the list of ports that OMI will listen on
+    /opt/omi/bin/omiconfigeditor httpsport -a 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
     mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
 }
 
@@ -303,6 +303,10 @@ RemoveConfigFiles() {
     else
         rm /etc/opt/microsoft/scx/conf/omiserver.conf 2> /dev/null
     fi
+
+    # Remove port 1270 from the list of ports that OMI will listen on
+    /opt/omi/bin/omiconfigeditor httpsport -r 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
+    mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
 }
 
 RemoveAdditionalFiles() {
