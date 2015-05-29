@@ -34,7 +34,7 @@ StartOmiServer() {
 	echo "Unrecognized Service Controller to start OMI Service"
 	exit 1
     fi
-    
+
 #elseif PFDISTRO == SUSE 
 #if PFMAJOR == 9
     /etc/init.d/omiserverd start
@@ -61,6 +61,17 @@ set -e
 #include OmiService_funcs
 StartOmiServer
 
+%Preuninstall_9
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
+
 %Preuninstall_800
 #include DeleteSoftLinkToSudo
 DeleteSoftLinkToSudo
+
+%Postuninstall_1100
+#include OmiService_funcs
+StartOmiServer
