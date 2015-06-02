@@ -310,7 +310,7 @@ RemoveConfigFiles() {
 }
 
 RemoveAdditionalFiles() {
-    rm -r ${{SCX_TMP_PATH}} > /dev/null 2>&1
+    rm -rf ${{SCX_TMP_PATH}}/* > /dev/null 2>&1
 }
 
 %Preuninstall_300

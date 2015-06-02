@@ -17,8 +17,3 @@ if [ $? -ne 0 ]; then
     echo 'Installation cannot proceed.'
     exit 1
 fi
-
-%Postinstall_999
-# Be certain that OMI linkages exist for SSL prior to running scxsslconfig binary
-/opt/omi/bin/support/installssllinks
-
