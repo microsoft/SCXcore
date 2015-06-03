@@ -25,6 +25,7 @@ $(INTERMEDIATE_DIR)/%.$(PF_OBJ_FILE_SUFFIX) : $(SCX_BRD)/%.s
 # to make sure it exists before the .d files are generated
 $(SCX_SRC_ROOT)/providers/SCX_Agent_Class_Provider.cpp: $(INT_INCLUDE_DIR)/buildversion.h 
 $(SCX_SRC_ROOT)/providers/support/productdependencies.cpp: $(INT_INCLUDE_DIR)/buildversion.h 
+$(SCX_SRC_ROOT)/providers/support/scx_admin.cpp: $(INT_INCLUDE_DIR)/buildversion.h 
 
 # TODO: Need to modify this slightly once appserver is ported for OMI
 $(SCX_SRC_ROOT)/providers/appserver_provider/appserverprovider.cpp: $(INT_INCLUDE_DIR)/buildversion.h 
