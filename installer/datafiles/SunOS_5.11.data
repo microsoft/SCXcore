@@ -40,24 +40,19 @@ if [ $OMI_IS_RUNNING -eq 1 ]; then
     StopOmiServer
 fi
 
-%Postinstall_1050
-# ConfigureOmiService
-##svcadm restart svc:/system/manifest-import
-
 %Postinstall_1100
 #include OmiService_funcs
 set +e
 StartOmiServer
 
+%Preuninstall_9
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
+
 %Postuninstall_200
 set +e
-svcadm restart svc:/system/manifest-import
-COUNT=0
-while [ $COUNT -lt 15 ]; do
-    echo "Waiting for service: svc:/application/management/omiserverd ..."
-    sleep 1
-    /usr/bin/svcs -H svc:/system/manifest-import 2> /dev/null | grep -i online > /dev/null 2>&1
-    [ $? -eq 0 ] && break
-    COUNT=`expr $COUNT + 1`
-done
-
+#include OmiService_funcs
+StartOmiServer

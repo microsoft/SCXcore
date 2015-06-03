@@ -39,3 +39,13 @@ while [ $COUNT -lt 15 ]; do
     COUNT=`expr $COUNT + 1`
 done
 
+%Preuninstall_9
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
+
+%Postuninstall_1100
+#include OmiService_funcs
+StartOmiServer

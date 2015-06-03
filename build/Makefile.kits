@@ -115,13 +115,13 @@ endif
 bundle: native_kit
 ifneq ($(OSS_KITS),)
 	# Copy OSS kit files to target directory if Linux or ULINUX
-	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR)
+	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); 
 endif
 	# Copy remaining kit files to target directory
 ifneq ($(PF_DISTRO),ULINUX)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(TARGET_DIR)/omi_package_filename
-	cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
+	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
                                              $(TARGET_DIR) \
                                              `cat $(TARGET_DIR)/package_filename`.tar \
@@ -132,7 +132,7 @@ else
 	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name package_filename` $(TARGET_DIR)/098/omi_package_filename
 	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/100/
 	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name package_filename` $(TARGET_DIR)/100/omi_package_filename
-	cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); tar cvf `cat 098/package_filename`.tar 098/`cat 098/package_filename` 098/`cat 098/omi_package_filename` 100/`cat 100/package_filename` 100/`cat 100/omi_package_filename` $(OSS_KITS)
+	cd $(TARGET_DIR); tar cvf `cat 098/package_filename`.tar 098/`cat 098/package_filename` 098/`cat 098/omi_package_filename` 100/`cat 100/package_filename` 100/`cat 100/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
 					     $(TARGET_DIR)  \
                                              `cat $(TARGET_DIR)/098/package_filename`.tar \

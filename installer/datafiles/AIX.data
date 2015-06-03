@@ -37,6 +37,17 @@ fi  ## if [ "$INSTALLED_LIST" = "" ]
 #include OmiService_funcs
 StartOmiServer
 
+%Preuninstall_9
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
+
 %Preuninstall_800
 #include DeleteSoftLinkToSudo
 DeleteSoftLinkToSudo
+
+%Postuninstall_1100
+#include OmiService_funcs
+StartOmiServer
