@@ -34,6 +34,13 @@ set -e
 #include OmiService_funcs
 StartOmiServer
 
+%Preuninstall_9
+#include OmiService_funcs
+#include CheckIfOmiIsRunning
+if [ $OMI_IS_RUNNING -eq 1 ]; then
+    StopOmiServer
+fi
+
 %Postuninstall_100
 #include DeleteSoftLinkToSudo
 DeleteSoftLinkToSudo
@@ -51,3 +58,7 @@ RemoveEmptyDirectoryRecursive /opt/microsoft/scx
 RemoveEmptyDirectoryRecursive /etc/opt/microsoft/scx
 RemoveEmptyDirectoryRecursive /var/opt/microsoft/scx
 rmdir /opt/microsoft 2>&1 > /dev/null
+
+%Postuninstall_1100
+#include OmiService_funcs
+StartOmiServer
