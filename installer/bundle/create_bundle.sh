@@ -36,19 +36,24 @@ usage()
 
 # Validate parameters
 
-if [ -z "$1" ]; then
+PLATFORM_TYPE="$1"
+if [ -z "$PLATFORM_TYPE" ]; then
     echo "Missing parameter: Platform type" >&2
     echo ""
     usage
     exit 1
 fi
 
-case "$1" in
+if [ "$PLATFORM_TYPE" = "Linux_UBUNTU" ]; then
+    PLATFORM_TYPE=Linux_ULINUX_D
+fi
+
+case "$PLATFORM_TYPE" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
 	;;
 
     *)
-	echo "Invalid platform type specified: $1" >&2
+	echo "Invalid platform type specified: $PLATFORM_TYPE" >&2
 	exit 1
 esac
 
@@ -85,7 +90,7 @@ if [ -z "$5" ]; then
     exit 1
 fi
 
-if [ "$1" = "ulinux-d" ]; then
+if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
     # $6 and $7 need to be set for ULINUX
     if [ -z "$6" ]; then
 	echo "Missing parameter: scx-package-name-100" >&2
@@ -93,7 +98,7 @@ if [ "$1" = "ulinux-d" ]; then
 	usage
 	exit 1
     fi
-    
+
     if [ -z "$7" ]; then
 	echo "Missing parameter: omi-package-name-100" >&2
 	echo ""
@@ -119,7 +124,7 @@ cp $SOURCE_DIR/primary.skel .
 chmod u+w primary.skel
 
 # Edit the bundle file for hard-coded values
-sed -e "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$1/" < primary.skel > primary.$$
+sed -e "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
 sed -e "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" < primary.skel > primary.$$
@@ -145,7 +150,7 @@ mv primary.$$ primary.skel
 cp $OUTPUT_DIR/$3 .
 
 # Build the bundle
-case "$1" in
+case "$PLATFORM_TYPE" in
     Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" | sed -e "s/.tar//"`.sh
 	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE

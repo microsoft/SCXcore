@@ -115,7 +115,7 @@ endif
 bundle: native_kit
 ifneq ($(OSS_KITS),)
 	# Copy OSS kit files to target directory if Linux or ULINUX
-	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); cd $(TARGET_DIR); chmod u+wx $(OSS_KITS); 
+	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); cd $(TARGET_DIR); chmod u+wx $(OSS_KITS);
 endif
 	# Copy remaining kit files to target directory
 ifneq ($(PF_DISTRO),ULINUX)
@@ -140,7 +140,7 @@ else
                                              `cat $(TARGET_DIR)/098/omi_package_filename`
 endif
 
-# Technically, a compressed kit doesn't have a prereq on the bundle, 
+# Technically, a compressed kit doesn't have a prereq on the bundle,
 # but compressing the kit will make the uncompressed kit unavailable to the bundle...
 compressed_kit: native_kit bundle
 ifeq ($(PF),SunOS)
@@ -154,7 +154,7 @@ ifeq ($(PF),AIX)
 endif
 
 # Generate scripts that are consumed by SCXCore
-scx_scripts: 
+scx_scripts:
 	python $(SCX_BRD)/installer/generate_scxcore_scripts.py \
 		--OUTPUT_DIR=$(INTERMEDIATE_DIR) \
 		--PF=$(PF) \
@@ -176,7 +176,7 @@ scx-tools-status:
 scxcore-status:
 	$(ECHO) "========================= Performing make OpsMgr"
 
-ifeq ($(PF_DISTRO),ULINUX)
+ifeq ($(PF_DISTRO),$(filter $(PF_DISTRO),ULINUX UBUNTU))
 GetLinuxOS: $(TARGET_DIR)/GetLinuxOS.sh
 
 $(TARGET_DIR)/GetLinuxOS.sh: $(SCXPAL_TARGET_DIR)/GetLinuxOS.sh

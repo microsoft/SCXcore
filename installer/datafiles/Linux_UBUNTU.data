@@ -1,0 +1,8 @@
+%Variables
+PFDISTRO: 'UBUNTU'
+
+%Files
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh; target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh; 755; root; root
+
+%Defines
+ULINUX
