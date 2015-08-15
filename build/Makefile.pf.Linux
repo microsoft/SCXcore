@@ -3,9 +3,9 @@
 # Copyright (c) Microsoft Corporation.  All rights reserved.
 #--------------------------------------------------------------------------------
 # 2007-08-23
-# 
+#
 # Platform-specific overrides to the general POSIX platform file
-# 
+#
 #--------------------------------------------------------------------------------
 
 ifeq ($(PF_DISTRO), ULINUX)
@@ -28,11 +28,11 @@ ifeq ($(PF_DISTRO)$(PF_MAJOR),REDHAT4)
 	include Makefile.gcc3
 else
 	include Makefile.gcc4
-endif		
+endif
 
 #================================================================================
-# OpenSSL 
-# For ULINUX, we need to build against two versions of OpenSSL, 0.9.8 and 1.0.0. 
+# OpenSSL
+# For ULINUX, we need to build against two versions of OpenSSL, 0.9.8 and 1.0.0.
 #================================================================================
 ifeq ($(PF_DISTRO),ULINUX)
 
@@ -71,25 +71,25 @@ PKG_CONFIG_PATH_OPENSSL098=$(OPENSSL098_LIBDIR)/pkgconfig
 LD_LIBRARY_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)
 PKG_CONFIG_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)/pkgconfig
 
-endif 
+endif
 
 #--------------------------------------------------------------------------------
 # Paths
 #--------------------------------------------------------------------------------
 
-# Path to where the CPPUNIT libraries are checked in 
+# Path to where the CPPUNIT libraries are checked in
 CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/linux/$(ARCH)/cppunit
 
 #--------------------------------------------------------------------------------
 # Tools on this platform
 #--------------------------------------------------------------------------------
 
-# Link a dynamic lib 
+# Link a dynamic lib
 LINK_DYNLIB=g++ -shared -Wl,-rpath,/usr/lib
 ifeq ($(PF_ARCH),x86)
-	LINK_DYNLIB+= -m32 
+	LINK_DYNLIB+= -m32
 else
-	LINK_DYNLIB+= -m64 
+	LINK_DYNLIB+= -m64
 endif
 LINK_DYNLIB+= -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR)
 
@@ -113,7 +113,7 @@ ifeq ($(PF_DISTRO),SUSE)
 	endif
 endif
 
-# The Core Provider Module links with these 
+# The Core Provider Module links with these
 LDFLAGS_COREPROVIDERMODULE = $(LDFLAGS_DYNLIB)
 
 # The Test Provider Module links with these
@@ -123,7 +123,7 @@ LDFLAGS_TESTPROVIDERMODULE = $(LDFLAGS_DYNLIB)
 TESTPROVIDERMODULE_EXTRA_LINKFLAGS=-Wl,--version-script=$(INTERMEDIATE_DIR)/testprovider.map
 
 # The testrunner links with these
-LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE)   
+LDFLAGS_TESTRUNNER = $(LDFLAGS_EXECUTABLE)
 
 # Transforms a list of symbols that should be exposed to the correct link flags
 get_ld_flags_for_retaining_symbols=$(addprefix -u, $(1))
@@ -157,6 +157,7 @@ PF_DEPENDENT_DATAFILES += Linux_RHEL_5.data
 PF_DEPENDENT_DATAFILES += Linux_RHEL_4.data
   endif
 endif
+
 ifeq ($(PF_DISTRO), SUSE)
 PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_SLES.data
   ifeq ($(PF_MAJOR), 12)
@@ -172,6 +173,15 @@ PF_DEPENDENT_DATAFILES += Linux_SLES_10.data
 PF_DEPENDENT_DATAFILES += Linux_SLES_9.data
   endif
 endif
+
+ifeq ($(PF_DISTRO), UBUNTU)
+PF_DEPENDENT_DATAFILES += Linux_DPKG.data Linux_ULINUX_D.data
+PF_DEPENDENT_DATAFILES += Linux_ULINUX_x64.data Linux_UBUNTU.data
+  ifeq ($(PF_MAJOR), 14)
+PF_DEPENDENT_DATAFILES += Linux_UBUNTU_14.data
+  endif
+endif
+
 ifeq ($(PF_DISTRO), ULINUX)
 PF_DEPENDENT_DATAFILES += Linux_ULINUX.data
   ifeq ($(PF_ARCH), x86)
