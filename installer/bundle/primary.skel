@@ -260,7 +260,7 @@ pkg_add() {
             rpm --install $pkg_filename
             ;;
         
-        Linux_ULINUX_D)
+        Linux_UBUNTU|Linux_ULINUX_D)
             dpkg --install --refuse-downgrade $pkg_filename
             ;;
         
@@ -286,7 +286,7 @@ pkg_rm() {
             rpm --erase $1 # 1> /dev/null 2> /dev/null
             ;;
         
-        Linux_ULINUX_D)
+        Linux_UBUNTU|Linux_ULINUX_D)
             if [ "$installMode" = "P" ]; then
                 dpkg --purge $1 # 1> /dev/null 2> /dev/null
             else
@@ -332,7 +332,7 @@ pkg_upd() {
             rpm --upgrade $FORCE $pkg_filename
             ;;
 
-        Linux_ULINUX_D)
+        Linux_UBUNTU|Linux_ULINUX_D)
             [ -z "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--refuse-downgrade" || FORCE=""
             dpkg --install $FORCE $pkg_filename
 
@@ -388,7 +388,7 @@ pkg_upd() {
 }
 
 case "$PLATFORM" in
-    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_UBUNTU|Linux_ULINUX_D|AIX|HPUX|SunOS)
         ;;
 
     *)
