@@ -52,8 +52,21 @@ pkg_rm() {
                         rpm --erase $1 # 1> /dev/null 2> /dev/null
                     fi
                     ;;
+		
                 REDHAT|SUSE)
                     rpm --erase $1 # 1> /dev/null 2> /dev/null
+                    ;;
+
+                UBUNTU)
+                    if [ "$uninstallMode" = "P" ]; then
+                        dpkg --purge $1 # 1> /dev/null 2> /dev/null
+                    else
+                        dpkg --remove $1 # 1> /dev/null 2> /dev/null
+                    fi
+                    ;;
+
+                *)
+                    echo "Unsupported Linux platform: $PF_DISTRO"
                     ;;
             esac
             ;;
@@ -68,6 +81,10 @@ pkg_rm() {
         
         SunOS)
             /usr/sbin/pkgrm -a scx-admin -n MSFT$1 # 1> /dev/null 2> /dev/null
+            ;;
+
+        *)
+            echo "Unsupported platform: $PF"
             ;;
     esac
 }
@@ -99,7 +116,7 @@ stop_omiserver() {
             
             Linux)
                 case "$PF_DISTRO" in
-                    ULINUX)
+                    UBUNTU|ULINUX)
                         if [ -x /usr/sbin/invoke-rc.d ]; then
                             invoke-rc.d omiserverd stop
                         elif [ -x /sbin/service ]; then
@@ -156,7 +173,7 @@ start_omiserver() {
         
         Linux)
             case "$PF_DISTRO" in
-                ULINUX)
+                UBUNTU|ULINUX)
                     if [ -x /usr/sbin/invoke-rc.d ]; then
                         invoke-rc.d omiserverd start
                     elif [ -x /sbin/service ]; then
