@@ -7,7 +7,9 @@ enable_debug=""
 enable_purify_agent=""
 enable_purify_server=""
 enable_bullseye=""
+combined_packages=0
 
+enable_ulinux_qual=""
 omi_configure_quals="--prefix=/opt/omi --localstatedir=/var/opt/omi --sysconfdir=/etc/opt/omi/conf --certsdir=/etc/opt/omi/ssl"
 
 if [ ! -d "$scxpal_dir" ]; then
@@ -62,6 +64,15 @@ do
       local_omi="1"
     ;;
 
+    --enable-ulinux)
+      if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" ]; then
+          echo "Cannot build ULINUX without Universal SSL libraries"
+          exit 1
+      fi
+      enable_ulinux_qual="--enable-ulinux"
+      combined_packages=1
+    ;;
+
     *)
       echo "configure: invalid option '$opt'"
       echo "Try configure --help' for more information."
@@ -92,12 +103,13 @@ OPTIONS:
     --enable-purify-server      Allow server to be run with purify (memory leak detection)
     --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
     --enable-bullseye           Enables the use of code coverage tools (Bullseye).
+    --enable-ulinux             Force provider-only, universal RPM/DEB kits
 
 EOF
     exit 0
 fi
 
-(cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye)
+(cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye $enable_ulinux_qual)
 
 omi_configure_quals="--enable-preexec ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
 
@@ -114,7 +126,12 @@ openssl_libs=`$pkgconfig --libs openssl`
 openssl_libdir=`$pkgconfig --variable=libdir openssl`
 
 
+FORCE_UNIVERSAL=$combined_packages
 if [ -d "/usr/local_ssl_0.9.8" -a -d "/usr/local_ssl_1.0.0" ]; then
+    FORCE_UNIVERSAL=1
+fi
+
+if [ $FORCE_UNIVERSAL -ne 0 ]; then
     case "`uname -m`" in    
 	x86_64 )
             openssl098_libdir=/usr/local_ssl_0.9.8/lib
@@ -133,6 +150,7 @@ if [ -d "/usr/local_ssl_0.9.8" -a -d "/usr/local_ssl_1.0.0" ]; then
 fi
 
 cat <<EOF > config.mak
+COMBINED_PACKAGES=$combined_packages
 LOCAL_OMI=$local_omi
 OMI_CONFIGURE_QUALS=$omi_configure_quals
 OPENSSL_CFLAGS=$openssl_cflags

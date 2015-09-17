@@ -3,10 +3,7 @@
 #
 # This script will create a bundle file given an existing kit.
 #
-# Parameters:
-#	$1: Platform type (linux, aix, hpux, sun)
-#	$2: Directory to package file
-#	$3: Package name for OM package
+# See usage for parameters that must be passed to this script.
 #
 # We expect this script to run from the BUILD directory (i.e. scxcore/build).
 # Directory paths are hard-coded for this location.
@@ -31,6 +28,10 @@ usage()
     echo "  If ULINUX, the default packages above are for openssl 0.9.8 versions, and below:"
     echo "    scx-package-name-100 is the name of the openssl 1.0.0 scx installation package"
     echo "    omi-package-name-100 is the name of the openssl 1.0.0 omi installation package"
+    echo ""
+    echo "  If omi-package-name is blank, we assume a 'combined' universal build, agent only."
+    echo "  This means: No OMI is bundled, no open-source kits are bundled, we only include the"
+    echo "              agent, but built for each of SSL 0.9.8 and SSL 1.0.0, RPM & Debian"
     exit 1
 }
 
@@ -45,7 +46,7 @@ if [ -z "$PLATFORM_TYPE" ]; then
 fi
 
 case "$PLATFORM_TYPE" in
-    Linux_REDHAT|Linux_SUSE|Linux_UBUNTU|Linux_ULINUX_R|Linux_ULINUX_D|AIX|HPUX|SunOS)
+    Linux_REDHAT|Linux_SUSE|Linux_UBUNTU|Linux_ULINUX_R|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
 	;;
 
     *)
@@ -79,29 +80,31 @@ if [ -z "$4" ]; then
     exit 1
 fi
 
-if [ -z "$5" ]; then
-    echo "Missing parameter: omi-package-name" >&2
-    echo ""
-    usage
-    exit 1
+SCX_PACKAGE=`echo $4 | sed -re 's/.rpm$$|.deb$$//'`
+
+if [ -n "$5" ]; then
+    if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
+        # $6 and $7 need to be set for ULINUX
+        if [ -z "$6" ]; then
+            echo "Missing parameter: scx-package-name-098" >&2
+            echo ""
+            usage
+            exit 1
+        fi
+
+        if [ -z "$7" ]; then
+            echo "Missing parameter: omi-package-name-100" >&2
+            echo ""
+            usage
+            exit 1
+        fi
+    fi
+    COMBINED_PACKAGE=0
+else
+    COMBINED_PACKAGE=1
 fi
 
-if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
-    # $6 and $7 need to be set for ULINUX
-    if [ -z "$6" ]; then
-	echo "Missing parameter: scx-package-name-100" >&2
-	echo ""
-	usage
-	exit 1
-    fi
-
-    if [ -z "$7" ]; then
-	echo "Missing parameter: omi-package-name-100" >&2
-	echo ""
-	usage
-	exit 1
-    fi
-fi
+OMI_PACKAGE=`echo $5 | sed -re 's/.rpm$$|.deb$$//'`
 
 if [ ! -f "$2/$3" ]; then
     echo "Tar file \"$2/$3\" does not exist"
@@ -123,14 +126,20 @@ chmod u+w primary.skel
 sed -e "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" < primary.skel > primary.$$
 mv primary.$$ primary.skel
 
-sed -e "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" < primary.skel > primary.$$
+sed -e "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" primary.skel > primary.$$
 mv primary.$$ primary.skel
 
-sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$4/" < primary.skel > primary.$$
+sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/" primary.skel > primary.$$
 mv primary.$$ primary.skel
 
-sed -e "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$5/" < primary.skel > primary.$$
+sed -e "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/" primary.skel > primary.$$
 mv primary.$$ primary.skel
+
+if [ $COMBINED_PACKAGE -ne 0 ]; then
+    sed -e "s/PROVIDER_ONLY=0/PROVIDER_ONLY=1/" < primary.skel > primary.$$
+    mv primary.$$ primary.skel
+fi
+
 
 SCRIPT_LEN=`wc -l < primary.skel | sed -e 's/ //g'`
 SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
@@ -156,6 +165,11 @@ case "$PLATFORM_TYPE" in
 	BUNDLE_FILE=`echo $3 | sed -e "s/.deb//" | sed -e "s/.tar//"`.sh
 	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
+
+    Linux_ULINUX)
+        BUNDLE_FILE=${SCX_PACKAGE}.sh
+        gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
+        ;;
 
     AIX)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp//" | sed -e "s/.tar//"`.sh
