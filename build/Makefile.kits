@@ -17,25 +17,40 @@ else
 
 endif
 
-DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
+ifneq ($(COMBINED_PACKAGES),1)
+  DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
+else
+  DATAFILES = Base_SCXCore.data Linux.data Linux_ULINUX.data
+  ifeq ($(PF_ARCH), x86)
+    DATAFILES += Linux_ULINUX_x86.data
+  else
+    DATAFILES += Linux_ULINUX_x64.data
+  endif
+  DATAFILES_R = Linux_RPM.data
+  DATAFILES_D = Linux_DPKG.data
+endif
 
 DISTRO_TYPE = $(PF)
 ifeq ($(PF),Linux)
 DISTRO_TYPE = $(PF)_$(PF_DISTRO)
- ifeq ($(PF_DISTRO_ULINUX_R),1)
+ ifneq ($(COMBINED_PACKAGES),1)
+  ifeq ($(PF_DISTRO_ULINUX_R),1)
 DISTRO_TYPE = $(PF)_$(PF_DISTRO)_R
- endif
- ifeq ($(PF_DISTRO_ULINUX_D),1)
+  endif
+  ifeq ($(PF_DISTRO_ULINUX_D),1)
 DISTRO_TYPE = $(PF)_$(PF_DISTRO)_D
+  endif
  endif
 endif
 
-ifneq ($(PF),SunOS)
-  ifeq ($(PF_ARCH),x86)
-    OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
-  else
-    ifeq ($(PF_ARCH),x64)
-      OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
+ifneq ($(COMBINED_PACKAGES),1)
+  ifneq ($(PF),SunOS)
+    ifeq ($(PF_ARCH),x86)
+      OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
+    else
+      ifeq ($(PF_ARCH),x64)
+        OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
+      endif
     endif
   endif
 endif
@@ -55,7 +70,9 @@ native_kit: GetLinuxOS scx_scripts
 	$(ECHO) PF_DISTRO_ULINUX_D=$(PF_DISTRO_ULINUX_D) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
 	$(ECHO) PF_DISTRO_ULINUX_R=$(PF_DISTRO_ULINUX_R) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
         # The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
-ifneq ($(PF_DISTRO),ULINUX)
+
+ifneq ($(COMBINED_PACKAGES),1)
+  ifneq ($(PF_DISTRO),ULINUX)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
@@ -73,7 +90,7 @@ ifneq ($(PF_DISTRO),ULINUX)
 		--ULINUX_POSTFIX= \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(DATAFILES)
-else
+  else
 	sudo rm -rf $(STAGING_DIR)
 	rm -rf $(TARGET_DIR)/{098,100}
 	mkdir -p $(TARGET_DIR)/{098,100}
@@ -110,6 +127,89 @@ else
 		--ULINUX_POSTFIX=/openssl_1.0.0 \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(DATAFILES)
+  endif
+else
+	# Build for COMBINED_PACKAGES (.rpm and .deb living together)
+	# First comes RPM packages
+	sudo rm -rf $(STAGING_DIR)
+	rm -rf $(TARGET_DIR)/{098,100}
+	mkdir -p $(TARGET_DIR)/{098,100}
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/098 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_0.9.8 \
+		--DISABLE_PORT=true \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES) $(DATAFILES_R)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/100 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.0.0 \
+		--DISABLE_PORT=true \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES) $(DATAFILES_R)
+
+	# Next comes DEB packages
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/098 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_0.9.8 \
+		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
+		--DISABLE_PORT=true \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(TARGET_DIR)/100 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.0.0 \
+		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
+		--DISABLE_PORT=true \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(DATAFILES) $(DATAFILES_D)
+
 endif
 
 bundle: native_kit
@@ -118,7 +218,9 @@ ifneq ($(OSS_KITS),)
 	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(TARGET_DIR); cd $(TARGET_DIR); chmod u+wx $(OSS_KITS);
 endif
 	# Copy remaining kit files to target directory
-ifneq ($(PF_DISTRO),ULINUX)
+ifneq ($(COMBINED_PACKAGES),1)
+  ifneq ($(PF_DISTRO),ULINUX)
+	# (Copying for non-combined packages, not ULINUX)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(TARGET_DIR)/omi_package_filename
 	cd $(TARGET_DIR); tar cvf `cat $(TARGET_DIR)/package_filename`.tar `cat $(TARGET_DIR)/package_filename` `cat $(TARGET_DIR)/omi_package_filename` $(OSS_KITS)
@@ -127,7 +229,8 @@ ifneq ($(PF_DISTRO),ULINUX)
                                              `cat $(TARGET_DIR)/package_filename`.tar \
                                              `cat $(TARGET_DIR)/package_filename` \
                                              `cat $(TARGET_DIR)/omi_package_filename`
-else
+  else
+	# (Copying for non-combined packages, ULINUX)
 	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/098/
 	cp `find $(SCXOMI_DIR)/output_openssl_0.9.8 -name package_filename` $(TARGET_DIR)/098/omi_package_filename
 	cp `find $(SCXOMI_DIR)/output_openssl_1.0.0 -name *.$(PACKAGE_SUFFIX)` $(TARGET_DIR)/100/
@@ -138,6 +241,27 @@ else
                                              `cat $(TARGET_DIR)/098/package_filename`.tar \
                                              `cat $(TARGET_DIR)/098/package_filename` \
                                              `cat $(TARGET_DIR)/098/omi_package_filename`
+  endif
+else
+	# (Copying for combined packages)
+	mv $(TARGET_DIR)/098/package_filename $(TARGET_DIR); rm $(TARGET_DIR)/100/package_filename
+	sed -re 's/.rpm$$|.deb$$//' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file.tmp; mv $(TARGET_DIR)/package_file.tmp $(TARGET_DIR)/package_filename
+	sed -e 's/\.universal[dr]\./.universal./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file.tmp; mv $(TARGET_DIR)/package_file.tmp $(TARGET_DIR)/package_filename
+	sed -e 's/\.universal\./.universald./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file_d
+	sed -e 's/\.universal\./.universalr./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file_r
+
+	mv $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_file_r`.rpm $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_filename`.rpm
+	mv $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_file_d`.deb $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_filename`.deb
+
+	mv $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_file_r`.rpm $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_filename`.rpm
+	mv $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_file_d`.deb $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_filename`.deb
+
+	cd $(TARGET_DIR); tar cvf `cat package_filename`.tar 098/`cat package_filename`.{rpm,deb} 100/`cat package_filename`.{rpm,deb}
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
+					     $(TARGET_DIR)  \
+                                             `cat $(TARGET_DIR)/package_filename`.tar \
+                                             `cat $(TARGET_DIR)/package_filename` \
+                                             ""
 endif
 
 # Technically, a compressed kit doesn't have a prereq on the bundle,

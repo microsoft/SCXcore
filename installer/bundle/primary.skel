@@ -1,9 +1,11 @@
 #!/bin/sh
+
 #
+# Shell Bundle installer package for the SCX project
 #
+
 # This script is a skeleton bundle file for primary platforms (Redhat, SUSE,
-# AIX, HP, and Solaris).  It should not be used for secondary platforms (such
-# as ULINUX); these have a separate bundle file.
+# AIX, HP, and Solaris), as well as ULINUX.
 #
 # Use this script by concatenating it with some binary package.
 #
@@ -13,10 +15,9 @@
 #     tar -czvf - <target-dir> | cat sfx.skel - > my.bundle
 #
 # The bundle can then be copied to a system, made executable (chmod +x) and
-# then run.  When run without any options it will make any pre-extraction
-# calls, extract the binary, and then make any post-extraction calls.
+# then run.
 #
-# This script has some usefull helper options to split out the script and/or
+# This script has some useful helper options to split out the script and/or
 # binary in place, and to turn on shell debugging.
 #
 # This script is paired with create_bundle.sh, which will edit constants in
@@ -52,14 +53,25 @@ EXTRACT_DIR="`pwd -P`/scxbundle.$$"
 #
 # The PLATFORM symbol should contain ONE of the following:
 #       Linux_REDHAT, Linux_SUSE, Linux_ULINUX_R, Linux_ULINUX_D, HPUX, AIX, SunOS
+#       Linux_ULINUX for special build (agent only, both RPM and DEB pacages)
 #
 # The OM_PKG symbol should contain something like:
-#       scx-1.5.1-115.rhel.6.x64.rpm
+#       scx-1.5.1-115.rhel.6.x64 (script adds .rpm or .deb, as appropriate)
+# Note that for non-Linux platforms, this symbol should contain full filename.
+#
+# PROVIDER_ONLY is normally set to '0'. Set to non-zero if you wish to build a
+# version of SCX that is only the provider (no OMI, no bundled packages). This
+# essentially provides a "scx-cimprov" type package (still called "scx", though)
+# if just the provider alone must be included as part of some other package.
+# NOTE: For consistency, if PROVIDER_ONLY is set, it's expected that universal
+# builds include both .RPM and .DEB packages. This is unlike regular versions of
+# SCX, which has separate bundles for .RPM vs. .DEB package managers.
 
 PLATFORM=<PLATFORM_TYPE>
 TAR_FILE=<TAR_FILE>
 OM_PKG=<OM_PKG>
 OMI_PKG=<OMI_PKG>
+PROVIDER_ONLY=0
 SCRIPT_LEN=<SCRIPT_LEN>
 SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>
 
@@ -218,25 +230,48 @@ do
     esac
 done
 
+ulinux_detect_installer()
+{
+    INSTALLER=
+
+    # If DPKG lives here, assume we use that. Otherwise we use RPM.
+    type dpkg > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        INSTALLER=DPKG
+    else
+        INSTALLER=RPM
+    fi
+}
+
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
             rpm -q $1 2> /dev/null 1> /dev/null
             ;;
-        
+
         Linux_ULINUX_D)
             dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
             ;;
-        
+
+        Linux_ULINUX)
+	    ulinux_detect_installer
+
+            if [ "$INSTALLER" = "DPKG" ]; then
+                dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
+            else
+                rpm -q $1 2> /dev/null 1> /dev/null
+            fi
+            ;;
+
         AIX)
             lslpp $1 2> /dev/null 1> /dev/null
             ;;
-        
+
         HPUX)
             swlist $1 2> /dev/null 1> /dev/null
             ;;
-        
+
         SunOS)
             /usr/bin/pkginfo MSFT$1 2> /dev/null 1> /dev/null
             ;;
@@ -257,13 +292,23 @@ pkg_add() {
 
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm --install $pkg_filename
+            rpm --install ${pkg_filename}.rpm
             ;;
-        
+
         Linux_UBUNTU|Linux_ULINUX_D)
-            dpkg --install --refuse-downgrade $pkg_filename
+            dpkg --install --refuse-downgrade ${pkg_filename}.deb
             ;;
-        
+
+        Linux_ULINUX)
+            ulinux_detect_installer
+
+            if [ "$INSTALLER" = "DPKG" ]; then
+                dpkg --install --refuse-downgrade ${pkg_filename}.deb
+            else
+                rpm --install ${pkg_filename}.rpm
+            fi
+            ;;
+
         AIX)
             /usr/sbin/installp -X -d $1 $2.rte
             ;;
@@ -283,26 +328,38 @@ pkg_add() {
 pkg_rm() {
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm --erase $1 # 1> /dev/null 2> /dev/null
+            rpm --erase ${1}
             ;;
-        
+
         Linux_UBUNTU|Linux_ULINUX_D)
             if [ "$installMode" = "P" ]; then
-                dpkg --purge $1 # 1> /dev/null 2> /dev/null
+                dpkg --purge ${1}
             else
-                dpkg --remove $1 # 1> /dev/null 2> /dev/null
+                dpkg --remove ${1}
             fi
             ;;
-        
+
+        Linux_ULINUX)
+            ulinux_detect_installer
+            if [ "$INSTALLER" = "DPKG" ]; then
+                if [ "$installMode" = "P" ]; then
+                    dpkg --purge ${1}
+                else
+                    dpkg --remove ${1}
+                fi
+            else
+                rpm --erase ${1}
+            fi
+            ;;
+
         AIX)
             /usr/sbin/installp -u $1.rte # 1> /dev/null 2> /dev/null
-
             ;;
-        
+
         HPUX)
             /usr/sbin/swremove $1 # 1> /dev/null 2> /dev/null
             ;;
-        
+
         SunOS)
             if [ "$2" = "force" ]; then
                 /usr/sbin/pkgrm -a scx-admin-upgrade -n MSFT$1 # 1> /dev/null 2> /dev/null
@@ -329,14 +386,28 @@ pkg_upd() {
     case "$PLATFORM" in
         Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
             [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--force" || FORCE=""
-            rpm --upgrade $FORCE $pkg_filename
+            rpm --upgrade $FORCE ${pkg_filename}.rpm
             ;;
 
         Linux_UBUNTU|Linux_ULINUX_D)
             [ -z "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--refuse-downgrade" || FORCE=""
-            dpkg --install $FORCE $pkg_filename
+            dpkg --install $FORCE ${pkg_filename}.deb
 
             export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+            ;;
+
+        Linux_ULINUX)
+            ulinux_detect_installer
+
+            if [ "$INSTALLER" = "DPKG" ]; then
+                [ -z "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--refuse-downgrade" || FORCE=""
+                dpkg --install $FORCE ${pkg_filename}.deb
+
+                export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+            else
+                [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--force" || FORCE=""
+                rpm --upgrade $FORCE ${pkg_filename}.rpm
+            fi
             ;;
 
         AIX)
@@ -388,7 +459,7 @@ pkg_upd() {
 }
 
 case "$PLATFORM" in
-    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_UBUNTU|Linux_ULINUX_D|AIX|HPUX|SunOS)
+    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_UBUNTU|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
         ;;
 
     *)
@@ -510,7 +581,9 @@ fi
 #
 
 EXIT_STATUS=0
-BUNDLE_EXIT_STATUS="0"
+SCX_EXIT_STATUS=0
+OMI_EXIT_STATUS=0
+BUNDLE_EXIT_STATUS=0
 
 case "$installMode" in
     E)
@@ -526,69 +599,77 @@ case "$installMode" in
                 echo "ERROR: SCX package is already installed"
                 cleanup_and_exit 2
             fi
-        fi      
+        fi
 
-        check_if_pkg_is_installed omi
-        if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
-            # It is acceptable that this fails due to the new omi being 
-            # the same version (or less) than the one currently installed.
-            OMI_EXIT_STATUS=0
-        else
-            pkg_add $OMI_PKG omi
-            OMI_EXIT_STATUS=$?
+        if [ $PROVIDER_ONLY -eq 0 ]; then
+            check_if_pkg_is_installed omi
+            if [ $? -eq 0 ]; then
+                pkg_upd $OMI_PKG omi
+                # It is acceptable that this fails due to the new omi being 
+                # the same version (or less) than the one currently installed.
+                OMI_EXIT_STATUS=0
+            else
+                pkg_add $OMI_PKG omi
+                OMI_EXIT_STATUS=$?
+            fi
         fi
 
         pkg_add $OM_PKG scx
         SCX_EXIT_STATUS=$?
 
-        # Install bundled providers
-        [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        for i in *-oss-test.sh; do
-            # If filespec didn't expand, break out of loop
-            [ ! -f $i ] && break
-            ./$i
-            if [ $? -eq 0 ]; then
-                OSS_BUNDLE=`basename $i -oss-test.sh`
-                ./${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies
-                TEMP_STATUS=$?
-                [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
-            fi
-        done
+        if [ $PROVIDER_ONLY -eq 0 ]; then
+            # Install bundled providers
+            [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+            for i in *-oss-test.sh; do
+                # If filespec didn't expand, break out of loop
+                [ ! -f $i ] && break
+                ./$i
+                if [ $? -eq 0 ]; then
+                    OSS_BUNDLE=`basename $i -oss-test.sh`
+                    ./${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies
+                    TEMP_STATUS=$?
+                    [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
+                fi
+            done
+        fi
         ;;
 
     U)
         echo "Updating cross-platform agent ..."
-        check_if_pkg_is_installed omi
-        if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
-            # It is acceptable that this fails due to the new omi being 
-            # the same version (or less) than the one currently installed.
-            OMI_EXIT_STATUS=0
-        else
-            pkg_add $OMI_PKG omi
-            OMI_EXIT_STATUS=$?  
+        if [ $PROVIDER_ONLY -eq 0 ]; then
+            check_if_pkg_is_installed omi
+            if [ $? -eq 0 ]; then
+                pkg_upd $OMI_PKG omi
+                # It is acceptable that this fails due to the new omi being 
+                # the same version (or less) than the one currently installed.
+                OMI_EXIT_STATUS=0
+            else
+                pkg_add $OMI_PKG omi
+                OMI_EXIT_STATUS=$?  
+            fi
         fi
 
         pkg_upd $OM_PKG scx
         SCX_EXIT_STATUS=$?
 
-        # Upgrade bundled providers
-        #   Temporarily force upgrades via --force; this will unblock the test team
-        #   This change may or may not be permanent; we'll see
-        # [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        FORCE="--force"
-        for i in *-oss-test.sh; do
-            # If filespec didn't expand, break out of loop
-            [ ! -f $i ] && break
-            ./$i
-            if [ $? -eq 0 ]; then
-                OSS_BUNDLE=`basename $i -oss-test.sh`
-                ./${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies
-                TEMP_STATUS=$?
-                [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
-            fi
-        done
+        if [ $PROVIDER_ONLY -eq 0 ]; then
+            # Upgrade bundled providers
+            #   Temporarily force upgrades via --force; this will unblock the test team
+            #   This change may or may not be permanent; we'll see
+            # [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+            FORCE="--force"
+            for i in *-oss-test.sh; do
+                # If filespec didn't expand, break out of loop
+                [ ! -f $i ] && break
+                ./$i
+                if [ $? -eq 0 ]; then
+                    OSS_BUNDLE=`basename $i -oss-test.sh`
+                    ./${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies
+                    TEMP_STATUS=$?
+                    [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
+                fi
+            done
+        fi
         ;;
 
     *)
@@ -598,7 +679,7 @@ esac
 
 # Remove temporary files (now part of cleanup_and_exit) and exit
 
-if [ "$SCX_EXIT_STATUS" -ne "0" -o "$OMI_EXIT_STATUS" -ne "0" -o "$BUNDLE_EXIT_STATUS" -ne "0" ]; then
+if [ "$SCX_EXIT_STATUS" -ne 0 -o "$OMI_EXIT_STATUS" -ne 0 -o "$BUNDLE_EXIT_STATUS" -ne 0 ]; then
     cleanup_and_exit 1
 else
     cleanup_and_exit 0
