@@ -28,6 +28,8 @@ else
   endif
   DATAFILES_R = Linux_RPM.data
   DATAFILES_D = Linux_DPKG.data
+
+  OUTPUT_PACKAGE_PREFIX=scx-cimprov-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal.$(PF_ARCH)
 endif
 
 DISTRO_TYPE = $(PF)
@@ -150,6 +152,7 @@ else
 		--ULINUX_POSTFIX=/openssl_0.9.8 \
 		--DISABLE_PORT=true \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_R)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -168,6 +171,7 @@ else
 		--ULINUX_POSTFIX=/openssl_1.0.0 \
 		--DISABLE_PORT=true \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_R)
 
 	# Next comes DEB packages
@@ -189,6 +193,7 @@ else
 		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
 		--DISABLE_PORT=true \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_D)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -208,6 +213,7 @@ else
 		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
 		--DISABLE_PORT=true \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_D)
 
 endif
@@ -244,24 +250,8 @@ ifneq ($(COMBINED_PACKAGES),1)
   endif
 else
 	# (Copying for combined packages)
-	mv $(TARGET_DIR)/098/package_filename $(TARGET_DIR); rm $(TARGET_DIR)/100/package_filename
-	sed -re 's/.rpm$$|.deb$$//' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file.tmp; mv $(TARGET_DIR)/package_file.tmp $(TARGET_DIR)/package_filename
-	sed -e 's/\.universal[dr]\./.universal./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file.tmp; mv $(TARGET_DIR)/package_file.tmp $(TARGET_DIR)/package_filename
-	sed -e 's/\.universal\./.universald./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file_d
-	sed -e 's/\.universal\./.universalr./' $(TARGET_DIR)/package_filename > $(TARGET_DIR)/package_file_r
-
-	mv $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_file_r`.rpm $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_filename`.rpm
-	mv $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_file_d`.deb $(TARGET_DIR)/098/`cat $(TARGET_DIR)/package_filename`.deb
-
-	mv $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_file_r`.rpm $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_filename`.rpm
-	mv $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_file_d`.deb $(TARGET_DIR)/100/`cat $(TARGET_DIR)/package_filename`.deb
-
-	cd $(TARGET_DIR); tar cvf `cat package_filename`.tar 098/`cat package_filename`.{rpm,deb} 100/`cat package_filename`.{rpm,deb}
-	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) \
-					     $(TARGET_DIR)  \
-                                             `cat $(TARGET_DIR)/package_filename`.tar \
-                                             `cat $(TARGET_DIR)/package_filename` \
-                                             ""
+	cd $(TARGET_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/$(OUTPUT_PACKAGE_PREFIX).{rpm,deb} 100/$(OUTPUT_PACKAGE_PREFIX).{rpm,deb}
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(TARGET_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) ""
 endif
 
 # Technically, a compressed kit doesn't have a prereq on the bundle,
