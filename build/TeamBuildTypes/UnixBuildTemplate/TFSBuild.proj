@@ -69,7 +69,7 @@
     <ErrorWarningLogText>The errors/warnings log file is at:</ErrorWarningLogText>
     <SkipPostBuild>true</SkipPostBuild>
 
-    <WorkspaceFolder>$(BuildDirectory)\Sources\scxcore</WorkspaceFolder>
+    <WorkspaceFolder>$(BuildDirectory)\src\scxcore</WorkspaceFolder>
 
     <BinariesRoot>$(SolutionRoot)\scxcore\Target</BinariesRoot>
 
@@ -236,10 +236,10 @@
   <!-- Only do GenerateDocumentation on one machine, currently SuSE 10.0 x86_32 -->
   <Target Name="GenerateDocumentation" Condition=" '$(DocumentationGeneration)' == 'true' ">
     <Message Text="Generating documentation with Doxygen on $(UnixBuildServer)" />
-    <Exec WorkingDirectory="$(MSBuildProjectDirectory)\..\sources\scxcore\bootstrap"
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)\..\src\scxcore\bootstrap"
           Command='$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\RunRemoteBashScript.ps1 $(UnixBuildServer) $(UnixWorkSpaceName)/scxcore/bootstrap/RunBuild.bsh $(UnixWorkspaceName)/scxcore $(DoxygenMakeTarget) $(ConfigToBuild)' />
     <Exec Condition=" '$(DropDocumentation)' == 'true' "
-          WorkingDirectory="$(MSBuildProjectDirectory)\..\sources\scxcore\bootstrap"
+          WorkingDirectory="$(MSBuildProjectDirectory)\..\src\scxcore\bootstrap"
           Command='$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\RunRemoteBashScript.ps1 $(UnixBuildServer) $(UnixWorkSpaceName)/scxcore/bootstrap/DropDocumentation.bsh $(UnixWorkspaceName)/scxcore $(DropShare) $(DoxygenDropFolder)'
           />
   </Target>
@@ -293,7 +293,7 @@
   <Target Name="AfterDropBuild">
     <Message Text="AfterDropBuild: Cleaning up workspaces on unix host." />
 
-    <Exec WorkingDirectory="$(MSBuildProjectDirectory)\..\sources\scxcore\bootstrap"
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)\..\src\scxcore\bootstrap"
           Command='$(PowerShellExecutable) -ExecutionPolicy RemoteSigned .\RunRemoteBashScript.ps1 $(UnixBuildServer) ./$(UnixWorkSpaceName).UnpackWorkspace.bsh $(UnixWorkspaceName) CleanupMode' />
   </Target>
 
