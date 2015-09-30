@@ -46,7 +46,7 @@ if [ -z "$PLATFORM_TYPE" ]; then
 fi
 
 case "$PLATFORM_TYPE" in
-    Linux_REDHAT|Linux_SUSE|Linux_UBUNTU|Linux_ULINUX_R|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
+    Linux_REDHAT|Linux_SUSE|Linux_UBUNTU_D|Linux_ULINUX_R|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
 	;;
 
     *)
@@ -161,7 +161,7 @@ case "$PLATFORM_TYPE" in
 	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
 
-    Linux_UBUNTU|Linux_ULINUX_D)
+    Linux_UBUNTU_D|Linux_ULINUX_D)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.deb//" | sed -e "s/.tar//"`.sh
 	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
 	;;
