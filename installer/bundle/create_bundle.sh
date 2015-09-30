@@ -80,7 +80,7 @@ if [ -z "$4" ]; then
     exit 1
 fi
 
-SCX_PACKAGE=`echo $4 | sed -re 's/.rpm$$|.deb$$//'`
+SCX_PACKAGE=`echo $4 | sed -e 's/.rpm$$|.deb$$//'`
 
 if [ -n "$5" ]; then
     if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
