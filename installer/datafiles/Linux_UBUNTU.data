@@ -6,3 +6,7 @@ PFDISTRO: 'UBUNTU'
 
 %Defines
 ULINUX
+
+%Postinstall_1200
+# Generate the conf/scx-release file
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh

@@ -17,3 +17,7 @@ if [ $? -ne 0 ]; then
     echo 'Installation cannot proceed.'
     exit 1
 fi
+
+%Postinstall_1200
+# Generate the conf/scx-release file
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh
