@@ -80,7 +80,7 @@ if [ -z "$4" ]; then
     exit 1
 fi
 
-SCX_PACKAGE=`echo $4 | sed -e 's/.rpm$$|.deb$$//'`
+SCX_PACKAGE=`echo $4 | sed -e 's/.rpm$//' -e 's/.deb$//'`
 
 if [ -n "$5" ]; then
     if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
@@ -104,7 +104,7 @@ else
     COMBINED_PACKAGE=1
 fi
 
-OMI_PACKAGE=`echo $5 | sed -re 's/.rpm$$|.deb$$//'`
+OMI_PACKAGE=`echo $5 | sed -e 's/.rpm$//' -e 's/.deb$//'`
 
 if [ ! -f "$2/$3" ]; then
     echo "Tar file \"$2/$3\" does not exist"
