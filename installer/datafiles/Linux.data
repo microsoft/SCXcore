@@ -1,6 +1,11 @@
 %Variables
 PF:	'Linux'
 
+%Files
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                    755; root; root
+/etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
+
+
 %OmiService_funcs
 StopOmiServer() {
 #ifdef ULINUX
@@ -56,10 +61,13 @@ fi
 %Postinstall_875
 set -e
 
-
 %Postinstall_1100
 #include OmiService_funcs
 StartOmiServer
+
+%Postinstall_1200
+# Generate the conf/scx-release file
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh
 
 %Preuninstall_9
 #include OmiService_funcs
