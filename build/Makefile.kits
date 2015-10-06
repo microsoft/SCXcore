@@ -290,7 +290,7 @@ scx-tools-status:
 scxcore-status:
 	$(ECHO) "========================= Performing make OpsMgr"
 
-ifeq ($(PF_DISTRO),$(filter $(PF_DISTRO),ULINUX UBUNTU))
+ifeq ($(PF),Linux)
 GetLinuxOS: $(TARGET_DIR)/GetLinuxOS.sh
 
 $(TARGET_DIR)/GetLinuxOS.sh: $(SCXPAL_TARGET_DIR)/GetLinuxOS.sh

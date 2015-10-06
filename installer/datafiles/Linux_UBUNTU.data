@@ -1,12 +1,5 @@
 %Variables
 PFDISTRO: 'UBUNTU'
 
-%Files
-/opt/microsoft/scx/bin/tools/GetLinuxOS.sh; target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh; 755; root; root
-
 %Defines
 ULINUX
-
-%Postinstall_1200
-# Generate the conf/scx-release file
-/opt/microsoft/scx/bin/tools/GetLinuxOS.sh

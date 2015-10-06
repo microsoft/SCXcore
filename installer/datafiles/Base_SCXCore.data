@@ -45,7 +45,7 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt/microsoft/scx/pf_file.sh;                                      intermediate/${{BUILD_CONFIGURATION}}/pf_file.sh;                 444; root; sys
 /etc/opt/microsoft/scx/conf/scxlog.conf;                                installer/conf/scxlog.conf;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
 /etc/opt/microsoft/scx/conf/scxrunas.conf;                              installer/conf/scxrunas.conf;                                     644; root; ${{ROOT_GROUP_NAME}}; conffile
-/etc/opt/microsoft/scx/conf/installinfo.txt;                            installer/conf/installinfo.txt;                                   644; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/microsoft/scx/conf/installinfo.txt;                            installer/conf/installinfo.txt;                                   644; root; ${{ROOT_GROUP_NAME}}; conffile
 
 /etc/opt/omi/conf/omiregister/root-scx/SCXProvider-root.reg;            installer/conf/omi/SCXProvider-root.reg;                          755; root; ${{ROOT_GROUP_NAME}} 
 /etc/opt/omi/conf/omiregister/root-scx/SCXProvider-req.reg;             installer/conf/omi/SCXProvider-req.reg;                           755; root; ${{ROOT_GROUP_NAME}} 
