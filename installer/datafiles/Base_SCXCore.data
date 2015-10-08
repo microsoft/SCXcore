@@ -88,7 +88,8 @@ MAINTAINER:              'Microsoft Corporation'
 
 /etc/opt/omi;                                           755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/omi/conf;                                      755; root; ${{ROOT_GROUP_NAME}}
-/etc/opt/conf/omiregister/root-omi;                     755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/omi/conf/omiregister;                          755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/omi/conf/omiregister/root-omi;                 755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/omi/conf/omiregister/root-scx;                 755; root; ${{ROOT_GROUP_NAME}}
 
 /var/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
