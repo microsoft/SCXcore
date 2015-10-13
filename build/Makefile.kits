@@ -69,8 +69,6 @@ native_kit: GetLinuxOS scx_scripts
 	$(ECHO) PF_MAJOR=$(PF_MAJOR) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
 	$(ECHO) PF_MINOR=$(PF_MINOR) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
 	$(ECHO) PF_ARCH=$(PF_ARCH) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
-	$(ECHO) PF_DISTRO_ULINUX_D=$(PF_DISTRO_ULINUX_D) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
-	$(ECHO) PF_DISTRO_ULINUX_R=$(PF_DISTRO_ULINUX_R) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
         # The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
 
 ifneq ($(COMBINED_PACKAGES),1)

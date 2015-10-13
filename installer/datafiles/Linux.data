@@ -51,19 +51,20 @@ StartOmiServer() {
 #endif
 }
 
-%Preinstall_10
-#include OmiService_funcs
-#include CheckIfOmiIsRunning
-if [ $OMI_IS_RUNNING -eq 1 ]; then
-    StopOmiServer
-fi
+RestartOmiServer() {
+    if [ $OMI_IS_RUNNING -eq 1 ]; then
+        StopOmiServer
+    fi
+    StartOmiServer
+}
 
 %Postinstall_875
 set -e
 
 %Postinstall_1100
 #include OmiService_funcs
-StartOmiServer
+#include CheckIfOmiIsRunning
+RestartOmiServer
 
 %Postinstall_1200
 # Generate the conf/scx-release file
@@ -82,4 +83,7 @@ DeleteSoftLinkToSudo
 
 %Postuninstall_1100
 #include OmiService_funcs
-StartOmiServer
+#include CheckIfOmiIsRunning
+if ${{PERFORMING_UPGRADE_NOT}}; then
+   RestartOmiServer
+fi
