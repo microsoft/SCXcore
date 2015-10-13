@@ -17,8 +17,6 @@ fi
 
 . $PF_FILE_PATH
 
-which rpm 1> /dev/null 2> /dev/null
-RPM_EXISTS=$?
 which dpkg 1> /dev/null 2> /dev/null
 DPKG_EXISTS=$?
 
@@ -42,13 +40,13 @@ pkg_rm() {
         Linux)
             case "$PF_DISTRO" in
                 ULINUX)
-                    if [ "$PF_DISTRO_ULINUX_D" = "1" ]; then
+                    if [ "$DPKG_EXISTS" -eq 0 ]; then
                         if [ "$uninstallMode" = "P" ]; then
                             dpkg --purge $1 # 1> /dev/null 2> /dev/null
                         else
                             dpkg --remove $1 # 1> /dev/null 2> /dev/null
                         fi
-                    elif [ "$PF_DISTRO_ULINUX_R" = "1" ]; then
+                    else
                         rpm --erase $1 # 1> /dev/null 2> /dev/null
                     fi
                     ;;
