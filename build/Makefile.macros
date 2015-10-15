@@ -27,7 +27,6 @@ SCX_SHARED_TST_EXT_LIB_DIR=$(SCXPAL_DIR)/test/ext/lib
 
 # Only of interest for $/ScxCore/scx_core
 SCX_UNITTEST_ROOT=$(SCX_BRD)/test/code
-SCX_INCLUDE_DIR=$(SCX_BRD)/source/code/include
 
 # Intermediate include dir. Contains header files generated during build.
 INT_INCLUDE_DIR=$(INTERMEDIATE_DIR)/include
