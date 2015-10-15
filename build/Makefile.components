@@ -327,10 +327,10 @@ else
 	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib
 endif
 	$(COPYDIR) $(SCX_SHARED_INCLUDE_DIR) $(TARGET_DIR)/scxcore-devel/shared
-	$(COPYDIR) $(SCX_INCLUDE_DIR) $(TARGET_DIR)/scxcore-devel
 	$(COPY) $(SCXPAL_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
 	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
 	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(TARGET_DIR)/scxcore-devel/lib
+	$(MKPATH) $(TARGET_DIR)/scxcore-devel/include/testutils
 	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(TARGET_DIR)/scxcore-devel/include/testutils
 ifeq ($(LOCAL_OMI),1)
 	# Create an OMI development area for use in running utilities
