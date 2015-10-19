@@ -1,89 +1,25 @@
 %Variables
-PF:	'Linux'
+PF:	      'Linux'
+OMI_SERVICE:  '/opt/omi/bin/service_control'
 
 %Files
 /opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                    755; root; root
 /etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
 
 
-%OmiService_funcs
-StopOmiServer() {
-#ifdef ULINUX
-    if [ -x /usr/sbin/invoke-rc.d ]; then
-	/usr/sbin/invoke-rc.d omiserverd stop
-    elif [ -x /sbin/service ]; then
-	service omiserverd stop
-    else
-	echo "Unrecognized Service Controller to start OMI Service"
-	exit 1
-    fi
-
-#elseif PFDISTRO == SUSE 
-#if PFMAJOR == 9
-    /etc/init.d/omiserverd stop
-#else
-    service omiserverd stop
-#endif
-#else
-    service omiserverd stop
-#endif
-}
-
-StartOmiServer() {
-#ifdef ULINUX
-    if [ -x /usr/sbin/invoke-rc.d ]; then
-	/usr/sbin/invoke-rc.d omiserverd start
-    elif [ -x /sbin/service ]; then
-	service omiserverd start
-    else
-	echo "Unrecognized Service Controller to start OMI Service"
-	exit 1
-    fi
-
-#elseif PFDISTRO == SUSE 
-#if PFMAJOR == 9
-    /etc/init.d/omiserverd start
-#else
-    service omiserverd start
-#endif
-#else
-    service omiserverd start
-#endif
-}
-
-RestartOmiServer() {
-    if [ $OMI_IS_RUNNING -eq 1 ]; then
-        StopOmiServer
-    fi
-    StartOmiServer
-}
-
 %Postinstall_875
 set -e
 
 %Postinstall_1100
-#include OmiService_funcs
-#include CheckIfOmiIsRunning
-RestartOmiServer
+${{OMI_SERVICE}} reload
 
 %Postinstall_1200
 # Generate the conf/scx-release file
 /opt/microsoft/scx/bin/tools/GetLinuxOS.sh
-
-%Preuninstall_9
-#include OmiService_funcs
-#include CheckIfOmiIsRunning
-if [ $OMI_IS_RUNNING -eq 1 ]; then
-    StopOmiServer
-fi
 
 %Preuninstall_800
 #include DeleteSoftLinkToSudo
 DeleteSoftLinkToSudo
 
 %Postuninstall_1100
-#include OmiService_funcs
-#include CheckIfOmiIsRunning
-if ${{PERFORMING_UPGRADE_NOT}}; then
-   RestartOmiServer
-fi
+${{OMI_SERVICE}} reload
