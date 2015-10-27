@@ -16,9 +16,8 @@ ${{OMI_SERVICE}} reload
 %Postinstall_1200
 # Have we previously installed a Universal Kit before? Keep track of that!
 # This is used by the OS provider to mimic non-universal kit installations ...
-egrep -q '^ORIGINAL_KIT_TYPE=' /etc/opt/microsoft/scx/conf/scxconfig.conf
-if [ $? -ne 0 ]; then
-    if [ -f /etc/opt/microsoft/scx/conf/scx-release ]; then
+if ! egrep -q '^ORIGINAL_KIT_TYPE=' /etc/opt/microsoft/scx/conf/scxconfig.conf; then
+    if [ -s /etc/opt/microsoft/scx/conf/scx-release ]; then
         echo 'ORIGINAL_KIT_TYPE=Universal' >> /etc/opt/microsoft/scx/conf/scxconfig.conf
     else
         echo 'ORIGINAL_KIT_TYPE=!Universal' >> /etc/opt/microsoft/scx/conf/scxconfig.conf
