@@ -36,6 +36,7 @@ cleanup_and_exit()
 # $1 - The package name of the package to be uninstalled
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
+    echo "----- Removing package: $1 -----"
     case "$PF" in
         Linux)
             case "$PF_DISTRO" in
@@ -241,7 +242,6 @@ BUNDLE_EXIT_STATUS="0"
 for i in /opt/microsoft/*-cimprov; do
     PKG_NAME=`basename $i`
     if [ "$PKG_NAME" != "*-cimprov" ]; then
-        echo "Removing ${PKG_NAME} ..."
         pkg_rm ${PKG_NAME}
         TEMP_STATUS=$?
         [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
@@ -250,11 +250,9 @@ done
 
 # Now remove actual SCX/OMI agents
 
-echo "Removing SCX package ..."
 pkg_rm scx
 SCX_EXIT_STATUS=$?
 
-echo "Removing OMI package ..."
 pkg_rm omi
 OMI_EXIT_STATUS=$?
 
