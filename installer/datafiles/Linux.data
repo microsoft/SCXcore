@@ -11,7 +11,9 @@ OMI_SERVICE:  '/opt/omi/bin/service_control'
 set -e
 
 %Postinstall_1100
-${{OMI_SERVICE}} reload
+# Older versions of SCX kit will (rather rudely) delete SSL linkages on removal,
+# and reload won't recreate them. Use 'restart' to force recreation of linkages.
+${{OMI_SERVICE}} restart
 
 %Postinstall_1200
 # Have we previously installed a Universal Kit before? Keep track of that!
@@ -27,9 +29,12 @@ fi
 # Generate the conf/scx-release file
 /opt/microsoft/scx/bin/tools/GetLinuxOS.sh
 
-%Preuninstall_800
-#include DeleteSoftLinkToSudo
-DeleteSoftLinkToSudo
-
 %Postuninstall_1100
+#include DeleteSoftLinkToSudo
+
 ${{OMI_SERVICE}} reload
+
+# If we're called for upgrade, don't do anything
+if ${{PERFORMING_UPGRADE_NOT}}; then
+    DeleteSoftLinkToSudo
+fi
