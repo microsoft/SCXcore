@@ -11,9 +11,7 @@ OMI_SERVICE:  '/opt/omi/bin/service_control'
 set -e
 
 %Postinstall_1100
-# Older versions of SCX kit will (rather rudely) delete SSL linkages on removal,
-# and reload won't recreate them. Use 'restart' to force recreation of linkages.
-${{OMI_SERVICE}} restart
+${{OMI_SERVICE}} reload
 
 %Postinstall_1200
 # Have we previously installed a Universal Kit before? Keep track of that!
