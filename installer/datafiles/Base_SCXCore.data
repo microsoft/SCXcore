@@ -347,16 +347,6 @@ UnconfigureScxPAM
 %Preuninstall_700
 RemoveAdditionalFiles
 
-%Postuninstall_50
-#if DISABLE_PORT != true
-    # If we're called for upgrade, don't do anything
-    if ${{PERFORMING_UPGRADE_NOT}}; then
-        # Remove port 1270 from the list of ports that OMI will listen on
-        /opt/omi/bin/omiconfigeditor httpsport -r 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
-        mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
-    fi
-#endif
-
 %Preinstall_0
 ${{SHELL_HEADER}}
 %Postinstall_0
