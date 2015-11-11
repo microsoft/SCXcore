@@ -39,6 +39,13 @@ set -e
 #include DeleteSoftLinkToSudo
 DeleteSoftLinkToSudo
 
+%Postuninstall_50
+#if DISABLE_PORT != true
+    # Remove port 1270 from the list of ports that OMI will listen on
+    /opt/omi/bin/omiconfigeditor httpsport -r 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
+    mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
+#endif
+
 %Postuninstall_100
 #if PFMINOR >= 10
 rm /usr/sbin/scxadmin > /dev/null 2>&1
