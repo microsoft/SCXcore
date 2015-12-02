@@ -1,0 +1,7 @@
+# git ignore file for opsmgr (SCXcore) project
+
+intermediate
+target
+build/config.mak
+build/Makefile.version
+test/code/providers/providertestutils.cpp

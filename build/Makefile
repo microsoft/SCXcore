@@ -26,6 +26,25 @@ ifndef OMI_CONFIGURE_QUALS
 $(error "OMI_CONFIGURE_QUALS is not set.  Please re-run configure")
 endif
 
+# Include the real stuff
+include $(SCX_BRD)/build/Makefile.version
+
+ifndef SCX_BUILDVERSION_STATUS
+$(error "Is Makefile.version missing?  Please re-run configure")
+endif
+
+# Figure out if we're doing a production build or a developer build
+
+ifeq ($(SCX_BUILDVERSION_STATUS),Labeled_Build)
+	BUILD_PRODUCTION=1
+else
+ifeq ($(SCX_BUILDVERSION_STATUS),Developer_Build)
+	BUILD_PRODUCTION=0
+else
+$(error Unrecognized build type: $(SCX_BUILDVERSION_STATUS))
+endif # Developer Build
+endif # Labeled Build
+
 all : ccenable pal_all omi_all installerPackage devel-deps ccdisable
 installerPackage: pal_all omi_all
 
@@ -54,26 +73,12 @@ distclean: clean
 	-$(RM) $(SCXPAL_DIR)/build/config.mak
 	-$(RM) $(SCXPAL_DIR)/build/Makefile.config_cache
 	-$(RM) $(SCX_BRD)/build/Makefile.config_cache
+	-$(RM) $(SCX_BRD)/build/Makefile.version
 	-$(RM) -rf $(SCX_BRD)/intermediate $(SCX_BRD)/target
 	-$(RM) -rf $(SCXPAL_DIR)/intermediate $(SCXPAL_DIR)/target
 
 clean-status:
 	$(ECHO) "========================= Performing make clean"
-
-# Include the real stuff
-include $(SCX_BRD)/build/Makefile.version
-
-# Figure out if we're doing a production build or a developer build
-
-ifeq ($(SCX_BUILDVERSION_STATUS),Labeled_Build)
-	BUILD_PRODUCTION=1
-else
-ifeq ($(SCX_BUILDVERSION_STATUS),Developer_Build)
-	BUILD_PRODUCTION=0
-else
-$(error Unrecognized build type: $(SCX_BUILDVERSION_STATUS))
-endif # Developer Build
-endif # Labeled Build
 
 # Include the rest of the stuff we need
 
