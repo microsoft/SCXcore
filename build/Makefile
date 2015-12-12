@@ -35,7 +35,7 @@ endif
 
 # Figure out if we're doing a production build or a developer build
 
-ifeq ($(SCX_BUILDVERSION_STATUS),Labeled_Build)
+ifeq ($(SCX_BUILDVERSION_STATUS),Release_Build)
 	BUILD_PRODUCTION=1
 else
 ifeq ($(SCX_BUILDVERSION_STATUS),Developer_Build)
@@ -43,7 +43,7 @@ ifeq ($(SCX_BUILDVERSION_STATUS),Developer_Build)
 else
 $(error Unrecognized build type: $(SCX_BUILDVERSION_STATUS))
 endif # Developer Build
-endif # Labeled Build
+endif # Release Build
 
 all : ccenable pal_all omi_all installerPackage devel-deps ccdisable
 installerPackage: pal_all omi_all
