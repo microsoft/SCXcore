@@ -472,6 +472,11 @@ class SCX_StatisticalInformation : CIM_StatisticalInformation {
 
 
 // SCX_ProcessorStatisticalInformation
+//
+// This is duplicated with SCX_RTProcessorStatisticalInformation. This is done
+// so that further MOF changes don't require edits to the OMI registration file
+// (by default, inherited classes enumerate both the inherited class and the
+// base class).
 // -------------------------------------------------------------------
 [   Version ( "1.3.0" ), 
     Description (
@@ -484,6 +489,87 @@ class SCX_ProcessorStatisticalInformation : SCX_StatisticalInformation {
     
     [ Description ( "Descriptive text for this element") ]
     string Description = "CPU usage statistics";
+
+    [   Key, 
+        Override( "Name" ), 
+        Description ( 
+            "Processor identifier" ) 
+        ]
+    string Name;
+   
+    [   Description ( 
+            "Percentage of time during the sample interval that the "
+            "processor was idle" ),
+        Units("Percent")
+        ]
+    uint8 PercentIdleTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in user mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentUserTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in nice mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentNiceTime;
+
+    [   Description ( 
+            "Percentage of non-idle processor time spent in privileged "
+            "mode" ),
+        Units("Percent")
+        ]
+    uint8 PercentPrivilegedTime;
+
+    [   Description ( 
+            "Percentage of time during the sample interval that the "
+            "processor spent receiving and servicing hardware interrupts" ),
+        Units("Percent")
+        ]
+    uint8 PercentInterruptTime;
+
+    [   Description ( 
+            "Percentage of time spent receiving and servicing DPC" ),
+        Units("Percent")
+        ]
+    uint8 PercentDPCTime;
+
+    [   Description ( 
+            "Percentage of time that the processor spent executing a "
+            "non-idle thread" ),
+        Units("Percent")
+        ]
+    uint8 PercentProcessorTime;
+
+    [   Description ( 
+            "Percentage of time that the processor spent waiting for IO "
+            "operations to complete" ),
+        Units("Percent")
+        ]
+    uint8 PercentIOWaitTime;
+};
+
+
+// SCX_RTProcessorStatisticalInformation
+//
+// This is duplicated with SCX_ProcessorStatisticalInformation. This is done
+// so that further MOF changes don't require edits to the OMI registration file
+// (by default, inherited classes enumerate both the inherited class and the
+// base class).
+// -------------------------------------------------------------------
+[   Version ( "1.3.0" ), 
+    Description (
+        "Real Time Processor performance and status" )
+    ]
+class SCX_RTProcessorStatisticalInformation : SCX_StatisticalInformation {
+       
+    [ Description ( "A caption for this element" ) ]
+    string Caption = "Real Time Processor information";
+    
+    [ Description ( "Descriptive text for this element") ]
+    string Description = "Real Time CPU usage statistics";
 
     [   Key, 
         Override( "Name" ), 

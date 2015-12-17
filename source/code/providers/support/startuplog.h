@@ -13,9 +13,11 @@
 #define INITLOG_H
 
 #include <scxcorelib/scxcmn.h>
+#include <scxcorelib/scxfilepath.h>
 
 namespace SCXCore {
-        void LogStartup(void);
+    static const SCXCoreLib::SCXFilePath SCXConfFile(L"/etc/opt/microsoft/scx/conf/scxconfig.conf");
+    void LogStartup(void);
 }
 
 #endif /* INITLOG_H */
