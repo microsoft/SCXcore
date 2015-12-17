@@ -1,20 +1,11 @@
-/*--------------------------------------------------------------------------------
-    Copyright (c) Microsoft Corporation. All rights reserved. See license.txt for license information.
-*/
-/**
-    \file        SCX_ProcessorStatisticalInformation_Class_Provider.cpp
-
-    \brief       Provider support using OMI framework.
-
-    \date        03-22-2013 17:48:44
-*/
-/*----------------------------------------------------------------------------*/
-
 /* @migen@ */
 #include <MI.h>
-#include "SCX_ProcessorStatisticalInformation_Class_Provider.h"
+#include "SCX_RTProcessorStatisticalInformation_Class_Provider.h"
 
 #include <scxcorelib/scxcmn.h>
+#include <scxcorelib/scxconfigfile.h>
+#include <scxcorelib/scxexception.h>
+#include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxlog.h>
 #include <scxcorelib/stringaid.h>
 #include <scxsystemlib/cpuenumeration.h>
@@ -24,6 +15,16 @@
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
+
+// Note that this is copied from the SCX_RTProcessorStatisticalInforamtion class
+// code, but it must be separate since the two classes are constructed
+// differently. Since this is in a private namespace, this works.
+//
+// It would be nice to restructure this code to share more common code, but it
+// isn't possible to do that in the short timeframe before shipping. It's also
+// not clear how to do this from an OMI perspective, unless the implementation
+// is totally divorced from the _Class_Provider.cpp code. We'll leave that for
+// another day.
 
 namespace
 {
@@ -35,11 +36,45 @@ namespace
         {
             if ( 1 == ++ms_loadCount )
             {
-                m_log = SCXLogHandleFactory::GetLogHandle(L"scx.core.providers.cpuprovider");
+                m_log = SCXLogHandleFactory::GetLogHandle(L"scx.core.providers.rtcpuprovider");
                 SCXCore::LogStartup();
-                SCX_LOGTRACE(m_log, L"CPUProvider::Load()");
+                SCX_LOGTRACE(m_log, L"RTCPUProvider::Load()");
 
-                m_cpusEnum = new CPUEnumeration();
+                // See if we have a config file for overriding default RT provider settings
+                time_t sampleSecs = 15;
+                size_t sampleSize = 2;
+
+                do {
+                    SCXConfigFile conf(SCXCore::SCXConfFile);
+                    try {
+                        conf.LoadConfig();
+                    }
+                    catch (SCXFilePathNotFoundException &e)
+                    {
+                        continue;
+                    }
+
+                    std::wstring value;
+                    if (conf.GetValue(L"RTCPUProv_SampleSecs", value))
+                    {
+                        sampleSecs = StrToUInt(value);
+                    }
+
+                    if (conf.GetValue(L"RTCPUProv_SampleSize", value))
+                    {
+                        sampleSize = StrToUInt(value);
+                    }
+                }
+                while (true == false);
+
+                // Log what we're starting the real time provider with
+                SCX_LOGTRACE(m_log, StrAppend(StrAppend(
+                    StrAppend(L"RTCPUProvider parameters: Sample Seconds = ",sampleSecs),
+                    L", SampleSize = "), sampleSize));
+
+                m_cpusEnum = new CPUEnumeration(
+                    SCXHandle<CPUPALDependencies>(new CPUPALDependencies()),
+                    sampleSecs, sampleSize);
                 m_cpusEnum->Init();
             }
         }
@@ -70,16 +105,16 @@ namespace
         SCXCoreLib::SCXLogHandle m_log;
         static int ms_loadCount;
     };
+
     CPUProvider g_CPUProvider;
     int CPUProvider::ms_loadCount = 0;
-
 }
 
 MI_BEGIN_NAMESPACE
 
 static void EnumerateOneInstance(
     Context& context,
-    SCX_ProcessorStatisticalInformation_Class& inst,
+    SCX_RTProcessorStatisticalInformation_Class& inst,
     bool keysOnly,
     SCXHandle<SCXSystemLib::CPUInstance> cpuinst)
 {
@@ -139,23 +174,23 @@ static void EnumerateOneInstance(
     context.Post(inst);
 }
 
-SCX_ProcessorStatisticalInformation_Class_Provider::SCX_ProcessorStatisticalInformation_Class_Provider(
+SCX_RTProcessorStatisticalInformation_Class_Provider::SCX_RTProcessorStatisticalInformation_Class_Provider(
     Module* module) :
     m_Module(module)
 {
 }
 
-SCX_ProcessorStatisticalInformation_Class_Provider::~SCX_ProcessorStatisticalInformation_Class_Provider()
+SCX_RTProcessorStatisticalInformation_Class_Provider::~SCX_RTProcessorStatisticalInformation_Class_Provider()
 {
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::Load(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::Load(
         Context& context)
 {
     SCX_PEX_BEGIN
     {
         // Global lock for CPUProvider class
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::CPUProvider::Lock"));
+        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"CPUProvider::Lock"));
         g_CPUProvider.Load();
 
         // Notify that we don't wish to unload
@@ -163,15 +198,15 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::Load(
         if ( MI_RESULT_OK != r )
         {
             SCX_LOGWARNING(g_CPUProvider.GetLogHandle(),
-                SCXCoreLib::StrAppend(L"SCX_ProcessorStatisticalInformation_Class_Provider::Load() refuses to not unload, error = ", r));
+                SCXCoreLib::StrAppend(L"SCX_RTProcessorStatisticalInformation_Class_Provider::Load() refuses to not unload, error = ", r));
         }
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider::Load", g_CPUProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_RTProcessorStatisticalInformation_Class_Provider::Load", g_CPUProvider.GetLogHandle() );
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::Unload(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::Unload(
         Context& context)
 {
     SCX_PEX_BEGIN
@@ -181,10 +216,10 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::Unload(
         g_CPUProvider.Unload();
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider:::Unload", g_CPUProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_RTProcessorStatisticalInformation_Class_Provider:::Unload", g_CPUProvider.GetLogHandle() );
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
     Context& context,
     const String& nameSpace,
     const PropertySet& propertySet,
@@ -203,7 +238,7 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
 
         for(size_t i = 0; i < cpuEnum->Size(); i++)
         {
-            SCX_ProcessorStatisticalInformation_Class inst;
+            SCX_RTProcessorStatisticalInformation_Class inst;
             SCXHandle<SCXSystemLib::CPUInstance> cpuInst = cpuEnum->GetInstance(i);
             EnumerateOneInstance(context, inst, keysOnly, cpuInst);
         }
@@ -213,20 +248,20 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
         if (totalInst != NULL)
         {
             // There will always be one total instance
-            SCX_ProcessorStatisticalInformation_Class inst;
+            SCX_RTProcessorStatisticalInformation_Class inst;
             EnumerateOneInstance(context, inst, keysOnly, totalInst);
         }
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances",
+    SCX_PEX_END( L"SCX_RTProcessorStatisticalInformation_Class_Provider::EnumerateInstances",
                      g_CPUProvider.GetLogHandle() );
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::GetInstance(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::GetInstance(
     Context& context,
     const String& nameSpace,
-    const SCX_ProcessorStatisticalInformation_Class& instanceName,
+    const SCX_RTProcessorStatisticalInformation_Class& instanceName,
     const PropertySet& propertySet)
 {
     SCX_PEX_BEGIN
@@ -278,35 +313,35 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::GetInstance(
             }
         }
 
-        SCX_ProcessorStatisticalInformation_Class inst;
+        SCX_RTProcessorStatisticalInformation_Class inst;
         EnumerateOneInstance(context, inst, false, cpuInst);
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider::GetInstance",
+    SCX_PEX_END( L"SCX_RTProcessorStatisticalInformation_Class_Provider::GetInstance",
                     g_CPUProvider.GetLogHandle() );
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::CreateInstance(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::CreateInstance(
     Context& context,
     const String& nameSpace,
-    const SCX_ProcessorStatisticalInformation_Class& newInstance)
+    const SCX_RTProcessorStatisticalInformation_Class& newInstance)
 {
     context.Post(MI_RESULT_NOT_SUPPORTED);
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::ModifyInstance(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::ModifyInstance(
     Context& context,
     const String& nameSpace,
-    const SCX_ProcessorStatisticalInformation_Class& modifiedInstance,
+    const SCX_RTProcessorStatisticalInformation_Class& modifiedInstance,
     const PropertySet& propertySet)
 {
     context.Post(MI_RESULT_NOT_SUPPORTED);
 }
 
-void SCX_ProcessorStatisticalInformation_Class_Provider::DeleteInstance(
+void SCX_RTProcessorStatisticalInformation_Class_Provider::DeleteInstance(
     Context& context,
     const String& nameSpace,
-    const SCX_ProcessorStatisticalInformation_Class& instanceName)
+    const SCX_RTProcessorStatisticalInformation_Class& instanceName)
 {
     context.Post(MI_RESULT_NOT_SUPPORTED);
 }

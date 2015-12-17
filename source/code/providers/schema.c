@@ -21,6 +21,7 @@
 #include "SCX_MemoryStatisticalInformation.h"
 #include "SCX_OperatingSystem.h"
 #include "SCX_ProcessorStatisticalInformation.h"
+#include "SCX_RTProcessorStatisticalInformation.h"
 #include "SCX_UnixProcess.h"
 #include "SCX_UnixProcessStatisticalInformation.h"
 
@@ -15545,6 +15546,448 @@ MI_CONST MI_ClassDecl SCX_ProcessorStatisticalInformation_rtti =
 /*
 **==============================================================================
 **
+** SCX_RTProcessorStatisticalInformation
+**
+**==============================================================================
+*/
+
+static MI_CONST MI_Uint32 SCX_RTProcessorStatisticalInformation_Caption_MaxLen_qual_value = 64U;
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_Caption_MaxLen_qual =
+{
+    MI_T("MaxLen"),
+    MI_UINT32,
+    0,
+    &SCX_RTProcessorStatisticalInformation_Caption_MaxLen_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_Caption_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_Caption_MaxLen_qual,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_Caption_value = MI_T("Real Time Processor information");
+
+/* property SCX_RTProcessorStatisticalInformation.Caption */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_Caption_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00636E07, /* code */
+    MI_T("Caption"), /* name */
+    SCX_RTProcessorStatisticalInformation_Caption_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_Caption_quals), /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, Caption), /* offset */
+    MI_T("CIM_ManagedElement"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    &SCX_RTProcessorStatisticalInformation_Caption_value,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_Description_value = MI_T("Real Time CPU usage statistics");
+
+/* property SCX_RTProcessorStatisticalInformation.Description */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_Description_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00646E0B, /* code */
+    MI_T("Description"), /* name */
+    NULL, /* qualifiers */
+    0, /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, Description), /* offset */
+    MI_T("CIM_ManagedElement"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    &SCX_RTProcessorStatisticalInformation_Description_value,
+};
+
+static MI_CONST MI_Uint32 SCX_RTProcessorStatisticalInformation_Name_MaxLen_qual_value = 256U;
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_Name_MaxLen_qual =
+{
+    MI_T("MaxLen"),
+    MI_UINT32,
+    0,
+    &SCX_RTProcessorStatisticalInformation_Name_MaxLen_qual_value
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_Name_Override_qual_value = MI_T("Name");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_Name_Override_qual =
+{
+    MI_T("Override"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_RESTRICTED,
+    &SCX_RTProcessorStatisticalInformation_Name_Override_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_Name_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_Name_MaxLen_qual,
+    &SCX_RTProcessorStatisticalInformation_Name_Override_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.Name */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_Name_prop =
+{
+    MI_FLAG_PROPERTY|MI_FLAG_KEY, /* flags */
+    0x006E6504, /* code */
+    MI_T("Name"), /* name */
+    SCX_RTProcessorStatisticalInformation_Name_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_Name_quals), /* numQualifiers */
+    MI_STRING, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, Name), /* offset */
+    MI_T("CIM_StatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentIdleTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentIdleTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentIdleTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentIdleTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentIdleTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentIdleTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentIdleTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0070650F, /* code */
+    MI_T("PercentIdleTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentIdleTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentIdleTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentIdleTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentUserTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentUserTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentUserTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentUserTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentUserTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentUserTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentUserTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0070650F, /* code */
+    MI_T("PercentUserTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentUserTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentUserTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentUserTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentNiceTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentNiceTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentNiceTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentNiceTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentNiceTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentNiceTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentNiceTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0070650F, /* code */
+    MI_T("PercentNiceTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentNiceTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentNiceTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentNiceTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentPrivilegedTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00706515, /* code */
+    MI_T("PercentPrivilegedTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentPrivilegedTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentInterruptTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentInterruptTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentInterruptTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentInterruptTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentInterruptTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentInterruptTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentInterruptTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00706514, /* code */
+    MI_T("PercentInterruptTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentInterruptTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentInterruptTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentInterruptTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentDPCTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentDPCTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentDPCTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentDPCTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentDPCTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentDPCTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentDPCTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x0070650E, /* code */
+    MI_T("PercentDPCTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentDPCTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentDPCTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentDPCTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentProcessorTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentProcessorTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentProcessorTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentProcessorTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentProcessorTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentProcessorTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentProcessorTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00706514, /* code */
+    MI_T("PercentProcessorTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentProcessorTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentProcessorTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentProcessorTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_Units_qual_value = MI_T("Percent");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_Units_qual =
+{
+    MI_T("Units"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TOSUBCLASS|MI_FLAG_TRANSLATABLE,
+    &SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_Units_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_Units_qual,
+};
+
+/* property SCX_RTProcessorStatisticalInformation.PercentIOWaitTime */
+static MI_CONST MI_PropertyDecl SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_prop =
+{
+    MI_FLAG_PROPERTY, /* flags */
+    0x00706511, /* code */
+    MI_T("PercentIOWaitTime"), /* name */
+    SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_quals), /* numQualifiers */
+    MI_UINT8, /* type */
+    NULL, /* className */
+    0, /* subscript */
+    offsetof(SCX_RTProcessorStatisticalInformation, PercentIOWaitTime), /* offset */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* origin */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* propagator */
+    NULL,
+};
+
+static MI_PropertyDecl MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_props[] =
+{
+    &CIM_ManagedElement_InstanceID_prop,
+    &SCX_RTProcessorStatisticalInformation_Caption_prop,
+    &SCX_RTProcessorStatisticalInformation_Description_prop,
+    &CIM_ManagedElement_ElementName_prop,
+    &SCX_RTProcessorStatisticalInformation_Name_prop,
+    &SCX_StatisticalInformation_IsAggregate_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentIdleTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentUserTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentNiceTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentPrivilegedTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentInterruptTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentDPCTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentProcessorTime_prop,
+    &SCX_RTProcessorStatisticalInformation_PercentIOWaitTime_prop,
+};
+
+static MI_CONST MI_ProviderFT SCX_RTProcessorStatisticalInformation_funcs =
+{
+  (MI_ProviderFT_Load)SCX_RTProcessorStatisticalInformation_Load,
+  (MI_ProviderFT_Unload)SCX_RTProcessorStatisticalInformation_Unload,
+  (MI_ProviderFT_GetInstance)SCX_RTProcessorStatisticalInformation_GetInstance,
+  (MI_ProviderFT_EnumerateInstances)SCX_RTProcessorStatisticalInformation_EnumerateInstances,
+  (MI_ProviderFT_CreateInstance)SCX_RTProcessorStatisticalInformation_CreateInstance,
+  (MI_ProviderFT_ModifyInstance)SCX_RTProcessorStatisticalInformation_ModifyInstance,
+  (MI_ProviderFT_DeleteInstance)SCX_RTProcessorStatisticalInformation_DeleteInstance,
+  (MI_ProviderFT_AssociatorInstances)NULL,
+  (MI_ProviderFT_ReferenceInstances)NULL,
+  (MI_ProviderFT_EnableIndications)NULL,
+  (MI_ProviderFT_DisableIndications)NULL,
+  (MI_ProviderFT_Subscribe)NULL,
+  (MI_ProviderFT_Unsubscribe)NULL,
+  (MI_ProviderFT_Invoke)NULL,
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_UMLPackagePath_qual_value = MI_T("CIM::Core::Statistics");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_UMLPackagePath_qual =
+{
+    MI_T("UMLPackagePath"),
+    MI_STRING,
+    0,
+    &SCX_RTProcessorStatisticalInformation_UMLPackagePath_qual_value
+};
+
+static MI_CONST MI_Char* SCX_RTProcessorStatisticalInformation_Version_qual_value = MI_T("1.3.0");
+
+static MI_CONST MI_Qualifier SCX_RTProcessorStatisticalInformation_Version_qual =
+{
+    MI_T("Version"),
+    MI_STRING,
+    MI_FLAG_ENABLEOVERRIDE|MI_FLAG_TRANSLATABLE|MI_FLAG_RESTRICTED,
+    &SCX_RTProcessorStatisticalInformation_Version_qual_value
+};
+
+static MI_Qualifier MI_CONST* MI_CONST SCX_RTProcessorStatisticalInformation_quals[] =
+{
+    &SCX_RTProcessorStatisticalInformation_UMLPackagePath_qual,
+    &SCX_RTProcessorStatisticalInformation_Version_qual,
+};
+
+/* class SCX_RTProcessorStatisticalInformation */
+MI_CONST MI_ClassDecl SCX_RTProcessorStatisticalInformation_rtti =
+{
+    MI_FLAG_CLASS, /* flags */
+    0x00736E25, /* code */
+    MI_T("SCX_RTProcessorStatisticalInformation"), /* name */
+    SCX_RTProcessorStatisticalInformation_quals, /* qualifiers */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_quals), /* numQualifiers */
+    SCX_RTProcessorStatisticalInformation_props, /* properties */
+    MI_COUNT(SCX_RTProcessorStatisticalInformation_props), /* numProperties */
+    sizeof(SCX_RTProcessorStatisticalInformation), /* size */
+    MI_T("SCX_StatisticalInformation"), /* superClass */
+    &SCX_StatisticalInformation_rtti, /* superClassDecl */
+    NULL, /* methods */
+    0, /* numMethods */
+    &schemaDecl, /* schema */
+    &SCX_RTProcessorStatisticalInformation_funcs, /* functions */
+    NULL, /* owningClass */
+};
+
+/*
+**==============================================================================
+**
 ** CIM_Process
 **
 **==============================================================================
@@ -17973,6 +18416,7 @@ static MI_ClassDecl MI_CONST* MI_CONST classes[] =
     &SCX_MemoryStatisticalInformation_rtti,
     &SCX_OperatingSystem_rtti,
     &SCX_ProcessorStatisticalInformation_rtti,
+    &SCX_RTProcessorStatisticalInformation_rtti,
     &SCX_StatisticalInformation_rtti,
     &SCX_UnixProcess_rtti,
     &SCX_UnixProcessStatisticalInformation_rtti,

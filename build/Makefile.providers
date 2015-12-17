@@ -37,7 +37,8 @@ STATIC_APPSERVERLIB_SRCFILES = \
 # CPU Provider
 
 STATIC_CPUPROVIDER_SRCFILES = \
-	$(PROVIDER_DIR)/SCX_ProcessorStatisticalInformation_Class_Provider.cpp
+	$(PROVIDER_DIR)/SCX_ProcessorStatisticalInformation_Class_Provider.cpp \
+	$(PROVIDER_DIR)/SCX_RTProcessorStatisticalInformation_Class_Provider.cpp
 
 #--------------------------------------------------------------------------------
 # Disk Provider
@@ -136,6 +137,7 @@ CLASSES = SCX_Agent \
 	SCX_MemoryStatisticalInformation \
 	SCX_OperatingSystem \
 	SCX_ProcessorStatisticalInformation \
+	SCX_RTProcessorStatisticalInformation \
 	SCX_UnixProcess \
 	SCX_UnixProcessStatisticalInformation
 

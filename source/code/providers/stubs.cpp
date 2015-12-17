@@ -21,6 +21,7 @@
 #include "SCX_MemoryStatisticalInformation_Class_Provider.h"
 #include "SCX_OperatingSystem_Class_Provider.h"
 #include "SCX_ProcessorStatisticalInformation_Class_Provider.h"
+#include "SCX_RTProcessorStatisticalInformation_Class_Provider.h"
 #include "SCX_UnixProcess_Class_Provider.h"
 #include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
@@ -1977,6 +1978,125 @@ MI_EXTERN_C void MI_CALL SCX_ProcessorStatisticalInformation_DeleteInstance(
     SCX_ProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_ProcessorStatisticalInformation_Class_Provider*)self);
     Context  cxxContext(context);
     SCX_ProcessorStatisticalInformation_Class cxxInstanceName(instanceName, true);
+
+    cxxSelf->DeleteInstance(cxxContext, nameSpace, cxxInstanceName);
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_Load(
+    SCX_RTProcessorStatisticalInformation_Self** self,
+    MI_Module_Self* selfModule,
+    MI_Context* context)
+{
+    MI_Result r = MI_RESULT_OK;
+    Context ctx(context, &r);
+    SCX_RTProcessorStatisticalInformation_Class_Provider* prov = new SCX_RTProcessorStatisticalInformation_Class_Provider((Module*)selfModule);
+
+    prov->Load(ctx);
+    if (MI_RESULT_OK != r)
+    {
+        delete prov;
+        MI_Context_PostResult(context, r);
+        return;
+    }
+    *self = (SCX_RTProcessorStatisticalInformation_Self*)prov;
+    MI_Context_PostResult(context, MI_RESULT_OK);
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_Unload(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context)
+{
+    MI_Result r = MI_RESULT_OK;
+    Context ctx(context, &r);
+    SCX_RTProcessorStatisticalInformation_Class_Provider* prov = (SCX_RTProcessorStatisticalInformation_Class_Provider*)self;
+
+    prov->Unload(ctx);
+    delete ((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    MI_Context_PostResult(context, r);
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_EnumerateInstances(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const MI_PropertySet* propertySet,
+    MI_Boolean keysOnly,
+    const MI_Filter* filter)
+{
+    SCX_RTProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    Context  cxxContext(context);
+
+    cxxSelf->EnumerateInstances(
+        cxxContext,
+        nameSpace,
+        __PropertySet(propertySet),
+        __bool(keysOnly),
+        filter);
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_GetInstance(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const SCX_RTProcessorStatisticalInformation* instanceName,
+    const MI_PropertySet* propertySet)
+{
+    SCX_RTProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    Context  cxxContext(context);
+    SCX_RTProcessorStatisticalInformation_Class cxxInstanceName(instanceName, true);
+
+    cxxSelf->GetInstance(
+        cxxContext,
+        nameSpace,
+        cxxInstanceName,
+        __PropertySet(propertySet));
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_CreateInstance(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const SCX_RTProcessorStatisticalInformation* newInstance)
+{
+    SCX_RTProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    Context  cxxContext(context);
+    SCX_RTProcessorStatisticalInformation_Class cxxNewInstance(newInstance, false);
+
+    cxxSelf->CreateInstance(cxxContext, nameSpace, cxxNewInstance);
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_ModifyInstance(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const SCX_RTProcessorStatisticalInformation* modifiedInstance,
+    const MI_PropertySet* propertySet)
+{
+    SCX_RTProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    Context  cxxContext(context);
+    SCX_RTProcessorStatisticalInformation_Class cxxModifiedInstance(modifiedInstance, false);
+
+    cxxSelf->ModifyInstance(
+        cxxContext,
+        nameSpace,
+        cxxModifiedInstance,
+        __PropertySet(propertySet));
+}
+
+MI_EXTERN_C void MI_CALL SCX_RTProcessorStatisticalInformation_DeleteInstance(
+    SCX_RTProcessorStatisticalInformation_Self* self,
+    MI_Context* context,
+    const MI_Char* nameSpace,
+    const MI_Char* className,
+    const SCX_RTProcessorStatisticalInformation* instanceName)
+{
+    SCX_RTProcessorStatisticalInformation_Class_Provider* cxxSelf =((SCX_RTProcessorStatisticalInformation_Class_Provider*)self);
+    Context  cxxContext(context);
+    SCX_RTProcessorStatisticalInformation_Class cxxInstanceName(instanceName, true);
 
     cxxSelf->DeleteInstance(cxxContext, nameSpace, cxxInstanceName);
 }
