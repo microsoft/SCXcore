@@ -41,7 +41,7 @@ namespace
                 SCX_LOGTRACE(m_log, L"RTCPUProvider::Load()");
 
                 // See if we have a config file for overriding default RT provider settings
-                time_t sampleSecs = 15;
+                time_t sampleSecs = 10;
                 size_t sampleSize = 2;
 
                 do {
@@ -55,17 +55,17 @@ namespace
                     }
 
                     std::wstring value;
-                    if (conf.GetValue(L"RTCPUProv_SampleSecs", value))
+                    if (conf.GetValue(L"RTCPUProvider_SampleSecs", value))
                     {
                         sampleSecs = StrToUInt(value);
                     }
 
-                    if (conf.GetValue(L"RTCPUProv_SampleSize", value))
+                    if (conf.GetValue(L"RTCPUProvider_SampleSize", value))
                     {
                         sampleSize = StrToUInt(value);
                     }
                 }
-                while (true == false);
+                while (false);
 
                 // Log what we're starting the real time provider with
                 SCX_LOGTRACE(m_log, StrAppend(StrAppend(
