@@ -8,30 +8,56 @@
 # We expect this script to run from the BUILD directory (i.e. scxcore/build).
 # Directory paths are hard-coded for this location.
 
+# Notes for file bundle_skel.sh (included here since we don't want to ship
+# these comments in shell bundle):
+#
+# The bundle_skel.sh file is a shell bundle for all platforms (Redhat, SUSE,
+# AIX, HP, and Solaris), as well as universal Linux platforms.
+#
+# Use this script by concatenating it with some binary package.
+#
+# The bundle is created by cat'ing the script in front of the binary, so for
+# the gzip'ed tar example, a command like the following will build the bundle:
+#
+#     tar -czvf - <target-dir> | cat sfx.skel - > my.bundle
+#
+# The bundle can then be copied to a system, made executable (chmod +x) and
+# then run.
+#
+# This script has some useful helper options to split out the script and/or
+# binary in place, and to turn on shell debugging.
+#
+# This script is paired with create_bundle.sh, which will edit constants in
+# this script for proper execution at runtime.  The "magic", here, is that
+# create_bundle.sh encodes the length of this script in the script itself.
+# Then the script can use that with 'tail' in order to strip the script from
+# the binary package.
+#
+# Developer note: A prior incarnation of this script used 'sed' to strip the
+# script from the binary package.  That didn't work on AIX 5, where 'sed' did
+# strip the binary package - AND null bytes, creating a corrupted stream.
+
+
 SOURCE_DIR=`(cd ../installer/bundle; pwd -P)`
 INTERMEDIATE_DIR=`(cd ../installer/intermediate; pwd -P)`
 
 # Exit on error
-
 set -e
-set -x
+
+# Don't display output
+set +x
 
 usage()
 {
-    echo "usage: $0 platform directory tar-file scx-package-name omi-package-name [scx-package-name-100 omi-package-name-100]"
+    echo "usage: $0 platform directory tar-file scx-package-name omi-package-name <provider-only>"
     echo "  where"
-    echo "    platform is one of: linux, ulinux-r, ulinux-d, aix, hpux, sun"
+    echo "    platform is one of: linux, aix, hpux, sun"
     echo "    directory is directory path to package file"
     echo "    tar-file is the name of the tar file that contains the following packages"
     echo "    scx-package-name is the name of the scx installation package"
     echo "    omi-package-name is the name of the omi installation package"
-    echo "  If ULINUX, the default packages above are for openssl 0.9.8 versions, and below:"
-    echo "    scx-package-name-100 is the name of the openssl 1.0.0 scx installation package"
-    echo "    omi-package-name-100 is the name of the openssl 1.0.0 omi installation package"
-    echo ""
-    echo "  If omi-package-name is blank, we assume a 'combined' universal build, agent only."
-    echo "  This means: No OMI is bundled, no open-source kits are bundled, we only include the"
-    echo "              agent, but built for each of SSL 0.9.8 and SSL 1.0.0, RPM & Debian"
+    echo "    provider-only is 1 (scx-cimprov style kit) or 0 (scx combined kit)"
+    echo "  If omi-package-name is empty, then we assume universal SSL directories for OMI"
     exit 1
 }
 
@@ -46,7 +72,7 @@ if [ -z "$PLATFORM_TYPE" ]; then
 fi
 
 case "$PLATFORM_TYPE" in
-    Linux_REDHAT|Linux_SUSE|Linux_UBUNTU_D|Linux_ULINUX_R|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
+    Linux|AIX|HPUX|SunOS)
 	;;
 
     *)
@@ -80,31 +106,16 @@ if [ -z "$4" ]; then
     exit 1
 fi
 
-SCX_PACKAGE=`echo $4 | sed -e 's/.rpm$//' -e 's/.deb$//'`
-
-if [ -n "$5" ]; then
-    if [ "$PLATFORM_TYPE" = "ulinux-d" ]; then
-        # $6 and $7 need to be set for ULINUX
-        if [ -z "$6" ]; then
-            echo "Missing parameter: scx-package-name-098" >&2
-            echo ""
-            usage
-            exit 1
-        fi
-
-        if [ -z "$7" ]; then
-            echo "Missing parameter: omi-package-name-100" >&2
-            echo ""
-            usage
-            exit 1
-        fi
-    fi
-    COMBINED_PACKAGE=0
-else
-    COMBINED_PACKAGE=1
+if [ -z "$6" ]; then
+    echo "Missing parameter: provider-only" >&2
+    echo ""
+    usage
+    exit 1
 fi
 
+SCX_PACKAGE=`echo $4 | sed -e 's/.rpm$//' -e 's/.deb$//'`
 OMI_PACKAGE=`echo $5 | sed -e 's/.rpm$//' -e 's/.deb$//'`
+PROVIDER_ONLY=$6
 
 if [ ! -f "$2/$3" ]; then
     echo "Tar file \"$2/$3\" does not exist"
@@ -119,36 +130,23 @@ OUTPUT_DIR=`(cd $2; pwd -P)`
 cd $INTERMEDIATE_DIR
 
 # Fetch the bundle skeleton file
-cp $SOURCE_DIR/primary.skel .
-chmod u+w primary.skel
+cp $SOURCE_DIR/bundle_skel.sh .
+chmod u+w bundle_skel.sh
 
 # Edit the bundle file for hard-coded values
-sed -e "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" < primary.skel > primary.$$
-mv primary.$$ primary.skel
+sed -i "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" bundle_skel.sh
+sed -i "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" bundle_skel.sh
+sed -i "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/" bundle_skel.sh
+sed -i "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/" bundle_skel.sh
 
-sed -e "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" primary.skel > primary.$$
-mv primary.$$ primary.skel
-
-sed -e "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/" primary.skel > primary.$$
-mv primary.$$ primary.skel
-
-sed -e "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/" primary.skel > primary.$$
-mv primary.$$ primary.skel
-
-if [ $COMBINED_PACKAGE -ne 0 ]; then
-    sed -e "s/PROVIDER_ONLY=0/PROVIDER_ONLY=1/" < primary.skel > primary.$$
-    mv primary.$$ primary.skel
-fi
+sed -i "s/PROVIDER_ONLY=0/PROVIDER_ONLY=$PROVIDER_ONLY/" bundle_skel.sh
 
 
-SCRIPT_LEN=`wc -l < primary.skel | sed -e 's/ //g'`
+SCRIPT_LEN=`wc -l < bundle_skel.sh | sed -e 's/ //g'`
 SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
 
-sed -e "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/" < primary.skel > primary.$$
-mv primary.$$ primary.skel
-
-sed -e "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/" < primary.skel > primary.$$
-mv primary.$$ primary.skel
+sed -i "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/" bundle_skel.sh
+sed -i "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/" bundle_skel.sh
 
 
 # Fetch the kit
@@ -156,34 +154,29 @@ cp $OUTPUT_DIR/$3 .
 
 # Build the bundle
 case "$PLATFORM_TYPE" in
-    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" | sed -e "s/.tar//"`.sh
-	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
+    Linux)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" -e "s/.deb//" -e "s/.tar//"`.sh
+	gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
 
-    Linux_UBUNTU_D|Linux_ULINUX_D)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.deb//" | sed -e "s/.tar//"`.sh
-	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
-	;;
-
-    Linux_ULINUX)
+    NEVERNEVERLAND_Linux_ULINUX)
         BUNDLE_FILE=${SCX_PACKAGE}.sh
-        gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
+        gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
         ;;
 
     AIX)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp//" | sed -e "s/.tar//"`.sh
-	gzip -c $3 | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp//" -e "s/.tar//"`.sh
+	gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
 
     HPUX)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.depot//" | sed -e "s/.tar//"`.sh
-	compress -c $3 | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.depot//" -e "s/.tar//"`.sh
+	compress -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
 
     SunOS)
-	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg//" | sed -e "s/.tar//"`.sh
-	compress -c $3 | cat primary.skel - > $BUNDLE_FILE
+	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg//" -e "s/.tar//"`.sh
+	compress -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
 
     *)
@@ -192,7 +185,7 @@ case "$PLATFORM_TYPE" in
 esac
 
 chmod +x $BUNDLE_FILE
-rm primary.skel
+rm bundle_skel.sh
 
 # Remove the kit and copy the bundle to the kit location
 rm $3

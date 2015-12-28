@@ -19,6 +19,8 @@
 #include "SCX_UnixProcess_Class_Provider.h"
 #include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
+#include "testutilities.h"
+
 using namespace SCXCoreLib;
 
 class SCXUnixProcessKeyTest : public CPPUNIT_NS::TestFixture
@@ -118,7 +120,7 @@ public:
         keyNames.push_back(L"OSCreationClassName");
         keyValues.push_back(L"SCX_OperatingSystem");
         keyNames.push_back(L"OSName");
-        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(SCXCore::GetActualDistributionName(CALL_LOCATION(errMsg)));
         keyNames.push_back(L"CreationClassName");
         keyValues.push_back(L"SCX_UnixProcess");
         StandardTestCheckKeyValues<mi::SCX_UnixProcess_Class_Provider>(
@@ -141,7 +143,7 @@ public:
         keyNames.push_back(L"OSCreationClassName");
         keyValues.push_back(L"SCX_OperatingSystem");
         keyNames.push_back(L"OSName");
-        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(SCXCore::GetActualDistributionName(CALL_LOCATION(errMsg)));
         keyNames.push_back(L"ProcessCreationClassName");
         keyValues.push_back(L"SCX_UnixProcessStatisticalInformation");
         StandardTestCheckKeyValues<mi::SCX_UnixProcessStatisticalInformation_Class_Provider>(

@@ -21,6 +21,8 @@
 #include "support/osprovider.h"
 #include "SCX_OperatingSystem_Class_Provider.h"
 
+#include "testutilities.h"
+
 using namespace SCXCore;
 using namespace SCXCoreLib;
 using namespace SCXSystemLib;
@@ -117,7 +119,7 @@ public:
         
         const TestableInstance &instance = context[0];
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE,
-            GetDistributionName(CALL_LOCATION(errMsg)), instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
+            SCXCore::GetActualDistributionName(CALL_LOCATION(errMsg)), instance.GetKeyValue(0, CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"SCX_ComputerSystem", instance.GetKeyValue(1, CALL_LOCATION(errMsg)));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE,
             GetFQHostName(CALL_LOCATION(errMsg)), instance.GetKeyValue(2, CALL_LOCATION(errMsg)));

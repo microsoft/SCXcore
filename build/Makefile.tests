@@ -189,7 +189,7 @@ testrun_copy : $(TARGET_DIR)/closefiledescriptors
 	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(TARGET_DIR))
 
 create_environment_sh : 
- ifeq ($(PF_DISTRO),ULINUX)
+ ifeq ($(COMBINED_PACKAGES),1)
 	cd $(TARGET_DIR); LD_LIBRARY_PATH=`cd /usr/local_ssl_1.0.0/lib*; pwd` testfiles/createEnv.sh
  else
 	cd $(TARGET_DIR); testfiles/createEnv.sh

@@ -2,10 +2,26 @@
 PF:	      'Linux'
 OMI_SERVICE:  '/opt/omi/bin/service_control'
 
+PFDISTRO: 'ULINUX'
+PFMAJOR: '1'
+PFMINOR: '0'
+
+%Defines
+ULINUX
+
 %Files
-/opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             target/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                    755; root; root
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             intermediate/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                    755; root; root
 /etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
 
+
+%Preinstall_50
+# VerifySSLVersion
+openssl version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.'
+if [ $? -ne 0 ]; then
+    echo 'Unsupported OpenSSL version - must be either 0.9.8* or 1.0.*.'
+    echo 'Installation cannot proceed.'
+    exit 1
+fi
 
 %Postinstall_875
 set -e

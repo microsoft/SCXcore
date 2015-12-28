@@ -4,32 +4,6 @@
 # Shell Bundle installer package for the SCX project
 #
 
-# This script is a skeleton bundle file for primary platforms (Redhat, SUSE,
-# AIX, HP, and Solaris), as well as ULINUX.
-#
-# Use this script by concatenating it with some binary package.
-#
-# The bundle is created by cat'ing the script in front of the binary, so for
-# the gzip'ed tar example, a command like the following will build the bundle:
-#
-#     tar -czvf - <target-dir> | cat sfx.skel - > my.bundle
-#
-# The bundle can then be copied to a system, made executable (chmod +x) and
-# then run.
-#
-# This script has some useful helper options to split out the script and/or
-# binary in place, and to turn on shell debugging.
-#
-# This script is paired with create_bundle.sh, which will edit constants in
-# this script for proper execution at runtime.  The "magic", here, is that
-# create_bundle.sh encodes the length of this script in the script itself.
-# Then the script can use that with 'tail' in order to strip the script from
-# the binary package.
-#
-# Developer note: A prior incarnation of this script used 'sed' to strip the
-# script from the binary package.  That didn't work on AIX 5, where 'sed' did
-# strip the binary package - AND null bytes, creating a corrupted stream.
-
 set -e
 PATH=/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
@@ -54,8 +28,7 @@ DPKG_CONF_QUALS="--force-confold --force-confdef"
 # These symbols will get replaced during the bundle creation process.
 #
 # The PLATFORM symbol should contain ONE of the following:
-#       Linux_REDHAT, Linux_SUSE, Linux_ULINUX_R, Linux_ULINUX_D, HPUX, AIX, SunOS
-#       Linux_ULINUX for special build (agent only, both RPM and DEB pacages)
+#       Linux, HPUX, AIX, SunOS
 #
 # The OM_PKG symbol should contain something like:
 #       scx-1.5.1-115.rhel.6.x64 (script adds .rpm or .deb, as appropriate)
@@ -63,17 +36,15 @@ DPKG_CONF_QUALS="--force-confold --force-confdef"
 #
 # PROVIDER_ONLY is normally set to '0'. Set to non-zero if you wish to build a
 # version of SCX that is only the provider (no OMI, no bundled packages). This
-# essentially provides a "scx-cimprov" type package (still called "scx", though)
-# if just the provider alone must be included as part of some other package.
-# NOTE: For consistency, if PROVIDER_ONLY is set, it's expected that universal
-# builds include both .RPM and .DEB packages. This is unlike regular versions of
-# SCX, which has separate bundles for .RPM vs. .DEB package managers.
+# essentially provides a "scx-cimprov" type package if just the provider alone
+# must be included as part of some other package.
 
 PLATFORM=<PLATFORM_TYPE>
 TAR_FILE=<TAR_FILE>
 OM_PKG=<OM_PKG>
 OMI_PKG=<OMI_PKG>
 PROVIDER_ONLY=0
+
 SCRIPT_LEN=<SCRIPT_LEN>
 SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>
 
@@ -248,15 +219,7 @@ ulinux_detect_installer()
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
     case "$PLATFORM" in
-        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm -q $1 2> /dev/null 1> /dev/null
-            ;;
-
-        Linux_ULINUX_D)
-            dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
-            ;;
-
-        Linux_ULINUX)
+        Linux)
 	    ulinux_detect_installer
 
             if [ "$INSTALLER" = "DPKG" ]; then
@@ -285,23 +248,12 @@ check_if_pkg_is_installed() {
 # $2 - The package name of the package to be installed
 pkg_add() {
     pkg_filename=$1
+
     case "$PLATFORM" in
-        Linux_ULINUX*)
+        Linux)
 	    ulinux_detect_openssl_version
 	    pkg_filename=$TMPBINDIR/$pkg_filename
-	    ;;
-    esac
 
-    case "$PLATFORM" in
-        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm --install ${pkg_filename}.rpm
-            ;;
-
-        Linux_UBUNTU_D|Linux_ULINUX_D)
-            dpkg ${DPKG_CONF_QUALS} --install --refuse-downgrade ${pkg_filename}.deb
-            ;;
-
-        Linux_ULINUX)
             ulinux_detect_installer
 
             if [ "$INSTALLER" = "DPKG" ]; then
@@ -329,19 +281,7 @@ pkg_add() {
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
     case "$PLATFORM" in
-        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            rpm --erase ${1}
-            ;;
-
-        Linux_UBUNTU_D|Linux_ULINUX_D)
-            if [ "$installMode" = "P" ]; then
-                dpkg --purge ${1}
-            else
-                dpkg --remove ${1}
-            fi
-            ;;
-
-        Linux_ULINUX)
+        Linux)
             ulinux_detect_installer
             if [ "$INSTALLER" = "DPKG" ]; then
                 if [ "$installMode" = "P" ]; then
@@ -378,27 +318,12 @@ pkg_rm() {
 pkg_upd() {
     pkg_filename=$1
     pkg_name=$2
+
     case "$PLATFORM" in
-        Linux_ULINUX*)
+        Linux)
             ulinux_detect_openssl_version
             pkg_filename=$TMPBINDIR/$pkg_filename
-            ;;
-    esac
 
-    case "$PLATFORM" in
-        Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R)
-            [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--force" || FORCE=""
-            rpm --upgrade $FORCE ${pkg_filename}.rpm
-            ;;
-
-        Linux_UBUNTU_D|Linux_ULINUX_D)
-            [ -z "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="--refuse-downgrade" || FORCE=""
-            dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb
-
-            export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
-            ;;
-
-        Linux_ULINUX)
             ulinux_detect_installer
 
             if [ "$INSTALLER" = "DPKG" ]; then
@@ -461,7 +386,7 @@ pkg_upd() {
 }
 
 case "$PLATFORM" in
-    Linux_REDHAT|Linux_SUSE|Linux_ULINUX_R|Linux_UBUNTU_D|Linux_ULINUX_D|Linux_ULINUX|AIX|HPUX|SunOS)
+    Linux|AIX|HPUX|SunOS)
         ;;
 
     *)
@@ -527,6 +452,7 @@ then
     then
         echo "Purging all files in cross-platform agent ..."
         rm -rf /etc/opt/microsoft/*-cimprov /etc/opt/microsoft/scx /opt/microsoft/*-cimprov /opt/microsoft/scx /var/opt/microsoft/*-cimprov /var/opt/microsoft/scx
+	rmdir /etc/opt/microsoft /opt/microsoft /var/opt/microsoft 1>/dev/null 2>/dev/null
 
         # If OMI is not installed, purge its directories as well.
         check_if_pkg_is_installed omi
@@ -554,7 +480,7 @@ fi
 echo "Extracting..."
 
 case "$PLATFORM" in
-    Linux_*)
+    Linux)
         tail -n +${SCRIPT_LEN_PLUS_ONE} "${SCRIPT}" | tar xzf -
         ;;
 

@@ -8,7 +8,7 @@
 #
 #--------------------------------------------------------------------------------
 
-ifeq ($(PF_DISTRO), ULINUX)
+ifeq ($(COMBINED_PACKAGES),1)
 	# Reassign SCXOMI directories to any OMI output directory (generic non-SSL use)
 	SCXOMI_DEV_ROOT := $(SCXOMI_DIR)/output_openssl_1.0.0
 	SCXOMI_INCLUDE := $(SCXOMI_DEV_ROOT)/include
@@ -24,17 +24,13 @@ ifeq (,$(PF_DISTRO))
 	$(warning "Unmatched version string")
 endif
 
-ifeq ($(PF_DISTRO)$(PF_MAJOR),REDHAT4)
-	include Makefile.gcc3
-else
-	include Makefile.gcc4
-endif
+include Makefile.gcc4
 
 #================================================================================
 # OpenSSL
 # For ULINUX, we need to build against two versions of OpenSSL, 0.9.8 and 1.0.0.
 #================================================================================
-ifeq ($(PF_DISTRO),ULINUX)
+ifeq ($(COMBINED_PACKAGES),1)
 
 # Let's figure out the system version of SSL installed (for unit test purposes)
 
@@ -85,7 +81,7 @@ CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/linux/$(ARCH)/cppunit
 #--------------------------------------------------------------------------------
 
 # Link a dynamic lib
-LINK_DYNLIB=g++ -shared -Wl,-rpath,/usr/lib
+LINK_DYNLIB=g++ -shared -Wl,-rpath=/opt/microsoft/scx/lib -Wl,-rpath=/opt/omi/lib
 ifeq ($(PF_ARCH),x86)
 	LINK_DYNLIB+= -m32
 else
@@ -101,7 +97,7 @@ LDFLAGS_RPM =  -lrpm -lpopt
 LDFLAGS_DYNLIB = -ldl -lpthread -lcrypt -lrt
 LDFLAGS_EXECUTABLE = -ldl -lpthread -lrt
 
-ifneq ($(PF_DISTRO),ULINUX)
+ifneq ($(COMBINED_PACKAGES),1)
 LDFLAGS_DYNLIB += $(LDFLAGS_RPM)
 LDFLAGS_EXECUTABLE += $(LDFLAGS_RPM)
 endif
@@ -142,59 +138,11 @@ CXXFLAGS+=
 #--------------------------------------------------------------------------------
 
 PF_DEPENDENT_DATAFILES = Linux.data
-ifeq ($(PF_DISTRO), REDHAT)
-PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_RHEL.data
-  ifeq ($(PF_MAJOR), 7)
-PF_DEPENDENT_DATAFILES += Linux_RHEL_7.data
-  endif
-  ifeq ($(PF_MAJOR), 6)
-PF_DEPENDENT_DATAFILES += Linux_RHEL_6.data
-  endif
-  ifeq ($(PF_MAJOR), 5)
-PF_DEPENDENT_DATAFILES += Linux_RHEL_5.data
-  endif
-  ifeq ($(PF_MAJOR), 4)
-PF_DEPENDENT_DATAFILES += Linux_RHEL_4.data
-  endif
-endif
 
-ifeq ($(PF_DISTRO), SUSE)
-PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_SLES.data
-  ifeq ($(PF_MAJOR), 12)
-PF_DEPENDENT_DATAFILES += Linux_SLES_12.data
-  endif
-  ifeq ($(PF_MAJOR), 11)
-PF_DEPENDENT_DATAFILES += Linux_SLES_11.data
-  endif
-  ifeq ($(PF_MAJOR), 10)
-PF_DEPENDENT_DATAFILES += Linux_SLES_10.data
-  endif
-  ifeq ($(PF_MAJOR), 9)
-PF_DEPENDENT_DATAFILES += Linux_SLES_9.data
-  endif
-endif
-
-ifeq ($(PF_DISTRO), UBUNTU)
-PF_DEPENDENT_DATAFILES += Linux_DPKG.data Linux_ULINUX_D.data
-PF_DEPENDENT_DATAFILES += Linux_ULINUX_x64.data Linux_UBUNTU.data
-  ifeq ($(PF_MAJOR), 14)
-PF_DEPENDENT_DATAFILES += Linux_UBUNTU_14.data
-  endif
-endif
-
-ifeq ($(PF_DISTRO), ULINUX)
-PF_DEPENDENT_DATAFILES += Linux_ULINUX.data
-  ifeq ($(PF_ARCH), x86)
-PF_DEPENDENT_DATAFILES += Linux_ULINUX_x86.data
-  else
-PF_DEPENDENT_DATAFILES += Linux_ULINUX_x64.data
-  endif
-  ifeq ($(PF_DISTRO_ULINUX_R), 1)
-PF_DEPENDENT_DATAFILES += Linux_RPM.data Linux_ULINUX_R.data
-  endif
-  ifeq ($(PF_DISTRO_ULINUX_D), 1)
-PF_DEPENDENT_DATAFILES += Linux_DPKG.data Linux_ULINUX_D.data
-  endif
+ifeq ("$(wildcard /usr/bin/dpkg-deb)","")
+  PF_DEPENDENT_DATAFILES += Linux_RPM.data
+else
+  PF_DEPENDENT_DATAFILES += Linux_DPKG.data
 endif
 
 #-------------------------------- End of File -----------------------------------
