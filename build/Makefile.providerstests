@@ -14,13 +14,16 @@
 # For now, providertestutils.cpp lives in PAL, but is built in OM.  This creates
 # some build issues.  To resolve, create a link to the real file.
 
+TESTPROVIDER_SUPPORT_DIR=$(SCX_UNITTEST_ROOT)/providers
+
 $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp: $(SCXPAL_TEST_ROOT)/testutils/providertestutils.cpp
 # We need to recreate the symlink if the link is older than what it points to.  Touch will not work, and ln -fs does not work on Sun5.9
 	rm -f $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
-	ln -s $(SCXPAL_TEST_ROOT)/testutils/providertestutils.cpp $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
+	ln -s $(SCXPAL_TEST_ROOT)/testutils/providertestutils.cpp $(TESTPROVIDER_SUPPORT_DIR)/providertestutils.cpp
 
 POSIX_UNITTESTS_PROVIDERS_SRCFILES = \
 	$(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp \
+	$(SCX_UNITTEST_ROOT)/providers/testutilities.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/meta_provider/metaprovider_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/appserverenumeration_test.cpp \
 	$(SCX_UNITTEST_ROOT)/providers/appserver_provider/appserverinstance_test.cpp \
@@ -77,8 +80,14 @@ $(INTERMEDIATE_DIR)/test/code/providers/appserver_provider/persistappserverinsta
 
 $(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
 $(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
-$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.d: INCLUDES += -I-I$(PROVIDER_SUPPORT_DIR)
-$(INTERMEDIATE_DIR)/test/code/providers/logfile_provider/logfileprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
+
+$(INTERMEDIATE_DIR)/test/code/providers/os_provider/osprovider_test.d: INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/os_provider/osprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
+
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/processprovider_test.d: INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/processprovider_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/unixprocesskey_test.d: INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
+$(INTERMEDIATE_DIR)/test/code/providers/process_provider/unixprocesskey_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(TESTPROVIDER_SUPPORT_DIR)
 
 $(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.d: INCLUDES += -I$(PROVIDER_SUPPORT_DIR)
 $(INTERMEDIATE_DIR)/test/code/providers/runas_provider/scxrunasconfigurator_test.$(PF_OBJ_FILE_SUFFIX): INCLUDES += -I$(PROVIDER_SUPPORT_DIR)

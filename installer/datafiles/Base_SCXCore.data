@@ -36,11 +36,11 @@ MAINTAINER:              'Microsoft Corporation'
 /opt/microsoft/scx/bin/tools/setup.sh;                                  intermediate/${{BUILD_CONFIGURATION}}/scx_setup_tools.sh;         644; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/tools/scxadmin;                                  intermediate/${{BUILD_CONFIGURATION}}/scxadmin.sh;                755; root; ${{ROOT_GROUP_NAME}}
 /opt/microsoft/scx/bin/tools/scxsslconfig;                              intermediate/${{BUILD_CONFIGURATION}}/scxsslconfig.sh;            755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/scx/bin/tools/.scxsslconfig;                             target/${{BUILD_CONFIGURATION}}${{ULINUX_POSTFIX}}/scxsslconfig;  755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/scx/bin/tools/.scxadmin;                                 target/${{BUILD_CONFIGURATION}}/scxadmin;                         755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/scx/bin/omi_preexec;                                     target/${{BUILD_CONFIGURATION}}/omi_preexec;                      755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/scx/bin/scxlogfilereader;                                target/${{BUILD_CONFIGURATION}}/scxlogfilereader;                 755; root; ${{ROOT_GROUP_NAME}}
-/opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}};         target/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.${{SHLIB_EXT}}; 755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/bin/tools/.scxsslconfig;                             intermediate/${{BUILD_CONFIGURATION}}${{ULINUX_POSTFIX}}/scxsslconfig;  755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/bin/tools/.scxadmin;                                 intermediate/${{BUILD_CONFIGURATION}}/scxadmin;                         755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/bin/omi_preexec;                                     intermediate/${{BUILD_CONFIGURATION}}/omi_preexec;                      755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/bin/scxlogfilereader;                                intermediate/${{BUILD_CONFIGURATION}}/scxlogfilereader;                 755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}};         intermediate/${{BUILD_CONFIGURATION}}/libSCXCoreProviderModule.${{SHLIB_EXT}}; 755; root; ${{ROOT_GROUP_NAME}}
 
 /etc/opt/microsoft/scx/pf_file.sh;                                      intermediate/${{BUILD_CONFIGURATION}}/pf_file.sh;                 444; root; sys
 /etc/opt/microsoft/scx/conf/scxconfig.conf;                             installer/conf/scxconfig.conf;                                    644; root; ${{ROOT_GROUP_NAME}}; conffile

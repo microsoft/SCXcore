@@ -22,6 +22,8 @@
 #include "SCX_UnixProcess_Class_Provider.h"
 #include "SCX_UnixProcessStatisticalInformation_Class_Provider.h"
 
+#include "testutilities.h"
+
 //WI567597: Property ModulePath not returned during pbuild on ostcdev64-sles11-01, ostcdev-sles10-01, ostcdev64-rhel4-01 and ostcdev-rhel4-10.
 //WI567598: Property Parameters not returned on ostcdev-sles9-10.
 static bool brokenProvider = true;
@@ -152,7 +154,7 @@ public:
         keyValues.push_back(L"SCX_ComputerSystem");
         keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
         keyValues.push_back(L"SCX_OperatingSystem");
-        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(SCXCore::GetActualDistributionName(CALL_LOCATION(errMsg)));
         keyValues.push_back(L"SCX_UnixProcess");
         keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
 
@@ -177,7 +179,7 @@ public:
         keyValues.push_back(L"SCX_ComputerSystem");
         keyValues.push_back(GetFQHostName(CALL_LOCATION(errMsg)));
         keyValues.push_back(L"SCX_OperatingSystem");
-        keyValues.push_back(GetDistributionName(CALL_LOCATION(errMsg)));
+        keyValues.push_back(SCXCore::GetActualDistributionName(CALL_LOCATION(errMsg)));
         keyValues.push_back(SCXCoreLib::StrFrom(getpid()));
         keyValues.push_back(L"SCX_UnixProcessStatisticalInformation");
 

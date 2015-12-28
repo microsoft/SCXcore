@@ -73,8 +73,8 @@ COREPROVIDERMODULE_LINK_STATICLIBS = $(addprefix -l, $(COREPROVIDERMODULE_STATIC
 OMI_FORCED_TARGETS=$(STATIC_PROVIDERLIB_OBJFILES)
 OMI_DYNAMIC_LIBS=-lmicxx
 
-$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/liblogpolicy.$(PF_STAT_LIB_FILE_SUFFIX)
-	-$(MKPATH) $(TARGET_DIR)
+$(INTERMEDIATE_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/liblogpolicy.$(PF_STAT_LIB_FILE_SUFFIX)
+	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(PROFILING) $(LINK_DYNLIB) $(COREPROVIDERMODULE_EXTRA_LINKFLAGS) $(LINK_OUTFLAG) $(OMI_FORCED_TARGETS) -L$(SCXOMI_LIBS) $(COREPROVIDERMODULE_LINK_STATICLIBS) $(OMI_DYNAMIC_LIBS) $(SCXPAL_LINK_STATICLIBS) $(LDFLAGS_COREPROVIDERMODULE) $(CXX_CGEN_FLAGS) $(SCXPAL_SRC_ROOT)/scxcorelib/pal/noop.cpp
 
 #--------------------------------------------------------------------------------
@@ -95,8 +95,8 @@ TESTPROVIDERMODULE_LINK_STATICLIBS = $(addprefix -l, $(TESTPROVIDERMODULE_STATIC
 # Get the flags used for retaining exposed symbols
 TESTPROVIDERMODULE_SYMBOLS_LINKFLAGS = $(call get_ld_flags_for_retaining_symbols,$(TESTPROVIDERMODULE_EXPOSED_SYMS))
 
-$(TARGET_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(TESTPROVIDERMODULE_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/testprovider.map $(INTERMEDIATE_DIR)/testprovider.exp
-	-$(MKPATH) $(TARGET_DIR)
+$(INTERMEDIATE_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) : $(TESTPROVIDERMODULE_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/testprovider.map $(INTERMEDIATE_DIR)/testprovider.exp
+	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(PROFILING) $(LINK_DYNLIB) $(TESTPROVIDERMODULE_EXTRA_LINKFLAGS) $(LINK_OUTFLAG) $(TESTPROVIDERMODULE_SYMBOLS_LINKFLAGS) $(TESTPROVIDERMODULE_LINK_STATICLIBS) $(SCXPAL_LINK_STATICLIBS) $(LDFLAGS_TESTPROVIDERMODULE) $(PF_TESTPROVIDERLIB_EXTRA_LIBS)
 
 $(INTERMEDIATE_DIR)/testprovider.map:
@@ -161,9 +161,9 @@ endif
 # Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
 SCXADMIN_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXADMIN_STATICLIB_DEPS)))
 
-$(TARGET_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX): \
+$(INTERMEDIATE_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX): \
 	$(SCXADMIN_OBJFILES) $(INTERMEDIATE_DIR)/libscxadmin.$(PF_STAT_LIB_FILE_SUFFIX) $(SCXADMIN_DEPFILES) $(SCXADMIN_STATICLIB_DEPFILES)
-	-$(MKPATH) $(TARGET_DIR)/tools
+	-$(MKPATH) $(INTERMEDIATE_DIR)/tools
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(SCXADMIN_OBJFILES) $(SCXADMIN_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_SCX_ADMIN_TOOL) $(LDFLAGS_EXECUTABLE)
 
 #================================================================================
@@ -197,9 +197,9 @@ LOGFILEREADER_STATICLIB_DEPS = \
 # Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
 LOGFILEREADER_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(LOGFILEREADER_STATICLIB_DEPS)))
 
-$(TARGET_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX): \
+$(INTERMEDIATE_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX): \
 	$(LOGFILEREADER_OBJFILES) $(INTERMEDIATE_DIR)/libscxlogfilereader.$(PF_STAT_LIB_FILE_SUFFIX) $(LOGFILEREADER_DEPFILES) $(LOGFILEREADER_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES)
-	-$(MKPATH) $(TARGET_DIR)/tools
+	-$(MKPATH) $(INTERMEDIATE_DIR)/tools
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(LOGFILEREADER_OBJFILES) $(LOGFILEREADER_STATICLIB_DEPFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_SCX_ADMIN_TOOL) $(LDFLAGS_EXECUTABLE)
 
 #================================================================================
@@ -215,9 +215,9 @@ REGEX_TEST_OBJFILES = $(call src_to_obj,$(REGEX_TEST_SRCFILES))
 
 REGEX_TEST_DEPFILES=$(REGEX_TEST_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
 
-$(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX): \
+$(INTERMEDIATE_DIR)/regex_test$(PF_EXE_FILE_SUFFIX): \
 	$(REGEX_TEST_OBJFILES) $(REGEX_TEST_DEPFILES) $(REGEX_TEST_STATICLIB_DEPFILES)
-	-$(MKPATH) $(TARGET_DIR)/tools
+	-$(MKPATH) $(INTERMEDIATE_DIR)/tools
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(REGEX_TEST_OBJFILES) $(SCXPAL_STATICLIB_DEPFILES) $(LDFLAGS_TESTRUNNER) $(LDFLAGS_EXECUTABLE)
 
 #================================================================================
@@ -233,40 +233,40 @@ OMI_PREEXEC_OBJFILES = $(call src_to_obj,$(OMI_PREEXEC_SRCFILES))
 
 OMI_PREEXEC_DEPFILES=$(OMI_PREEXEC_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d)
 
-$(TARGET_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX): $(OMI_PREEXEC_OBJFILES) $(OMI_PREEXEC_DEPFILES)
-	-$(MKPATH) $(TARGET_DIR)/tools
+$(INTERMEDIATE_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX): $(OMI_PREEXEC_OBJFILES) $(OMI_PREEXEC_DEPFILES)
+	-$(MKPATH) $(INTERMEDIATE_DIR)/tools
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(OMI_PREEXEC_OBJFILES) $(LDFLAGS_EXECUTABLE)
 
 #================================================================================
 # Development Convenience Targets
 #================================================================================
 
-logfilereader-tool: $(TARGET_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX)
-admin-tool: $(TARGET_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX)
-regex-test: $(TARGET_DIR)/regex_test$(PF_EXE_FILE_SUFFIX)
-omi-preexec: $(TARGET_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX)
+logfilereader-tool: $(INTERMEDIATE_DIR)/scxlogfilereader$(PF_EXE_FILE_SUFFIX)
+admin-tool: $(INTERMEDIATE_DIR)/scxadmin$(PF_EXE_FILE_SUFFIX)
+regex-test: $(INTERMEDIATE_DIR)/regex_test$(PF_EXE_FILE_SUFFIX)
+omi-preexec: $(INTERMEDIATE_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX)
 
-ifeq ($(PF_DISTRO),ULINUX)
-ssl-tool: $(TARGET_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(TARGET_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+ifeq ($(COMBINED_PACKAGES),1)
+ssl-tool: $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
 else
-ssl-tool: $(TARGET_DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+ssl-tool: $(INTERMEDIATE_DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
 endif
 
 # All SCX tools
 scx-tools: logfilereader-tool admin-tool regex-test omi-preexec ssl-tool
 
 coreprovider: \
-	$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
+	$(INTERMEDIATE_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
 
 providers: \
-	$(TARGET_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) \
-	$(TARGET_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
+	$(INTERMEDIATE_DIR)/libSCXTestProviderModule.$(PF_DYN_LIB_FILE_SUFFIX) \
+	$(INTERMEDIATE_DIR)/libSCXCoreProviderModule.$(PF_DYN_LIB_FILE_SUFFIX)
 
 # An alias 
 omi: omi_all
 
 omi_all:
-ifeq ($(PF_DISTRO),ULINUX)
+ifeq ($(COMBINED_PACKAGES),1)
 
 	$(ECHO) "========================= Performing make omi"
 
@@ -319,27 +319,27 @@ endif
 # Used to generate compontents necessary for other projects to compile with the 
 # core components
 devel-deps: $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) omi
-	-$(RMDIR) $(TARGET_DIR)/scxcore-devel
-ifeq ($(PF_DISTRO),ULINUX)
-	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)
-	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)
+	-$(RMDIR) $(INTERMEDIATE_DIR)/scxcore-devel
+ifeq ($(COMBINED_PACKAGES),1)
+	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)
+	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)
 else
-	$(MKPATH) $(TARGET_DIR)/scxcore-devel/lib
+	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib
 endif
-	$(COPYDIR) $(SCX_SHARED_INCLUDE_DIR) $(TARGET_DIR)/scxcore-devel/shared
-	$(COPY) $(SCXPAL_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
-	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(TARGET_DIR)/scxcore-devel/lib
-	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(TARGET_DIR)/scxcore-devel/lib
-	$(MKPATH) $(TARGET_DIR)/scxcore-devel/include/testutils
-	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(TARGET_DIR)/scxcore-devel/include/testutils
+	$(COPYDIR) $(SCX_SHARED_INCLUDE_DIR) $(INTERMEDIATE_DIR)/scxcore-devel/shared
+	$(COPY) $(SCXPAL_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/scxcore-devel/lib
+	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/scxcore-devel/lib
+	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(INTERMEDIATE_DIR)/scxcore-devel/lib
+	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/include/testutils
+	$(COPY) $(SCXPAL_TEST_ROOT)/include/testutils/scxunit.h $(INTERMEDIATE_DIR)/scxcore-devel/include/testutils
 ifeq ($(LOCAL_OMI),1)
 	# Create an OMI development area for use in running utilities
 	#   TODO - Is there an alias for mkdir?  Not $(MKDIR) or $(MAKEDIR), those didn't work
-	$(RMDIR) -rf $(TARGET_DIR)/omi 
-	-mkdir -p $(TARGET_DIR)/omi/etc/omiregister/root-scx
-	$(COPY) -r $(SCXOMI_DIR)/etc $(TARGET_DIR)/omi
-	$(COPY) -r $(SCXOMI_DEV_ROOT)/* $(TARGET_DIR)/omi
-	$(COPY) -r $(SCXOMI_DIR)/share $(TARGET_DIR)/omi
+	$(RMDIR) -rf $(INTERMEDIATE_DIR)/omi 
+	-mkdir -p $(INTERMEDIATE_DIR)/omi/etc/omiregister/root-scx
+	$(COPY) -r $(SCXOMI_DIR)/etc $(INTERMEDIATE_DIR)/omi
+	$(COPY) -r $(SCXOMI_DEV_ROOT)/* $(INTERMEDIATE_DIR)/omi
+	$(COPY) -r $(SCXOMI_DIR)/share $(INTERMEDIATE_DIR)/omi
 endif
 
 #================================================================================
@@ -353,8 +353,8 @@ doxygen_corelib:
 	( cat doxygen_scxcore.cfg ; \
 	  echo "STRIP_FROM_PATH=$(SCX_SRC_ROOT)"; \
 	  echo "OUTPUT_DIRECTORY=$(DOXYGEN_OUTPUT_DIR)/scxcore_doc"; \
-	  echo "WARN_LOGFILE=$(TARGET_DIR)/doxygen_build.log"; ) | doxygen -
-	if [ -s $(TARGET_DIR)/doxygen_build.log ] ; then echo "$(TARGET_DIR)/doxygen_build.log:1:Warnings in doxygenlog"; fi
+	  echo "WARN_LOGFILE=$(INTERMEDIATE_DIR)/doxygen_build.log"; ) | doxygen -
+	if [ -s $(INTERMEDIATE_DIR)/doxygen_build.log ] ; then echo "$(INTERMEDIATE_DIR)/doxygen_build.log:1:Warnings in doxygenlog"; fi
 
 doxygen_clean:
 	-$(RMDIR) $(DOXYGEN_OUTPUT_DIR)/scxcore_doc

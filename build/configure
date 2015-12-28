@@ -3,6 +3,7 @@
 scxpal_dir="../../pal"
 scxomi_dir=`(cd ../../omi/Unix; pwd -P)`
 build_type="Release"
+disable_listener=0
 enable_debug=""
 enable_purify_agent=""
 enable_purify_server=""
@@ -31,7 +32,11 @@ do
 
     -h | --help)
       help=1
-    ;;
+      ;;
+
+    --disable-listener)
+      disable_listener=1
+      ;;
 
     --enable-debug)
       if [ "$build_type" = "Bullseye" ]; then
@@ -40,7 +45,7 @@ do
       fi
       build_type="Debug"
       enable_debug="--enable-debug"
-    ;;
+      ;;
 
     --enable-bullseye)
       if [ "$build_type" = "Debug" ]; then
@@ -49,20 +54,20 @@ do
       fi
       build_type="Bullseye"
       enable_bullseye="--enable-bullseye"
-    ;;
+      ;;
 
     --enable-purify-agent)
       enable_purify_agent="--enable-purify-agent"
-    ;;
+      ;;
 
     --enable-purify-server)
       enable_purify_server="--enable-purify-server"
-    ;;
+      ;;
 
     --enable-local-omi)
       omi_configure_quals="--prefix=. --disable-libpath"
       local_omi="1"
-    ;;
+      ;;
 
     --enable-ulinux)
       if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" ]; then
@@ -71,13 +76,13 @@ do
       fi
       enable_ulinux_qual="--enable-ulinux"
       combined_packages=1
-    ;;
+      ;;
 
     *)
       echo "configure: invalid option '$opt'"
       echo "Try configure --help' for more information."
       exit 1
-    ;;
+      ;;
 
   esac
 
@@ -98,12 +103,13 @@ This script configures SCXOM for building. Type the following commands.
 
 OPTIONS:
     -h, --help                  Print this help message.
+    --disable-listener          Disable listening on port 1270 (normally enabled by default)
     --enable-debug              Perform a debug build.
     --enable-purify-agent       Allow agent to be run with purify (memory leak detection)
     --enable-purify-server      Allow server to be run with purify (memory leak detection)
     --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
     --enable-bullseye           Enables the use of code coverage tools (Bullseye).
-    --enable-ulinux             Force provider-only, universal RPM/DEB kits
+    --enable-ulinux             Build universal RPM/DEB kits
 
 EOF
     exit 0
@@ -125,13 +131,7 @@ openssl_cflags=`$pkgconfig --cflags openssl`
 openssl_libs=`$pkgconfig --libs openssl`
 openssl_libdir=`$pkgconfig --variable=libdir openssl`
 
-
-FORCE_UNIVERSAL=$combined_packages
-if [ -d "/usr/local_ssl_0.9.8" -a -d "/usr/local_ssl_1.0.0" ]; then
-    FORCE_UNIVERSAL=1
-fi
-
-if [ $FORCE_UNIVERSAL -ne 0 ]; then
+if [ $combined_packages -ne 0 ]; then
     case "`uname -m`" in    
 	x86_64 )
             openssl098_libdir=/usr/local_ssl_0.9.8/lib
@@ -167,6 +167,7 @@ fi
 
 cat <<EOF > config.mak
 COMBINED_PACKAGES=$combined_packages
+DISABLE_LISTENER=$disable_listener
 LOCAL_OMI=$local_omi
 OMI_CONFIGURE_QUALS=$omi_configure_quals
 OPENSSL_CFLAGS=$openssl_cflags
