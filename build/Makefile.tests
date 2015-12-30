@@ -43,8 +43,8 @@ TESTRUNNER_SRCFILES = \
 
 TESTRUNNER_OBJFILES = $(call src_to_obj,$(TESTRUNNER_SRCFILES))
 # Extra include dir for test code
-$(TARGET_DIR)/testrunner: INCLUDES += $(UNITTEST_EXTRA_INCLUDES)
-$(TARGET_DIR)/testrunner_core: INCLUDES += $(UNITTEST_EXTRA_INCLUDES)
+$(INTERMEDIATE_DIR)/testrunner: INCLUDES += $(UNITTEST_EXTRA_INCLUDES)
+$(INTERMEDIATE_DIR)/testrunner_core: INCLUDES += $(UNITTEST_EXTRA_INCLUDES)
 
 
 #--------------------------------------------------------------------------------
@@ -142,8 +142,8 @@ endif
 CLOSEFILEDESCRIPTOR_SRCFILES = $(SCX_SHARED_TEST_ROOT)/testutils/closefiledescriptors/closefiledescriptors.cpp
 CLOSEFILEDESCRIPTOR_OBJFILES = $(call src_to_obj,$(CLOSEFILEDESCRIPTOR_SRCFILES))
 
-$(TARGET_DIR)/closefiledescriptors : $(CLOSEFILEDESCRIPTOR_OBJFILES)
-	-$(MKPATH) $(TARGET_DIR)
+$(INTERMEDIATE_DIR)/closefiledescriptors : $(CLOSEFILEDESCRIPTOR_OBJFILES)
+	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(CLOSEFILEDESCRIPTOR_OBJFILES)
 
 #--------------------------------------------------------------------------------
@@ -151,54 +151,54 @@ $(TARGET_DIR)/closefiledescriptors : $(CLOSEFILEDESCRIPTOR_OBJFILES)
 testrunner-status:
 	$(ECHO) "========================= Performing make OM testrunner"
 
-$(TARGET_DIR)/testrunner : testrunner-status $(UNITTESTS_OBJFILES) $(POSIX_UNITTESTS_STATICLIB_DEPFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES)
+$(INTERMEDIATE_DIR)/testrunner : testrunner-status $(UNITTESTS_OBJFILES) $(POSIX_UNITTESTS_STATICLIB_DEPFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES)
 	$(MAKE) -s ccenable
-	-$(MKPATH) $(TARGET_DIR)
+	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(LINK) $(LINK_OUTFLAG) $(UNITTESTS_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_LINK_STATICLIBS) $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(BULLSEYE_LINK) $(LDFLAGS_TESTRUNNER) $(SSL_LIBS)
 	$(MAKE) -s ccdisable
 
-testbuild :  $(TARGET_DIR)/testrunner
+testbuild :  $(INTERMEDIATE_DIR)/testrunner
 
 
 # The tool itself
-$(TARGET_DIR)/testrunner_core : testrunner-status $(UNITTESTS_CORE_OBJFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES) 
-	-$(MKPATH) $(TARGET_DIR)
+$(INTERMEDIATE_DIR)/testrunner_core : testrunner-status $(UNITTESTS_CORE_OBJFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES) 
+	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(UNITTESTS_CORE_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(LDFLAGS_TESTRUNNER)
 
-testbuild_core :  $(TARGET_DIR)/testrunner_core
+testbuild_core :  $(INTERMEDIATE_DIR)/testrunner_core
 
-testrun_copy : $(TARGET_DIR)/closefiledescriptors
+testrun_copy : $(INTERMEDIATE_DIR)/closefiledescriptors
 	$(ECHO) "========================= Performing make testrun_copy OM"
-	-$(MKPATH) $(TARGET_DIR)/testfiles
-	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/report.xsl $(TARGET_DIR)
-	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/createEnv.sh $(TARGET_DIR)/testfiles/
-	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/TomcatVersionCheck.sh $(TARGET_DIR)/testfiles/
-	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/testrun_wrapper $(TARGET_DIR)/testfiles/
-	$(COPY) $(SCX_UNITTEST_ROOT)/providers/logfile_provider/scxlogfilereader-test $(TARGET_DIR)/testfiles/
-	chmod u+w $(TARGET_DIR)/report.xsl
-	chmod u+wx $(TARGET_DIR)/testfiles/createEnv.sh
-	chmod u+wx $(TARGET_DIR)/testfiles/TomcatVersionCheck.sh
-	chmod u+wx $(TARGET_DIR)/testfiles/testrun_wrapper
-	chmod u+wx $(TARGET_DIR)/testfiles/scxlogfilereader-test
-	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/configuration
-	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration
-	touch $(TARGET_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration/wsBundleMetadata
-	-$(MKPATH) $(TARGET_DIR)/testfiles/websphere_badnetworkdeployment/profiles/profile1/configuration
-	$(COPY) $(TARGET_DIR)/closefiledescriptors $(TARGET_DIR)/testfiles/
-	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(TARGET_DIR)
-	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(TARGET_DIR))
+	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles
+	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/report.xsl $(INTERMEDIATE_DIR)
+	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/createEnv.sh $(INTERMEDIATE_DIR)/testfiles/
+	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/TomcatVersionCheck.sh $(INTERMEDIATE_DIR)/testfiles/
+	$(COPY) $(SCX_SHARED_TEST_ROOT)/testutils/testrun_wrapper $(INTERMEDIATE_DIR)/testfiles/
+	$(COPY) $(SCX_UNITTEST_ROOT)/providers/logfile_provider/scxlogfilereader-test $(INTERMEDIATE_DIR)/testfiles/
+	chmod u+w $(INTERMEDIATE_DIR)/report.xsl
+	chmod u+wx $(INTERMEDIATE_DIR)/testfiles/createEnv.sh
+	chmod u+wx $(INTERMEDIATE_DIR)/testfiles/TomcatVersionCheck.sh
+	chmod u+wx $(INTERMEDIATE_DIR)/testfiles/testrun_wrapper
+	chmod u+wx $(INTERMEDIATE_DIR)/testfiles/scxlogfilereader-test
+	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/configuration
+	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration
+	touch $(INTERMEDIATE_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration/wsBundleMetadata
+	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles/websphere_badnetworkdeployment/profiles/profile1/configuration
+	$(COPY) $(INTERMEDIATE_DIR)/closefiledescriptors $(INTERMEDIATE_DIR)/testfiles/
+	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(INTERMEDIATE_DIR)
+	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(INTERMEDIATE_DIR))
 
 create_environment_sh : 
  ifeq ($(COMBINED_PACKAGES),1)
-	cd $(TARGET_DIR); LD_LIBRARY_PATH=`cd /usr/local_ssl_1.0.0/lib*; pwd` testfiles/createEnv.sh
+	cd $(INTERMEDIATE_DIR); LD_LIBRARY_PATH=`cd /usr/local_ssl_1.0.0/lib*; pwd` testfiles/createEnv.sh
  else
-	cd $(TARGET_DIR); testfiles/createEnv.sh
+	cd $(INTERMEDIATE_DIR); testfiles/createEnv.sh
  endif
 
-testrun_setup : $(TARGET_DIR)/testrunner testrun_copy create_environment_sh $(LOGFILEREADER_TOOL)
+testrun_setup : $(INTERMEDIATE_DIR)/testrunner testrun_copy create_environment_sh $(LOGFILEREADER_TOOL)
 
 testrun_pkg : testrun_setup
-	cd $(TARGET_DIR);rm -f testrun.tar;tar cvf testrun.tar testrunner $(LOGFILEREADER_EXE) testfiles
+	cd $(INTERMEDIATE_DIR);rm -f testrun.tar;tar cvf testrun.tar testrunner $(LOGFILEREADER_EXE) testfiles
 
 ifeq ($(BUILD_PRODUCTION),1)
 BUILD_TESTRUN_PACKAGE=testrun_pkg
@@ -210,11 +210,11 @@ endif
 # of the empty coverage file in the package. Once run as unit test, copy the file 
 # with unit test coverage data to the target folder. 
 testrun_copycovfile :
-	if [ $(BUILD_TYPE) = Bullseye ]; then $(COPY) $(COVFILE) $(TARGET_DIR)/UnitTest.cov; fi
+	if [ $(BUILD_TYPE) = Bullseye ]; then $(COPY) $(COVFILE) $(INTERMEDIATE_DIR)/UnitTest.cov; fi
 
 testrun : pal_test testrun_setup $(BUILD_TESTRUN_PACKAGE)
 	$(ECHO) "========================= Performing OM testrun execution"
-	cd $(TARGET_DIR);testfiles/testrun_wrapper .
+	cd $(INTERMEDIATE_DIR);testfiles/testrun_wrapper .
 	$(MAKE) testrun_copycovfile
 
 pal_test :
@@ -226,17 +226,17 @@ test : testrun
 
 testrun_noslow : testrun_setup
 	$(ECHO) "========================= Performing OM testrun execution"
-	cd $(TARGET_DIR); testfiles/testrun_wrapper . -attr=-SLOW -slow=25
+	cd $(INTERMEDIATE_DIR); testfiles/testrun_wrapper . -attr=-SLOW -slow=25
 	$(MAKE) testrun_copycovfile
 
 testrun_nosudo : testrun_setup
 	$(ECHO) "========================= Performing OM testrun execution"
-	cd $(TARGET_DIR);./testrunner
+	cd $(INTERMEDIATE_DIR);./testrunner
 	$(MAKE) testrun_copycovfile
 
-testrun_core : $(TARGET_DIR)/testrunner_core testrun_copy
+testrun_core : $(INTERMEDIATE_DIR)/testrunner_core testrun_copy
 	$(ECHO) "========================= Performing OM testrun execution"
-	cd $(TARGET_DIR);./testrunner_core
+	cd $(INTERMEDIATE_DIR);./testrunner_core
 
 
 #================================================================================
