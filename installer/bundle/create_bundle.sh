@@ -133,6 +133,33 @@ cd $INTERMEDIATE_DIR
 cp $SOURCE_DIR/bundle_skel.sh .
 chmod u+w bundle_skel.sh
 
+# See if we can resolve git references for output
+# (See if we can find the master project)
+if [ -f ../../../.gitmodules ]; then
+    TEMP_FILE=/tmp/create_bundle.$$
+
+    # Get the git reference hashes in a file
+    (
+	cd ../../..
+	echo "Entering 'superproject'" > $TEMP_FILE
+	git rev-parse HEAD >> $TEMP_FILE
+	git submodule foreach git rev-parse HEAD >> $TEMP_FILE
+    )
+
+    # Change lines like: "Entering 'omi'\n<refhash>" to "omi: <refhash>"
+    perl -i -pe "s/Entering '([^\n]*)'\n/\$1: /" $TEMP_FILE
+
+    # Grab the reference hashes in a variable
+    SOURCE_REFS=`cat $TEMP_FILE`
+    rm $TEMP_FILE
+
+    # Update the bundle file w/the ref hash (much easier with perl since multi-line)
+    perl -i -pe "s/-- Source code references --/${SOURCE_REFS}/" bundle_skel.sh
+else
+    echo "Unable to find git superproject!" >& 2
+    exit 1
+fi
+
 # Edit the bundle file for hard-coded values
 sed -i "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" bundle_skel.sh
 sed -i "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" bundle_skel.sh
