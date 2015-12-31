@@ -61,6 +61,32 @@ usage()
     exit 1
 }
 
+dosed()
+{
+    # Linux supports sed -i, but non-Linux does not
+    # Code looks cleaner to use -i, so use it when we can via this function
+    #
+    # Parameters:
+    #   1: Filename to edit
+    #   2-10: Parameters to sed
+    #
+    # We arbitrarily stop at 10 parameters. This can be added to if needed.
+    # I tried to use a for loop to work with any number of parameters, but
+    # this proved tricky with bash quoting.
+
+    local filename=$1
+    local params="$2 $3 $4 $5 $6 $7 $8 $9 ${10}"
+
+    if [ `uname -s` = "Linux" ]; then
+        sed -i $params $filename
+    else
+        local tempfile=/tmp/create_bundle_$$
+
+        sed $params $filename > $tempfile
+        mv $tempfile $filename
+    fi
+}
+
 # Validate parameters
 
 PLATFORM_TYPE="$1"
@@ -135,45 +161,50 @@ chmod u+w bundle_skel.sh
 
 # See if we can resolve git references for output
 # (See if we can find the master project)
-if [ -f ../../../.gitmodules ]; then
-    TEMP_FILE=/tmp/create_bundle.$$
+if git --version > /dev/null 2> /dev/null; then
+    if [ -f ../../../.gitmodules ]; then
+        TEMP_FILE=/tmp/create_bundle.$$
 
-    # Get the git reference hashes in a file
-    (
-	cd ../../..
-	echo "Entering 'superproject'" > $TEMP_FILE
-	git rev-parse HEAD >> $TEMP_FILE
-	git submodule foreach git rev-parse HEAD >> $TEMP_FILE
-    )
+        # Get the git reference hashes in a file
+        (
+	    cd ../../..
+	    echo "Entering 'superproject'" > $TEMP_FILE
+	    git rev-parse HEAD >> $TEMP_FILE
+	    git submodule foreach git rev-parse HEAD >> $TEMP_FILE
+        )
 
-    # Change lines like: "Entering 'omi'\n<refhash>" to "omi: <refhash>"
-    perl -i -pe "s/Entering '([^\n]*)'\n/\$1: /" $TEMP_FILE
+        # Change lines like: "Entering 'omi'\n<refhash>" to "omi: <refhash>"
+        perl -i -pe "s/Entering '([^\n]*)'\n/\$1: /" $TEMP_FILE
 
-    # Grab the reference hashes in a variable
-    SOURCE_REFS=`cat $TEMP_FILE`
-    rm $TEMP_FILE
+        # Grab the reference hashes in a variable
+        SOURCE_REFS=`cat $TEMP_FILE`
+        rm $TEMP_FILE
 
-    # Update the bundle file w/the ref hash (much easier with perl since multi-line)
-    perl -i -pe "s/-- Source code references --/${SOURCE_REFS}/" bundle_skel.sh
+        # Update the bundle file w/the ref hash (much easier with perl since multi-line)
+        perl -i -pe "s/-- Source code references --/${SOURCE_REFS}/" bundle_skel.sh
+    else
+        echo "Unable to find git superproject!" >& 2
+        exit 1
+    fi
 else
-    echo "Unable to find git superproject!" >& 2
+    echo "git client does not appear to be installed" >& 2
     exit 1
 fi
 
 # Edit the bundle file for hard-coded values
-sed -i "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/" bundle_skel.sh
-sed -i "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/" bundle_skel.sh
-sed -i "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/" bundle_skel.sh
-sed -i "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/" bundle_skel.sh
+dosed bundle_skel.sh "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/"
+dosed bundle_skel.sh "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/"
+dosed bundle_skel.sh "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/"
+dosed bundle_skel.sh "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/"
 
-sed -i "s/PROVIDER_ONLY=0/PROVIDER_ONLY=$PROVIDER_ONLY/" bundle_skel.sh
+dosed bundle_skel.sh "s/PROVIDER_ONLY=0/PROVIDER_ONLY=$PROVIDER_ONLY/"
 
 
 SCRIPT_LEN=`wc -l < bundle_skel.sh | sed -e 's/ //g'`
 SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
 
-sed -i "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/" bundle_skel.sh
-sed -i "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/" bundle_skel.sh
+dosed bundle_skel.sh "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/"
+dosed bundle_skel.sh "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/"
 
 
 # Fetch the kit
@@ -185,11 +216,6 @@ case "$PLATFORM_TYPE" in
 	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" -e "s/.deb//" -e "s/.tar//"`.sh
 	gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
-
-    NEVERNEVERLAND_Linux_ULINUX)
-        BUNDLE_FILE=${SCX_PACKAGE}.sh
-        gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
-        ;;
 
     AIX)
 	BUNDLE_FILE=`echo $3 | sed -e "s/.lpp//" -e "s/.tar//"`.sh
