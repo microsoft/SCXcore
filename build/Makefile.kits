@@ -37,7 +37,7 @@ endif
 
 DISTRO_TYPE = $(PF)
 
-installerOnly: compressed_kit bundle
+installerOnly: bundle
 
 STAGING_DIR = $(SCX_BRD)/installer/intermediate/staging
 
@@ -176,6 +176,9 @@ ifneq ($(COMBINED_PACKAGES),1)
 ifneq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+	# Remove package extension from `package_filename` file (AIX: .lpp, HP: .depot, Sun: .pkg)
+	cd $(INTERMEDIATE_DIR); sed -e 's/.lpp$$//' -e 's/.depot$$//' -e 's/.pkg$$//' package_filename > package_filename.tmp; mv package_filename.tmp package_filename
+	# Copy the shell bundle to the target directory
 	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/package_filename`.sh $(TARGET_DIR)
 endif # ifneq ($(DISTRO_TYPE),Linux)
 
@@ -192,19 +195,6 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
 
 endif # ifneq ($(COMBINED_PACKAGES),1)
-
-# Technically, a compressed kit doesn't have a prereq on the bundle,
-# but compressing the kit will make the uncompressed kit unavailable to the bundle...
-compressed_kit: kit bundle
-ifeq ($(PF),SunOS)
-	compress -f $(INTERMEDIATE_DIR)/`cat $(INTERMEDIATE_DIR)/package_filename`
-endif
-ifeq ($(PF),HPUX)
-	compress -f $(INTERMEDIATE_DIR)/`cat $(INTERMEDIATE_DIR)/package_filename`
-endif
-ifeq ($(PF),AIX)
-	gzip -f $(INTERMEDIATE_DIR)/`cat $(INTERMEDIATE_DIR)/package_filename`
-endif
 
 # Generate scripts that are consumed by SCXCore
 scx_scripts:
