@@ -61,7 +61,7 @@ usage()
     exit 1
 }
 
-dosed()
+do_sed()
 {
     # Linux supports sed -i, but non-Linux does not
     # Code looks cleaner to use -i, so use it when we can via this function
@@ -192,19 +192,19 @@ else
 fi
 
 # Edit the bundle file for hard-coded values
-dosed bundle_skel.sh "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/"
-dosed bundle_skel.sh "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/"
-dosed bundle_skel.sh "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/"
-dosed bundle_skel.sh "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/"
+do_sed bundle_skel.sh "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/"
+do_sed bundle_skel.sh "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/"
+do_sed bundle_skel.sh "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/"
+do_sed bundle_skel.sh "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/"
 
-dosed bundle_skel.sh "s/PROVIDER_ONLY=0/PROVIDER_ONLY=$PROVIDER_ONLY/"
+do_sed bundle_skel.sh "s/PROVIDER_ONLY=0/PROVIDER_ONLY=$PROVIDER_ONLY/"
 
 
 SCRIPT_LEN=`wc -l < bundle_skel.sh | sed -e 's/ //g'`
 SCRIPT_LEN_PLUS_ONE="$((SCRIPT_LEN + 1))"
 
-dosed bundle_skel.sh "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/"
-dosed bundle_skel.sh "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/"
+do_sed bundle_skel.sh "s/SCRIPT_LEN=<SCRIPT_LEN>/SCRIPT_LEN=${SCRIPT_LEN}/"
+do_sed bundle_skel.sh "s/SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>/SCRIPT_LEN_PLUS_ONE=${SCRIPT_LEN_PLUS_ONE}/"
 
 
 # Fetch the kit
