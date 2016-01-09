@@ -23,6 +23,17 @@ if [ ! -d "$scxomi_dir" ]; then
     exit 1
 fi
 
+perform_ulinux_build()
+{
+    if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" ]; then
+        echo "Cannot build ULINUX without Universal SSL libraries"
+        exit 1
+    fi
+
+    enable_ulinux_qual="--enable-ulinux"
+    combined_packages=1
+}
+
 for opt
 do
 
@@ -38,6 +49,15 @@ do
       disable_listener=1
       ;;
 
+    --enable-bullseye)
+      if [ "$build_type" = "Debug" ]; then
+          echo "Cannot build Bullseye if debug is enabled"
+          exit 1
+      fi
+      build_type="Bullseye"
+      enable_bullseye="--enable-bullseye"
+      ;;
+
     --enable-debug)
       if [ "$build_type" = "Bullseye" ]; then
           echo "Cannot build debug if Bullseye is enabled"
@@ -47,13 +67,9 @@ do
       enable_debug="--enable-debug"
       ;;
 
-    --enable-bullseye)
-      if [ "$build_type" = "Debug" ]; then
-          echo "Cannot build Bullseye if debug is enabled"
-          exit 1
-      fi
-      build_type="Bullseye"
-      enable_bullseye="--enable-bullseye"
+    --enable-local-omi)
+      omi_configure_quals="--prefix=. --disable-libpath"
+      local_omi="1"
       ;;
 
     --enable-purify-agent)
@@ -64,18 +80,14 @@ do
       enable_purify_server="--enable-purify-server"
       ;;
 
-    --enable-local-omi)
-      omi_configure_quals="--prefix=. --disable-libpath"
-      local_omi="1"
+    --enable-system-build)
+      if [ `uname -s` = "Linux" ]; then
+	  perform_ulinux_build
+      fi
       ;;
 
     --enable-ulinux)
-      if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" ]; then
-          echo "Cannot build ULINUX without Universal SSL libraries"
-          exit 1
-      fi
-      enable_ulinux_qual="--enable-ulinux"
-      combined_packages=1
+      perform_ulinux_build
       ;;
 
     *)
@@ -104,11 +116,12 @@ This script configures SCXOM for building. Type the following commands.
 OPTIONS:
     -h, --help                  Print this help message.
     --disable-listener          Disable listening on port 1270 (normally enabled by default)
+    --enable-bullseye           Enables the use of code coverage tools (Bullseye).
     --enable-debug              Perform a debug build.
+    --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
     --enable-purify-agent       Allow agent to be run with purify (memory leak detection)
     --enable-purify-server      Allow server to be run with purify (memory leak detection)
-    --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
-    --enable-bullseye           Enables the use of code coverage tools (Bullseye).
+    --enable-system-build       Enable qualifiers necessary for a system build
     --enable-ulinux             Build universal RPM/DEB kits
 
 EOF
