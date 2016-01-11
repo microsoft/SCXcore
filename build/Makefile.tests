@@ -185,7 +185,7 @@ testrun_copy : $(INTERMEDIATE_DIR)/closefiledescriptors
 	touch $(INTERMEDIATE_DIR)/testfiles/websphere_networkdeployment/profiles/profile1/servers/server1/configuration/wsBundleMetadata
 	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles/websphere_badnetworkdeployment/profiles/profile1/configuration
 	$(COPY) $(INTERMEDIATE_DIR)/closefiledescriptors $(INTERMEDIATE_DIR)/testfiles/
-	$(COPY) $(SCXOMI_LIBS)/libmicxx.* $(INTERMEDIATE_DIR)
+	$(RM) $(INTERMEDIATE_DIR)/libmicxx.*; $(COPY) $(SCXOMI_LIBS)/libmicxx.* $(INTERMEDIATE_DIR)
 	$(shell [ $(OMI_LIBS)/libpal.s? ] && $(COPY) $(SCXOMI_LIBS)/libpal.s? $(INTERMEDIATE_DIR))
 
 create_environment_sh : 
