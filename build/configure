@@ -179,6 +179,7 @@ EOF
 fi
 
 cat <<EOF > config.mak
+BUILD_TYPE=$build_type
 COMBINED_PACKAGES=$combined_packages
 DISABLE_LISTENER=$disable_listener
 LOCAL_OMI=$local_omi
