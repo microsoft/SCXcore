@@ -87,6 +87,18 @@ def GenerateAdminToolScriptFile():
         scxpath = "/opt"
 
     shfile.write('. ' + scxpath + '/microsoft/scx/bin/tools/setup.sh\n')
+
+    # On older (pre-systemd) systems, with non-latin locale set, scxadmin can get
+    # 'Exception: Multibyte string conversion failed' errors when trying to convert
+    # strings from SCXProcess::Run with output like:
+    #
+    #   Shutting down Open Group OMI Server:                       [  確定  ]
+    #   Starting Open Group OMI Server:                            [  確定  ]
+    #
+    # Just set the C locale (which exists on all systems) to resolve this issue.
+
+    shfile.write('export LANG=C\n')
+
     shfile.write('exec ' + scxpath + '/microsoft/scx/bin/tools/.scxadmin "$@"\n')
     shfile.close()
 
