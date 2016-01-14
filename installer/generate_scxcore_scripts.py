@@ -92,8 +92,8 @@ def GenerateAdminToolScriptFile():
     # 'Exception: Multibyte string conversion failed' errors when trying to convert
     # strings from SCXProcess::Run with output like:
     #
-    #   Shutting down Open Group OMI Server:                       [  確定  ]
-    #   Starting Open Group OMI Server:                            [  確定  ]
+    #   Shutting down Open Group OMI Server:          [  <non-ASCII characters>  ]
+    #   Starting Open Group OMI Server:               [  <non-ASCII characters>  ]
     #
     # Just set the C locale (which exists on all systems) to resolve this issue.
 
