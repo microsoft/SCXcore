@@ -64,7 +64,7 @@ static int _createDir(
             int saved_errno = errno;
             std::cerr << "Failed to change owner for directory " << dirName.c_str()
                       << ", errno=" << saved_errno
-                      << " (" << strerror(saved_errno) << ")" << std::endl;
+                      << " (" << strerror_r(saved_errno) << ")" << std::endl;
             return saved_errno;
         }
     }
@@ -77,7 +77,7 @@ static int _createDir(
             int saved_errno = errno;
             std::cerr << "Failed to create directory " << dirName.c_str()
                       << ", errno=" << saved_errno
-                      << " (" << strerror(saved_errno) << ")" << std::endl;
+                      << " (" << strerror_r(saved_errno) << ")" << std::endl;
             return saved_errno;
         }
     }
@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int uid = atoi( argv[1] );
-    int gid = atoi( argv[2] );
+    int uid = strtol( argv[1] );
+    int gid = strtol( argv[2] );
 
     // If spawning a non-root process, create subdir for scx log & persist 
     // with new uid as owner, if not already existing, so that we have 

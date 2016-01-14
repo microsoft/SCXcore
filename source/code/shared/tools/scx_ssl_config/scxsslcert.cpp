@@ -385,7 +385,7 @@ void SCXSSLCertificate::DoGenerate()
         if (BIO_write_filename(out.Get(),const_cast<char*>(keyout.c_str())) <= 0)
         {
             int e = errno;
-            char * p = strerror(e);
+            char * p = strerror_r(e);
             std::wostringstream ss;
             ss << keyout.c_str() << L": ";
             if (0 != p)
@@ -1008,8 +1008,8 @@ bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, con
 
     // Do not handle exceptions, we won't be getting any ... file and directory names are clean 7-bit strings.
     // We also already know that offsets do not point to last char in string ...
-    sfx_a = atoi(SCXCoreLib::StrToMultibyte(file_a.substr(offset_a + 1)).c_str());
-    sfx_b = atoi(SCXCoreLib::StrToMultibyte(file_b.substr(offset_b + 1)).c_str());
+    sfx_a = strtol(SCXCoreLib::StrToMultibyte(file_a.substr(offset_a + 1)).c_str());
+    sfx_b = strtol(SCXCoreLib::StrToMultibyte(file_b.substr(offset_b + 1)).c_str());
     return sfx_a > sfx_b;
 }
 
