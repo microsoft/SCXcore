@@ -119,14 +119,15 @@ static int _createDir(
 
 int main(int argc, char *argv[])
 {
+    char *endptr;
     if (argc != 3)
     {
         std::cerr << "Invalid number of parameters: " << argc << std::endl;
         return 1;
     }
 
-    int uid = atoi( argv[1] );
-    int gid = atoi( argv[2] );
+    int uid = (int) strtol( argv[1], &endptr, 10 );
+    int gid = (int) strtol( argv[2], &endptr, 10 );
 
     // If spawning a non-root process, create subdir for scx log & persist 
     // with new uid as owner, if not already existing, so that we have 
