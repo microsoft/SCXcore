@@ -998,7 +998,7 @@ bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, con
     file_a = pa->Get();
     file_b = pb->Get();
 
-    int sfx_a, sfx_b; // file name suffixes in integer form
+    scxlong sfx_a, sfx_b; // file name suffixes in integer form
     size_t offset_a, offset_b;
 
     // Validation routine verified that the strings contain a '.' before insertion.
@@ -1008,8 +1008,8 @@ bool IntegerSuffixComparator::operator()(const SCXCoreLib::SCXFilePath * pa, con
 
     // Do not handle exceptions, we won't be getting any ... file and directory names are clean 7-bit strings.
     // We also already know that offsets do not point to last char in string ...
-    sfx_a = atoi(SCXCoreLib::StrToMultibyte(file_a.substr(offset_a + 1)).c_str());
-    sfx_b = atoi(SCXCoreLib::StrToMultibyte(file_b.substr(offset_b + 1)).c_str());
+    sfx_a = SCXCoreLib::StrToLong(file_a.substr(offset_a + 1).c_str());
+    sfx_b = SCXCoreLib::StrToLong(file_b.substr(offset_b + 1).c_str());
     return sfx_a > sfx_b;
 }
 
