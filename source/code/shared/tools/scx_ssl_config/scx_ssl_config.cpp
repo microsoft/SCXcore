@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
                 wcout << L"Enter number of bits." << endl;
                 usage(argv[0], 1);
             }
-            bits = atoi(argv[i]);
+            bits = (int) SCXCoreLib::StrToLong(SCXCoreLib::StrFromUTF8(argv[i]));
             if (0 == bits || 0 != bits%512)
             {
                 wcout << L"Bits must be non-zero dividable by 512." << endl;
@@ -200,17 +200,17 @@ int main(int argc, char *argv[])
                 wcout << "Enter a value for start days." << endl;
                 usage(argv[0], 1);
             }
-            startDays = atoi(argv[i]);
+            startDays = (int) SCXCoreLib::StrToLong(SCXCoreLib::StrFromUTF8(argv[i]));
         }
         else if (enddaysFlag == argv[i])
         {
             // Ensure the value argument exists.
-            if (++i >= argc || atoi(argv[i]) == 0)
+            if (++i >= argc || SCXCoreLib::StrToLong(SCXCoreLib::StrFromUTF8(argv[i])) == 0)
             {
                 wcout << "Enter a non-zero value for end days." << endl;
                 usage(argv[0], 1);
             }
-            endDays = atoi(argv[i]);
+            endDays = (int) SCXCoreLib::StrToLong(SCXCoreLib::StrFromUTF8(argv[i]));
         }
         else if (testFlag == argv[i])
         {
@@ -436,7 +436,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
 
         /*
         ** Finally, make sure the permissions are right:
-        ** The public key gets 444, the private key gets 400
+        ** The pub key gets 444, the priv key gets 400
         */
 
         rc = chmod(sCertFile.c_str(), 00444);
