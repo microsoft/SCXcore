@@ -97,7 +97,7 @@ def GenerateAdminToolScriptFile():
     #
     # Just set the C locale (which exists on all systems) to resolve this issue.
 
-    shfile.write('export LANG=C\n')
+    shfile.write('LANG=C; export LANG\n')
 
     shfile.write('exec ' + scxpath + '/microsoft/scx/bin/tools/.scxadmin "$@"\n')
     shfile.close()
