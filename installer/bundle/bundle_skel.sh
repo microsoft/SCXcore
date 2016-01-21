@@ -261,6 +261,9 @@ check_if_pkg_is_installed() {
 # $2 - The package name of the package to be installed
 pkg_add() {
     pkg_filename=$1
+    pkg_name=$2
+
+    echo "----- Installing package: $pkg_name ($pkg_filename) -----"
 
     case "$PLATFORM" in
         Linux)
@@ -277,15 +280,15 @@ pkg_add() {
             ;;
 
         AIX)
-            /usr/sbin/installp -X -d $1 $2.rte
+            /usr/sbin/installp -X -d $pkg_filename ${pkg_name}.rte
             ;;
         
         HPUX)
-            /usr/sbin/swinstall -s $PWD/$1 $2
+            /usr/sbin/swinstall -s $PWD/$pkg_filename $pkg_name
             ;;
         
         SunOS)
-            /usr/sbin/pkgadd -a scx-admin -n -d $1 MSFT$2
+            /usr/sbin/pkgadd -a scx-admin -n -d $pkg_filename MSFT$pkg_name
             ;;
     esac
 }
@@ -293,6 +296,7 @@ pkg_add() {
 # $1 - The package name of the package to be uninstalled
 # $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
+    echo "----- Removing package: $1 -----"
     case "$PLATFORM" in
         Linux)
             ulinux_detect_installer
