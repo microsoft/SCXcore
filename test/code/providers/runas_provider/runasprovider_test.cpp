@@ -18,6 +18,7 @@
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxdirectoryinfo.h>
 #include <scxcorelib/scxexception.h>
+#include <scxcorelib/strerror.h>
 #include <scxcorelib/stringaid.h>
 #include <util/Base64Helper.h>
 #include <testutils/scxunit.h>
@@ -567,7 +568,7 @@ public:
         if (err)
         {
             std::ostringstream os;
-            os << "Unexpected error in setup: " << strerror(err & 127);
+            os << "Unexpected error in setup: " << SCXCoreLib::strerror(err & 127);
             CPPUNIT_FAIL(os.str().c_str());
         }
 

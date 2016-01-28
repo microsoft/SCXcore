@@ -5,3 +5,4 @@ target
 build/config.mak
 build/Makefile.version
 test/code/providers/providertestutils.cpp
+source/code/shared/tools/omi_preexec/strerror.cpp

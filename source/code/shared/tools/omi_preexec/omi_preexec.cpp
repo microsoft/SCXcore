@@ -15,6 +15,8 @@
                program.
 */
 
+#include <scxcorelib/strerror.h>
+
 #include <errno.h>
 #include <iostream>
 #include <pwd.h>
@@ -64,7 +66,7 @@ static int _createDir(
             int saved_errno = errno;
             std::cerr << "Failed to change owner for directory " << dirName.c_str()
                       << ", errno=" << saved_errno
-                      << " (" << strerror(saved_errno) << ")" << std::endl;
+                      << " (" << SCXCoreLib::strerror(saved_errno) << ")" << std::endl;
             return saved_errno;
         }
     }
@@ -76,8 +78,8 @@ static int _createDir(
         {
             int saved_errno = errno;
             std::cerr << "Failed to create directory " << dirName.c_str()
-                      << ", errno=" << saved_errno
-                      << " (" << strerror(saved_errno) << ")" << std::endl;
+                      << ", errno=" << saved_errno 
+                      << " (" << SCXCoreLib::strerror(saved_errno) << ")" << std::endl;
             return saved_errno;
         }
     }

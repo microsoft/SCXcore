@@ -16,6 +16,7 @@
 
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/scxfile.h>
+#include <scxcorelib/strerror.h>
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxglob.h>
 
@@ -385,12 +386,12 @@ void SCXSSLCertificate::DoGenerate()
         if (BIO_write_filename(out.Get(),const_cast<char*>(keyout.c_str())) <= 0)
         {
             int e = errno;
-            char * p = strerror(e);
+            std::wstring errText = SCXCoreLib::StrFromUTF8(SCXCoreLib::strerror(e));
             std::wostringstream ss;
             ss << keyout.c_str() << L": ";
-            if (0 != p)
+            if ( ! errText.empty() )
             {
-                ss << p;
+                ss << errText;
             }
             else
             {
