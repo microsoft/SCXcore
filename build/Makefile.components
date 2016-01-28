@@ -327,9 +327,15 @@ else
 
 endif
 
+# Testing tool (needs to be built on each of our platforms)
+$(TARGET_DIR)/testapp :
+	$(ECHO) "========================= Performing make testapp"
+	$(MAKE) -C $(SCX_BRD)/test/util/testapp
+
 # Used to generate compontents necessary for other projects to compile with the 
 # core components
-devel-deps: $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) omi
+devel-deps: $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(TARGET_DIR)/testapp omi
+	$(ECHO) "========================= Performing building devel-deps"
 	-$(RMDIR) $(INTERMEDIATE_DIR)/scxcore-devel
 ifeq ($(COMBINED_PACKAGES),1)
 	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL098DIR)
