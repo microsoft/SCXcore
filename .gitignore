@@ -4,5 +4,7 @@ intermediate
 target
 build/config.mak
 build/Makefile.version
+
+# These are links (pointing to actual sources in PAL)
 test/code/providers/providertestutils.cpp
 source/code/shared/tools/omi_preexec/strerror.cpp
