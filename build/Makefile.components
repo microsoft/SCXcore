@@ -225,9 +225,20 @@ $(INTERMEDIATE_DIR)/regex_test$(PF_EXE_FILE_SUFFIX): \
 #================================================================================
 
 OMI_PREEXEC_DIR=$(SCX_SRC_ROOT)/shared/tools/omi_preexec
+PAL_STRERROR_LOC=$(SCXPAL_DIR)/source/code/scxcorelib/util
+
+# Note that strerror.cpp lives in the PAL, but omi_preexec doesn't link against
+# the PAL. To resolve, create a link to the real file and built it ourselves.
+
+$(OMI_PREEXEC_DIR)/strerror.cpp : 
+# We need to recreate the symlink if the link is older than what it points to.
+# Touch will not work, and ln -fs does not work on Sun5.9
+	rm -f $(OMI_PREEXEC_DIR)/strerror.cpp
+	ln -s $(PAL_STRERROR_LOC)/strerror.cpp $(OMI_PREEXEC_DIR)/strerror.cpp
 
 OMI_PREEXEC_SRCFILES=\
-	$(OMI_PREEXEC_DIR)/omi_preexec.cpp
+	$(OMI_PREEXEC_DIR)/omi_preexec.cpp \
+	$(OMI_PREEXEC_DIR)/strerror.cpp
 
 OMI_PREEXEC_OBJFILES = $(call src_to_obj,$(OMI_PREEXEC_SRCFILES))
 

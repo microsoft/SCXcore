@@ -61,6 +61,7 @@ clean: clean-status doxygen_clean
 	-$(RMDIR) $(INTERMEDIATE_DIR)/*.map
 	-$(RMDIR) $(INTERMEDIATE_DIR)/*.cov
 	-$(RMDIR) $(TARGET_DIR)
+	-$(RM) $(SCX_BRD)/source/code/shared/tools/omi_preexec/strerror.cpp
 	-$(RM) $(SCX_UNITTEST_ROOT)/providers/providertestutils.cpp
 	-find $(SCX_BRD) -name \*~ -exec rm {} \;
 
