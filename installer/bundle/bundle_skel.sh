@@ -280,7 +280,7 @@ pkg_add() {
             ;;
 
         AIX)
-            /usr/sbin/installp -X -d $pkg_filename ${pkg_name}.rte
+            /usr/sbin/installp -a -X -d $pkg_filename ${pkg_name}.rte
             ;;
         
         HPUX)
@@ -356,7 +356,7 @@ pkg_upd() {
 
         AIX)
             [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="-F" || FORCE=""
-            /usr/sbin/installp -X $FORCE -d $1 $pkg_name.rte
+            /usr/sbin/installp -a -X $FORCE -d $1 $pkg_name.rte
             ;;
 
         HPUX)
@@ -461,8 +461,9 @@ then
             fi
         done
 
-        # Now just simply pkg_rm scx
+        # Now just simply pkg_rm scx (and omi if it has no dependencies)
         pkg_rm scx
+	pkg_rm omi
     fi
 
     if [ "$installMode" = "P" ]
