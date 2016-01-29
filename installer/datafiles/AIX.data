@@ -8,15 +8,15 @@ COPYRIGHT_FILE:  'For copyright and license information please refer to\n/opt/mi
 /usr/lpp/scx.rte; 755; root; ${{ROOT_GROUP_NAME}}
 
 %Dependencies
-*prereq omi.rte 1.0.8.0
+*prereq omi.rte 1.0.8.4
 
 %OmiService_funcs
 StopOmiServer() {
-    stopsrc -s omiserverd
+    /opt/omi/bin/service_control stop
 }
 
 StartOmiServer() {
-    startsrc -s omiserverd -e "LD_LIBRARY_PATH=/opt/omi/lib"
+    /opt/omi/bin/service_control start
 }
 
 %Preinstall_10
