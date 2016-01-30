@@ -5,6 +5,7 @@
 /build/config.mak
 /build/Makefile.version
 /installer/intermediate
+/test/util/testapp/*.o
 
 # These are links (pointing to actual sources in PAL)
 /test/code/providers/providertestutils.cpp
