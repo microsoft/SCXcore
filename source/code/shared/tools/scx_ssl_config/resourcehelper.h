@@ -3,13 +3,13 @@
 */
 /**
    \file
-   
+
    \brief      Resource helper classes.
-   
+
    \date       2-12-2008
-   
+
    These classes provide automated resource control.
-   
+
 */
 
 #ifndef RESOURCEHELPER_H
@@ -18,15 +18,17 @@
 #include <iosfwd>
 #include <cassert>
 
-/** 
+extern "C"
+{
+    typedef void (*fnptr)();    ///< Define a resource alloc/dealloc function pointer type.
+}
+
+/**
     Helper class to perform resouce management.
-    
+
     Resources are allocated by a void (*fn)(void) call and deallocated the same way.
 */
 class ManagedResource {
-public:
-    typedef void (*fnptr)();    ///< Define a resource alloc/dealloc function pointer type.
-
 private:
     fnptr m_ReleaseFcn;         ///< Release resource function pointer.
 
@@ -34,7 +36,7 @@ public:
     /** CTOR
         \param[in] load Resource load function pointer.
         \param[in] release Resource release function pointer.
-        
+
         Create a resource control object and load the resource.
     */
     ManagedResource(fnptr load, fnptr release) : m_ReleaseFcn(release)
@@ -89,7 +91,7 @@ template<typename T> struct ManagedValueResource {
     {
         (*m_ReleaseFcn)(m_Value);
         m_Value = 0;
-    }    
+    }
 
     /**
        Get the value.
@@ -108,7 +110,6 @@ template<typename T> struct ManagedValueResource {
     {
         return 0 == m_Value;
     }
-
 };
 
 
