@@ -109,45 +109,13 @@ public:
     void StartScriptForCimdOK(void)
     {
         TestServiceControlCimom svc;
-#if defined(aix)
-        CPPUNIT_ASSERT(svc.GetStart() == L"/usr/bin/startsrc -s omiserverd");
-#elif defined(hpux)
-        CPPUNIT_ASSERT(svc.GetStart() == L"/sbin/init.d/omiserverd start");
-#elif defined(linux)
         CPPUNIT_ASSERT(svc.GetStart() == L"/opt/omi/bin/service_control start");
-#elif defined(macos)
-        CPPUNIT_ASSERT(svc.GetStart() == L"launchctl load -w /Library/LaunchDaemons/com.microsoft.scx-cimd.plist");
-#elif defined(sun)
-#if (PF_MAJOR == 5) && (PF_MINOR > 9)
-        CPPUNIT_ASSERT(svc.GetStart() == L"/usr/sbin/svcadm -v enable -s svc:/application/management/omiserverd");
-#else
-        CPPUNIT_ASSERT(svc.GetStart() == L"/etc/init.d/omiserverd start");
-#endif
-#else
-        CPPUNIT_FAIL("Platform not implemented");
-#endif
     }
 
     void StopScriptForCimdOK(void)
     {
         TestServiceControlCimom svc;
-#if defined(aix)
-        CPPUNIT_ASSERT(svc.GetStop() == L"/usr/bin/stopsrc -c -s omiserverd");
-#elif defined(hpux)
-        CPPUNIT_ASSERT(svc.GetStop() == L"/sbin/init.d/omiserverd stop");
-#elif defined(linux)
         CPPUNIT_ASSERT(svc.GetStop() == L"/opt/omi/bin/service_control stop");
-#elif defined(macos)
-        CPPUNIT_ASSERT(svc.GetStop() == L"launchctl unload -w /Library/LaunchDaemons/com.microsoft.scx-cimd.plist");
-#elif defined(sun)
-#if (PF_MAJOR == 5) && (PF_MINOR > 9)
-        CPPUNIT_ASSERT(svc.GetStop() == L"/usr/sbin/svcadm -v disable -s svc:/application/management/omiserverd");
-#else
-        CPPUNIT_ASSERT(svc.GetStop() == L"/etc/init.d/omiserverd stop");
-#endif
-#else
-        CPPUNIT_FAIL("Platform not implemented");
-#endif
     }
 
     void ServiceStartRunsScriptOK(void)
