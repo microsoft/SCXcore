@@ -56,9 +56,21 @@ COREPROVIDERMODULE_STATICLIB_DEPS = \
 	omprovider
 
 # Foreach XYZ in the list above, reference $(SCXPAL_TARGET_DIR)/libXYZ.a
-SCXPAL_STATICLIB_DEPFILES = \
-	$(addprefix $(SCXPAL_TARGET_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXPAL_STATICLIB_DEPS))) \
+
+STATIC_SCXPAL_DEPFILES = $(addprefix $(SCXPAL_TARGET_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(SCXPAL_STATICLIB_DEPS)))
+
+SCXPAL_STATICLIB_DEPFILES_NODUPS = \
+	$(STATIC_SCXPAL_DEPFILES) \
 	$(STATIC_PRODUCTDEPENDENCIES_DEPFILES)
+
+# Note the circular dependency: We need the PAL, ProductDependencies, and PAL
+#
+# The issue is that PAL references things in ProductDeps (for logging project
+# specific data), which needs PAL support. So to deal with linkage, we need to
+# first pull PAL (to call for required logging methods)) + ProjectDeps + PAL
+# (one more time) to get things that ProjectDeps needed from PAL.
+
+SCXPAL_STATICLIB_DEPFILES = $(SCXPAL_STATICLIB_DEPFILES_NODUPS) $(STATIC_SCXPAL_DEPFILES)
 
 # Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
 COREPROVIDERMODULE_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(COREPROVIDERMODULE_STATICLIB_DEPS)))
@@ -192,7 +204,7 @@ LOGFILEREADER_DEPFILES=$(LOGFILEREADER_OBJFILES:.$(PF_OBJ_FILE_SUFFIX)=.d) $(STA
 
 # Static dependencies on POSIX platforms
 LOGFILEREADER_STATICLIB_DEPS = \
-	scxlogfilereader \
+	scxlogfilereader
 
 # Foreach XYZ in the list above, build $(INTERMEDIATE_DIR)/libXYZ.a
 LOGFILEREADER_STATICLIB_DEPFILES = $(addprefix $(INTERMEDIATE_DIR)/lib, $(addsuffix .$(PF_STAT_LIB_FILE_SUFFIX), $(LOGFILEREADER_STATICLIB_DEPS)))
@@ -344,7 +356,7 @@ else
 	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib
 endif
 	$(COPYDIR) $(SCX_SHARED_INCLUDE_DIR) $(INTERMEDIATE_DIR)/scxcore-devel/shared
-	$(COPY) $(SCXPAL_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/scxcore-devel/lib
+	$(COPY) $(SCXPAL_STATICLIB_DEPFILES_NODUPS) $(INTERMEDIATE_DIR)/scxcore-devel/lib
 	$(COPY) $(COREPROVIDERMODULE_STATICLIB_DEPFILES) $(INTERMEDIATE_DIR)/scxcore-devel/lib
 	$(COPY) $(SCXPAL_TARGET_DIR)/libscxassertcppunit.$(PF_STAT_LIB_FILE_SUFFIX) $(INTERMEDIATE_DIR)/scxcore-devel/lib
 	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/include/testutils
