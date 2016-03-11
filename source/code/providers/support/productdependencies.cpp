@@ -13,6 +13,7 @@
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxprocess.h>
+#include <scxcorelib/scxnameresolver.h>
 #include <scxcorelib/scxproductdependencies.h>
 #include <scxsystemlib/scxproductdependencies.h>
 
@@ -52,6 +53,7 @@ namespace SCXCoreLib
 #endif
                       << L"* Process id: " << StrFrom(SCXProcess::GetCurrentProcessID()) << std::endl
                       << L"* Process started: " << procStartTimestamp.ToExtendedISO8601() << std::endl
+                      << L"* System Hostname: " << GetHostDomainname() << std::endl
                       << continuationLogMsg.str() 
                       << L"*" << std::endl
                       << L"* Log format: <date> <severity>     [<code module>:<line number>:<process id>:<thread id>] <message>" << std::endl
