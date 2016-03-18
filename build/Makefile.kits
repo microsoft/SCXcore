@@ -23,10 +23,10 @@ else
     # If this ever changes, we'll likely need a setting in configure script.
     ifneq ($(PF),SunOS)
       ifeq ($(PF_ARCH),x86)
-        OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.i686.sh)
+        OSS_KITS:=$(shell cd $(SCX_BRD)/../opsmgr-kits; ls *-oss-test.sh *.i686.sh)
       else
         ifeq ($(PF_ARCH),x64)
-          OSS_KITS:=$(shell cd $(SCX_BRD)/installer/oss-kits; ls *-oss-test.sh *.x86_64.sh)
+          OSS_KITS:=$(shell cd $(SCX_BRD)/../opsmgr-kits; ls *-oss-test.sh *.x86_64.sh)
         endif
       endif
     endif
@@ -162,7 +162,7 @@ bundle: kit
 
 ifneq ($(OSS_KITS),)
 	# Copy OSS kit files to target directory if Linux or ULINUX
-	cd $(SCX_BRD)/installer/oss-kits; cp $(OSS_KITS) $(INTERMEDIATE_DIR); cd $(INTERMEDIATE_DIR); chmod u+wx $(OSS_KITS);
+	cd $(SCX_BRD)/../opsmgr-kits; cp $(OSS_KITS) $(INTERMEDIATE_DIR); cd $(INTERMEDIATE_DIR); chmod u+wx $(OSS_KITS);
 endif
 
 	# Copy remaining kit files to target directory

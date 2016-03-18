@@ -1,4 +1,0 @@
-[submodule "installer/oss-kits"]
-	path = installer/oss-kits
-	url = git@github.com:Microsoft/SCXcore-osskits.git
-	branch = master
