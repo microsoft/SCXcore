@@ -216,7 +216,7 @@ check_if_pkg_is_installed() {
     case "$PLATFORM" in
         Linux)
             if [ "$INSTALLER" = "DPKG" ]; then
-                dpkg -s $1 | grep Status | grep " installed" 2> /dev/null 1> /dev/null
+                dpkg -s $1 2> /dev/null | grep Status | grep " installed" 2> /dev/null 1> /dev/null
             else
                 rpm -q $1 2> /dev/null 1> /dev/null
             fi
@@ -440,6 +440,20 @@ shouldInstall_scx()
 
 set +e
 
+# Validate package and initialize
+case "$PLATFORM" in
+    Linux)
+        ulinux_detect_installer
+        ;;
+
+    AIX|HPUX|SunOS)
+        ;;
+
+    *)
+        echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
+        cleanup_and_exit 2
+esac
+
 # Only Solaris doesn't allow the -n qualifier in 'tail' command
 [ "$PLATFORM" != "SunOS" ] && TAIL_CQUAL="-n"
 
@@ -560,19 +574,6 @@ do
             ;;
     esac
 done
-
-case "$PLATFORM" in
-    Linux)
-        ulinux_detect_installer
-        ;;
-
-    AIX|HPUX|SunOS)
-        ;;
-
-    *)
-        echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
-        cleanup_and_exit 2
-esac
 
 if [ -z "${installMode}" ]; then
     echo "$0: No options specified, specify --help for help" >&2
