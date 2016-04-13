@@ -175,7 +175,7 @@ UnconfigureScxPAM_dir() {
 %Postinstall_10
 #include UnconfigureScxPAM
 CreateSoftLinkToSudo() {
-    [ ! -L /etc/opt/microsoft/scx/conf/sudodir ] && ln -s ${{SUDO_DIR}} /etc/opt/microsoft/scx/conf/sudodir || echo -n
+    [ ! -L /etc/opt/microsoft/scx/conf/sudodir ] && ln -s ${{SUDO_DIR}} /etc/opt/microsoft/scx/conf/sudodir || true
 }
 
 WriteInstallInfo() {
