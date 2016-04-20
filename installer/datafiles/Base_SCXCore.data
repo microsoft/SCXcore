@@ -14,6 +14,8 @@ SCX_SSL_CONFIG:          '/opt/microsoft/scx/bin/tools/scxsslconfig'
 SUNOS_PKGSAVE:           ''
 SCX_LOC:                 '/etc/opt/microsoft/scx/conf/sudodir'
 SUDO_DIR:                '/usr/bin'
+TMP_LOC:                 '/etc/opt/microsoft/scx/conf/tmpdir'
+TMP_DIR:                 '/tmp'
 ROOT_GROUP_NAME:         'root'
 SHLIB_EXT:               'so'
 DISABLE_PORT:		 'false'
@@ -115,11 +117,18 @@ else
     OMI_IS_RUNNING=0
 fi
 
-%DeleteSoftLinkToSudo
+%DeleteSoftLinks
 DeleteSoftLinkToSudo() {
     if [ -L ${{SCX_LOC}} ]; then
         LINKED_DIR=`(cd ${{SCX_LOC}} ; pwd -P)`
         [ x${LINKED_DIR} = x${{SUDO_DIR}} ] && rm ${{SCX_LOC}}
+    fi
+}
+
+DeleteSoftLinkToTmpDir() {
+    if [ -L ${{TMP_LOC}} ]; then
+        LINKED_DIR=`(cd ${{TMP_LOC}} ; pwd -P)`
+        [ x${LINKED_DIR} = x${{TMP_DIR}} ] && rm ${{TMP_LOC}}
     fi
 }
 
@@ -176,6 +185,10 @@ UnconfigureScxPAM_dir() {
 #include UnconfigureScxPAM
 CreateSoftLinkToSudo() {
     [ ! -L /etc/opt/microsoft/scx/conf/sudodir ] && ln -s ${{SUDO_DIR}} /etc/opt/microsoft/scx/conf/sudodir || true
+}
+
+CreateSoftLinkToTmpDir() {
+    [ ! -L /etc/opt/microsoft/scx/conf/tmpdir ] && ln -s ${{TMP_DIR}} /etc/opt/microsoft/scx/conf/tmpdir || true
 }
 
 WriteInstallInfo() {
@@ -257,6 +270,7 @@ set -e
 
 %Postinstall_200
 CreateSoftLinkToSudo
+CreateSoftLinkToTmpDir
 
 %Postinstall_300
 WriteInstallInfo

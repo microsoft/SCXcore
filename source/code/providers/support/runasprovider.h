@@ -54,6 +54,11 @@ namespace SCXCore
         {
             m_Configurator = configurator;
         }
+        
+        void SetTemporaryDirectory(std::wstring tmpDir)
+        {
+        	m_defaultTmpDir = tmpDir;
+        }
 
     private:
         void ParseConfiguration() { m_Configurator->Parse(); }
@@ -66,6 +71,7 @@ namespace SCXCore
         SCXCoreLib::SCXHandle<RunAsConfigurator> m_Configurator;
 
         SCXCoreLib::SCXLogHandle m_log;
+        std::wstring m_defaultTmpDir;
         static int ms_loadCount;
     };
 

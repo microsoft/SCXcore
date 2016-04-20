@@ -44,8 +44,10 @@ if [ $OMI_IS_RUNNING -eq 1 ]; then
 fi
 
 %Postuninstall_100
-#include DeleteSoftLinkToSudo
+#include DeleteSoftLinks
+
 DeleteSoftLinkToSudo
+DeleteSoftLinkToTmpDir
 
 %Postuninstall_50
 #if DISABLE_PORT != true

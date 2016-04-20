@@ -36,8 +36,10 @@ set +e
 set -e
 
 %Preuninstall_800
-#include DeleteSoftLinkToSudo
+#include DeleteSoftLinks
+
 DeleteSoftLinkToSudo
+DeleteSoftLinkToTmpDir
 
 %Postuninstall_50
 #if DISABLE_PORT != true
