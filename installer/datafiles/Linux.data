@@ -54,11 +54,12 @@ fi
 #endif
 
 %Postuninstall_1100
-#include DeleteSoftLinkToSudo
+#include DeleteSoftLinks
 
 ${{OMI_SERVICE}} reload
 
 # If we're called for upgrade, don't do anything
 if ${{PERFORMING_UPGRADE_NOT}}; then
     DeleteSoftLinkToSudo
+    DeleteSoftLinkToTmpDir
 fi

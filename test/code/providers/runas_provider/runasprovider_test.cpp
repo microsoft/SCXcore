@@ -20,6 +20,8 @@
 #include <scxcorelib/scxexception.h>
 #include <scxcorelib/strerror.h>
 #include <scxcorelib/stringaid.h>
+#include <scxcorelib/scxprocess.h>
+#include <scxsystemlib/scxsysteminfo.h>
 #include <util/Base64Helper.h>
 #include <testutils/scxunit.h>
 #include <testutils/providertestutils.h>
@@ -27,6 +29,7 @@
 #include "support/runasprovider.h"
 #include <list>
 #include <unistd.h>
+#include <sstream>
 #include "SCX_OperatingSystem_Class_Provider.h"
 
 using namespace SCXCoreLib;
@@ -59,6 +62,9 @@ class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( TestDoInvokeMethodScriptFailed );
     CPPUNIT_TEST( TestDoInvokeMethodScriptNonSH );
     CPPUNIT_TEST( TestDoInvokeMethodScriptNoHashBang );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptTmpDir );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptDefaultTmpDir );
+    CPPUNIT_TEST( TestDoInvokeMethodScriptNonDefaultTmpDir );
     CPPUNIT_TEST( TestChRoot );
     CPPUNIT_TEST( TestCWD );
 
@@ -86,6 +92,27 @@ class SCXRunAsProviderTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST_SUITE_END();
 
 public:
+    
+    void RunCommand(std::wstring command, std::wstring caller)
+    {
+    	std::istringstream input;
+    	std::ostringstream output, error;
+    	int code = SCXCoreLib::SCXProcess::Run(command, input, output, error);
+    	if(code !=0 || error.str().length() > 0) {
+    		std::stringstream ss;
+    		ss<<"Failure running command: "<<StrToUTF8(command)<<std::endl;
+    		ss<<"Called by Method: "<<StrToUTF8(caller)<<std::endl;
+    		if(code != 0) {
+    			ss<<"Exit code: "<<code<<std::endl;
+    		}
+    		if(error.str().length() > 0) {
+    			ss<<"Error: "<<error.str()<<std::endl;
+    		}
+    		CPPUNIT_ASSERT_EQUAL_MESSAGE(ss.str(), std::string(""), error.str());
+    		CPPUNIT_ASSERT_EQUAL_MESSAGE(ss.str(), 0, code);
+    	}
+    }
+    
     void setUp(void)
     {
         std::wstring errMsg;
@@ -109,8 +136,9 @@ public:
         TestableContext context;
         TearDownAgent<mi::SCX_OperatingSystem_Class_Provider>(context, CALL_LOCATION(errMsg));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, false, context.WasRefuseUnloadCalled() );
-        system("rm -rf testChRoot > /dev/null 2>&1");
-        system("rm -rf testCWD > /dev/null 2>&1");
+        RunCommand(L"rm -rf testChRoot", L"tearDown");
+        RunCommand(L"rm -rf testCWD", L"tearDown");
+        RunCommand(L"rm -rf testTmpDir", L"tearDown");
     }
 
     struct InvokeReturnData
@@ -517,10 +545,72 @@ public:
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"run-test-unit\n", returnData.stdOut);
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"-test-\n", returnData.stdErr);
     }
+    
+    void TestDoInvokeMethodScriptTmpDir()
+    {
+        std::wstring errMsg;
+        mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(
+            		        "#!/bin/sh\n"
+            		        "# Get location pointed by tmpdir\n"
+            				"DIR=`dirname $0`\n"
+            		        "echo $DIR\n"
+            		        "exit 0\n");
+        param.Arguments_value("unit test run");
+        param.timeout_value(0);
+        InvokeReturnData returnData;
+        SCXCore::g_RunAsProvider.SetTemporaryDirectory(L"/some/random/directory/");
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"/tmp\n", returnData.stdOut);
+    }
+    
+    void TestDoInvokeMethodScriptDefaultTmpDir()
+    {
+    	std::wstring errMsg;
+    	mi::SCX_OperatingSystem_ExecuteScript_Class param;
+        param.Script_value(
+                		    "#!/bin/sh\n"
+                		    "# Get location pointed by tmpdir\n"
+                			"DIR=`dirname $0`\n"
+                		    "echo $DIR\n"
+                		    "exit 0\n");
+        param.Arguments_value("unit test run");
+        param.timeout_value(0);
+        InvokeReturnData returnData;
+        SCXCore::g_RunAsProvider.SetTemporaryDirectory(L"/tmp/");
+        ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"/tmp\n", returnData.stdOut);
+    }
+    
+    void TestDoInvokeMethodScriptNonDefaultTmpDir()
+    {
+    	std::wstring errMsg;
+    	mi::SCX_OperatingSystem_ExecuteScript_Class param;
+    	param.Script_value(
+    	                    "#!/bin/sh\n"
+    	                	"# Get location pointed by tmpdir\n"
+    	                	"DIR=`dirname $0`\n"
+    	                	"echo $DIR\n"
+    	                	"exit 0\n");
+    	param.Arguments_value("unit test run");
+    	param.timeout_value(0);
+    	InvokeReturnData returnData;
+    	
+    	// As readlink is not available on all plaforms testing this with a non default
+    	// directory
+    	SCXDirectory::CreateDirectory(L"testTmpDir/");
+    	SCXCore::g_RunAsProvider.SetTemporaryDirectory(L"./testTmpDir/");
+    	
+    	ExecuteScript(param, MI_RESULT_OK, returnData, CALL_LOCATION(errMsg));
+    	CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 0, returnData.returnCode);
+    	CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, L"./testTmpDir\n", returnData.stdOut);
+    }
 
     void TestChRoot()
     {
-        system("rm -rf testChRoot > /dev/null 2>&1");
+        RunCommand(L"rm -rf testChRoot", L"TestChRoot");
         SCXDirectory::CreateDirectory(L"testChRoot/");
 
         // Write our script out
@@ -564,13 +654,8 @@ public:
             ofs << "exit 0" << std::endl;
         }
 
-        int err = system("chmod u+x testChRoot/setup.sh && bash -c ./testChRoot/setup.sh");
-        if (err)
-        {
-            std::ostringstream os;
-            os << "Unexpected error in setup: " << SCXCoreLib::strerror(err & 127);
-            CPPUNIT_FAIL(os.str().c_str());
-        }
+        RunCommand(L"chmod u+x testChRoot/setup.sh", L"TestChRoot");
+        RunCommand(L"bash -c ./testChRoot/setup.sh", L"TestChRoot");
 
         SCXCoreLib::SCXHandle<SCXCore::RunAsConfigurator> configurator(new SCXCore::RunAsConfigurator());
         configurator->SetChRootPath(SCXCoreLib::SCXFilePath(L"./testChRoot"));
@@ -595,7 +680,7 @@ public:
 
     void TestCWD()
     {
-        system("rm -rf testCWD > /dev/null 2>&1");
+        RunCommand(L"rm -rf testCWD", L"TestCWD");
         SCXDirectory::CreateDirectory(L"testCWD/");
 
         SCXCoreLib::SCXHandle<SCXCore::RunAsConfigurator> configurator(new SCXCore::RunAsConfigurator());

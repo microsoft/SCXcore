@@ -12,10 +12,14 @@
 
 #include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxprocess.h>
+#include <scxcorelib/scxdirectoryinfo.h>
+#include <scxcorelib/logsuppressor.h>
 #include <scxsystemlib/scxsysteminfo.h>
 #include "startuplog.h"
 #include "scxrunasconfigurator.h"
 #include "runasprovider.h"
+
+const std::wstring s_defaultTmpDir = L"/etc/opt/microsoft/scx/conf/tmpdir/";
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -37,6 +41,10 @@ namespace SCXCore
             }
 
             ParseConfiguration();
+            // set tmpdir location when RunAs provider gets loaded. This will later be used in 
+            // every ExecuteScript call. Check for existence of directory will be done in
+            // ExecuteScript method so that latest state is taken.
+            m_defaultTmpDir = s_defaultTmpDir;
         }
     }
 
@@ -212,7 +220,13 @@ namespace SCXCore
 
         try
         {
-            SCXFilePath scriptfile = SCXFile::CreateTempFile(script);
+        	bool tmpDirExists = SCXCoreLib::SCXDirectory::Exists(m_defaultTmpDir);
+        	std::wstring tmpDir = tmpDirExists ? m_defaultTmpDir : L"/tmp/";
+        	if(!tmpDirExists) {
+        		static SCXCoreLib::LogSuppressor suppressor(SCXCoreLib::eWarning, SCXCoreLib::eHysterical);
+        		SCX_LOG(m_log, suppressor.GetSeverity(m_defaultTmpDir), L"Default tmp Directory does not exist. Falling back to /tmp");
+        	}
+            SCXFilePath scriptfile = SCXFile::CreateTempFile(script, tmpDir);
             SCXFileSystem::Attributes attribs = SCXFileSystem::GetAttributes(scriptfile);
             attribs.insert(SCXFileSystem::eUserExecute);
             SCXFile::SetAttributes(scriptfile, attribs);
@@ -248,7 +262,7 @@ namespace SCXCore
 
         return (returncode == 0);
     }
-
+    
     std::wstring RunAsProvider::ConstructCommandWithElevation(const std::wstring &command, 
                                                               const std::wstring &elevationtype)
     {
