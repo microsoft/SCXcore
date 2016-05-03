@@ -71,7 +71,7 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt;                                               755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /var;                                                   755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /var/opt;                                               755; root; ${{ROOT_GROUP_NAME}}; sysdir
-/opt/microsoft;                                         755; root; ${{ROOT_GROUP_NAME}}
+/opt/microsoft;                                         755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /opt/microsoft/scx;                                     755; root; ${{ROOT_GROUP_NAME}}
 
 /opt/microsoft/scx/bin;                                 755; root; ${{ROOT_GROUP_NAME}}
@@ -81,7 +81,7 @@ MAINTAINER:              'Microsoft Corporation'
 /opt/omi;                                               755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /opt/omi/lib;                                           755; root; ${{ROOT_GROUP_NAME}}; sysdir
 
-/etc/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
+/etc/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /etc/opt/microsoft/scx;                                 755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx/conf;                            755; root; ${{ROOT_GROUP_NAME}}
 /etc/opt/microsoft/scx/ssl;                             755; root; ${{ROOT_GROUP_NAME}}
@@ -93,7 +93,7 @@ MAINTAINER:              'Microsoft Corporation'
 /etc/opt/omi/conf/omiregister/root-omi;                 755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /etc/opt/omi/conf/omiregister/root-scx;                 755; root; ${{ROOT_GROUP_NAME}}
 
-/var/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}
+/var/opt/microsoft;                                     755; root; ${{ROOT_GROUP_NAME}}; sysdir
 /var/opt/microsoft/scx;                                 755; root; ${{ROOT_GROUP_NAME}}
 /var/opt/microsoft/scx/tmp;                             755; root; ${{ROOT_GROUP_NAME}}
 /var/opt/microsoft/scx/lib;                             755; root; ${{ROOT_GROUP_NAME}}
