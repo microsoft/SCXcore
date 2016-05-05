@@ -3,4 +3,4 @@ PERFORMING_UPGRADE_NOT: '[ "$1" != "upgrade" -a "$1" != "purge" ]'
 PACKAGE_TYPE: 'DPKG'
 
 %Dependencies
-omi (>= 1.0.8.3)
+omi (>= 1.0.8.6)
