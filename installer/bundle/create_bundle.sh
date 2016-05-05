@@ -8,11 +8,15 @@
 # We expect this script to run from the BUILD directory (i.e. scxcore/build).
 # Directory paths are hard-coded for this location.
 
-# Notes for file bundle_skel.sh (included here since we don't want to ship
+# Notes for file bundle_skel_<PLATFORM>.sh (included here since we don't want to ship
 # these comments in shell bundle):
 #
-# The bundle_skel.sh file is a shell bundle for all platforms (Redhat, SUSE,
-# AIX, HP, and Solaris), as well as universal Linux platforms.
+# The bundle_skel_<PLATFORM>.sh file is a shell bundle for <PLATFORM> (PLATFORM = Linux, AIX, HP, SunOS
+# The platforms and the relevant shell bundles are as listed below:
+# Redhat, SUSE and Universal Linux =>  bundle_skel_Linux.sh
+# AIX                              =>   bundle_skel_AIX.sh
+# HP                               =>   bundle_skel_HPUX.sh
+# Solaris                          =>   bundle_skel_SunOS.sh
 #
 # Use this script by concatenating it with some binary package.
 #
@@ -155,8 +159,13 @@ OUTPUT_DIR=`(cd $2; pwd -P)`
 
 cd $INTERMEDIATE_DIR
 
+if [ ! -f $SOURCE_DIR/bundle_skel_${PLATFORM_TYPE}.sh ]
+then
+    echo "shell bundle skeleton file bundle_skel_${PLATFORM_TYPE}.sh does not exist in ${SOURCE_DIR}"
+    exit 1
+fi
 # Fetch the bundle skeleton file
-cp $SOURCE_DIR/bundle_skel.sh .
+cp $SOURCE_DIR/bundle_skel_${PLATFORM_TYPE}.sh ./bundle_skel.sh
 chmod u+w bundle_skel.sh
 
 # See if we can resolve git references for output
@@ -192,7 +201,6 @@ else
 fi
 
 # Edit the bundle file for hard-coded values
-do_sed bundle_skel.sh "s/PLATFORM=<PLATFORM_TYPE>/PLATFORM=$PLATFORM_TYPE/"
 do_sed bundle_skel.sh "s/TAR_FILE=<TAR_FILE>/TAR_FILE=$3/"
 do_sed bundle_skel.sh "s/OM_PKG=<OM_PKG>/OM_PKG=$SCX_PACKAGE/"
 do_sed bundle_skel.sh "s/OMI_PKG=<OMI_PKG>/OMI_PKG=$OMI_PACKAGE/"
