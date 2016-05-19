@@ -621,15 +621,12 @@ public:
             ofs << "    /bin/touch \\" << std::endl;
             ofs << "    /lib64/ld-linux-x86-64.so.2 \\" << std::endl;
             ofs << "    /lib64/libc.so.6 \\" << std::endl;
-            ofs << "    /lib/`uname -i`-linux-gnu/libc.so.6 \\" << std::endl;
             ofs << "    /lib64/libpthread.so.0 \\" << std::endl;
             ofs << "    /lib64/librt.so.1 \\" << std::endl;
-            ofs << "    /lib/`uname -i`-linux-gnu/librt.so.1 \\" << std::endl;
             ofs << "    /lib64/tls/libc.so.6 \\" << std::endl;
             ofs << "    /lib/ld-linux.so.2 \\" << std::endl;
             ofs << "    /lib/libc.so.6 \\" << std::endl;
             ofs << "    /lib/libpthread.so.0 \\" << std::endl;
-            ofs << "    /lib/`uname -i`-linux-gnu/libpthread.so.0 \\" << std::endl;
             ofs << "    /lib/librt.so.1 \\" << std::endl;
             ofs << "    /usr/lib/dld.sl \\" << std::endl;
             ofs << "    /usr/lib/hpux32/dld.so \\" << std::endl;
@@ -644,6 +641,12 @@ public:
             ofs << "    /usr/lib/libc.so.1 \\" << std::endl;
             ofs << "    /usr/lib/libdld.2 \\" << std::endl;
             ofs << "    /usr/lib/libdl.so.1 \\" << std::endl;
+#if !defined(aix)
+            // AIX doesn't reliably know the 'uname -i' command ...
+            ofs << "    /lib/`uname -i`-linux-gnu/libc.so.6 \\" << std::endl;
+            ofs << "    /lib/`uname -i`-linux-gnu/librt.so.1 \\" << std::endl;
+            ofs << "    /lib/`uname -i`-linux-gnu/libpthread.so.0 \\" << std::endl;
+#endif
             ofs << "    \"" << std::endl;
             ofs << "" << std::endl;
             ofs << "" << std::endl;
