@@ -23,7 +23,11 @@ int SCXCore::NetworkProvider::ms_loadCount = 0;
  */
 void SCXCore::NetworkProviderDependencies::InitIntf() 
 {
+    SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"SCXCore::NetworkProviderDeps::InitIntf entry");
+
+    SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"SCXCore::NetworkProviderDeps::InitIntf Creating class");
     m_interfaces = new NetworkInterfaceEnumeration();
+    SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"SCXCore::NetworkProviderDeps::InitIntf Initializing class");
     m_interfaces->Init();
 }
 

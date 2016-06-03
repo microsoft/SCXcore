@@ -68,10 +68,13 @@ namespace SCXCore
                 SCX_LOGTRACE(m_log, L"NetworkProvider::Load()");
 
                 // Create dependencies
+                SCX_LOGTRACE(m_log, L"NetworkProvider::Load() Creating dependencies");
                 m_deps = new SCXCore::NetworkProviderDependencies();
 
                 // Initialize the interface
+                SCX_LOGTRACE(m_log, L"NetworkProvider::Load() Initializing interface");
                 m_deps->InitIntf();
+                SCX_LOGTRACE(m_log, L"NetworkProvider::Load() helper exit");
             }
         }
 
