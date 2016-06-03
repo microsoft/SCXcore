@@ -36,6 +36,11 @@ else
 endif
 
 DISTRO_TYPE = $(PF)
+ifeq ("$(wildcard /usr/bin/dpkg-deb)","")
+DPKG_LOCATION="--DPKG_LOCATION=$(PAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH)"
+else
+DPKG_LOCATION=
+endif
 
 installerOnly: bundle
 
@@ -131,7 +136,7 @@ else
 		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
-		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
+		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_D)
@@ -150,7 +155,7 @@ else
 		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
-		--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH) \
+		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
 		$(DATAFILES) $(DATAFILES_D)
