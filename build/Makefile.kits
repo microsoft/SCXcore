@@ -37,7 +37,7 @@ endif
 
 DISTRO_TYPE = $(PF)
 ifeq ("$(wildcard /usr/bin/dpkg-deb)","")
-DPKG_LOCATION="--DPKG_LOCATION=$(PAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH)"
+DPKG_LOCATION="--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH)"
 else
 DPKG_LOCATION=
 endif
