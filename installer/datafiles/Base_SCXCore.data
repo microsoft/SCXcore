@@ -208,10 +208,14 @@ HandleConfigFiles() {
     rm -f /etc/opt/microsoft/scx/conf/cimserver_current.conf* /etc/opt/microsoft/scx/conf/cimserver_planned.conf* /etc/opt/microsoft/scx/conf/omiserver.conf*
 
 #if DISABLE_PORT != true
-    # Add port 1270 to the list of ports that OMI will listen on
-    /opt/omi/bin/omiconfigeditor httpsport -a 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
-    mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
+    # File /etc/scxagent-disable-port forces port 1270 to not be listened for
+    if [ ! -f /etc/scxagent-disable-port ]; then
+        # Add port 1270 to the list of ports that OMI will listen on
+        /opt/omi/bin/omiconfigeditor httpsport -a 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
+        mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
+    fi
 #endif
+    rm -f /etc/scxagent-disable-port
 }
 
 GenerateCertificate() {
