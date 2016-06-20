@@ -616,11 +616,8 @@ case "$installMode" in
     U)
         echo "Updating cross-platform agent ..."
         if [ $PROVIDER_ONLY -eq 0 ]; then
-            check_if_pkg_is_installed omi
-            if [ $? -eq 0 ]; then
-                shouldInstall_omi
-                pkg_upd_list $OMI_PKG omi $?
-            fi
+            shouldInstall_omi
+            pkg_upd_list $OMI_PKG omi $?
         fi
 
         shouldInstall_scx
