@@ -50,6 +50,15 @@ fi
 DeleteSoftLinkToSudo
 DeleteSoftLinkToTmpDir
 
+# AIX will delete configuration files, even if edited. Attempt to preserve them.
+# Note that they are simply preserved, but not automatically reused. This is
+# consistent with some other systems (i.e. RPM-based installers on Linux), but
+# there is no real consensus in this area.
+
+[ -s /etc/opt/microsoft/scx/conf/scxconfig.conf ] && mv /etc/opt/microsoft/scx/conf/scxconfig.conf /etc/opt/microsoft/scx/conf/scxconfig.conf.bak
+[ -s /etc/opt/microsoft/scx/conf/scxlog.conf ]    && mv /etc/opt/microsoft/scx/conf/scxlog.conf    /etc/opt/microsoft/scx/conf/scxlog.conf.bak
+[ -s /etc/opt/microsoft/scx/conf/scxrunas.conf ]  && mv /etc/opt/microsoft/scx/conf/scxrunas.conf  /etc/opt/microsoft/scx/conf/scxrunas.conf.bak
+
 %Postuninstall_50
 #if DISABLE_PORT != true
     # Remove port 1270 from the list of ports that OMI will listen on
