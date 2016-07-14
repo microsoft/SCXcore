@@ -154,7 +154,7 @@ schema_gen :
 
 # Note: For omi_reg to work properly, run './configure --enable-local-omi'
 omi_reg :
-	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(TARGET_DIR)/omi/lib; cd $(TARGET_DIR)/omi; bin/omireg --destdir=$(TARGET_DIR)/omi -n root/scx -o @requestor@ $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(INTERMEDIATE_DIR)/omi/lib; cd $(INTERMEDIATE_DIR)/omi; bin/omireg --destdir=$(INTERMEDIATE_DIR)/omi -n root/scx -o @requestor@ $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so
 
 # bin/omiserver --destdir /home/jeffcof/dev/blue/opsmgr/target/Linux_REDHAT_6.1_x64_64_Debug/omi
 
