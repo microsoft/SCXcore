@@ -9,7 +9,7 @@
 # PF (i.e. PlatForm) is either linux, solaris
 SHELL=/bin/bash
 PWD:=$(shell pwd)
-SCX_BRD=$(subst /build,,$(PWD))
+SCX_BRD=$(shell dirname $(PWD))
 PF_POSIX=true
 
 # Get the root of the SCXPAL directory (and other easy locations)
