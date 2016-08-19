@@ -23,6 +23,12 @@
 
 #include "testutilities.h"
 
+#if defined(TRAVIS)
+const bool s_fTravis = true;
+#else
+const bool s_fTravis = false;
+#endif
+
 using namespace SCXCore;
 using namespace SCXCoreLib;
 using namespace SCXSystemLib;
@@ -115,17 +121,6 @@ public:
 
     void ValidateInstance(const TestableContext &context, std::wstring errMsg)
     {
-        bool fRunningOnTravis = false;
-#if defined(linux)
-        // We make assumptions about our environment, but those don't always hold on Travis
-
-        char *envTravis = getenv("TRAVIS");
-        if (NULL != envTravis && 0 == strncmp(envTravis, "true", 4))
-        {
-            fRunningOnTravis = true;
-        }
-#endif
-
         CPPUNIT_ASSERT_EQUAL_MESSAGE(ERROR_MESSAGE, 1u, context.Size());
         
         const TestableInstance &instance = context[0];
@@ -323,7 +318,7 @@ public:
         // Travis CI systems don't appear to have a pagefile. Lots of RAM, but
         // no pagefile. Test assumed a multi-user system with a pagefile, so
         // ease up on that if we're running on a Travis CI system.
-        if ( ! fRunningOnTravis )
+        if ( ! s_fTravis )
         {
             CPPUNIT_ASSERT(256000 <= ulTotalSwap);
             CPPUNIT_ASSERT(512000 <= ulTotalVM);

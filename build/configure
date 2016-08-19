@@ -162,6 +162,24 @@ if [ $combined_packages -ne 0 ]; then
     openssl100_libs=`PKG_CONFIG_PATH=$openssl100_libdir/pkgconfig $pkgconfig --libs openssl`
 fi
 
+##==============================================================================
+##
+## running on Travis?
+##
+##==============================================================================
+
+travis_ci=0
+if [ "$TRAVIS" = "true" ]; then
+    echo "Currently running on Travis for Continuous Integration ..."
+    travis_ci=1
+fi
+
+##==============================================================================
+##
+## handle versions and write configuration
+##
+##==============================================================================
+
 # Do we have a version file from the super project? If not, make one
 
 if [ -f ../../scxcore.version ]; then
@@ -193,6 +211,7 @@ OPENSSL098_LIBDIR=$openssl098_libdir
 OPENSSL100_CFLAGS=$openssl100_cflags
 OPENSSL100_LIBS=$openssl100_libs
 OPENSSL100_LIBDIR=$openssl100_libdir
+TRAVIS_CI=$travis_ci
 EOF
 
 # Fix permissions in case they aren't executable - and then configure OMI
