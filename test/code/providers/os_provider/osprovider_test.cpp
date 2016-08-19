@@ -320,6 +320,9 @@ public:
 
         CPPUNIT_ASSERT(uiCountProcesses > 0);
 
+        // Travis CI systems don't appear to have a pagefile. Lots of RAM, but
+        // no pagefile. Test assumed a multi-user system with a pagefile, so
+        // ease up on that if we're running on a Travis CI system.
         if ( ! fRunningOnTravis )
         {
             CPPUNIT_ASSERT(256000 <= ulTotalSwap);
