@@ -16,7 +16,7 @@ SCXcore provider runs on AIX 6.1 and later, HP/UX 11.31 and later,
 Solaris 5.10 and later, and most versions of Linux as far back as
 RedHat 5.0, SuSE 10.1, and Debian 5.0.
 
-[OMI]: https://travis-ci.org/Microsoft/omi
+[OMI]: https://github.com/Microsoft/omi
 
 The SCXcore provider provides the following classes (note that
 performance measurements were taken on an idle machine, so performance
