@@ -217,6 +217,8 @@ namespace SCXCore
         std::istringstream processInput;
         std::ostringstream processOutput;
         std::ostringstream processError;
+        SCXFilePath scriptfile;
+        std::wstring command;
 
         try
         {
@@ -227,18 +229,19 @@ namespace SCXCore
                 SCX_LOG(m_log, suppressor.GetSeverity(m_defaultTmpDir), L"Default tmp Directory does not exist. Falling back to /tmp");
             }
 
-            SCXFilePath scriptfile = SCXFile::CreateTempFile(script, tmpDir);
+            scriptfile = SCXFile::CreateTempFile(script, tmpDir);
             SCXFileSystem::Attributes attribs = SCXFileSystem::GetAttributes(scriptfile);
             attribs.insert(SCXFileSystem::eUserExecute);
             SCXFile::SetAttributes(scriptfile, attribs);
 
-            std::wstring command(scriptfile.Get());
+            command = scriptfile.Get();
             command.append(L" ").append(arguments);
 
             // Construct the command with the given elevation type.
             command = ConstructCommandWithElevation(command, elevationtype);
 
-            returncode = SCXCoreLib::SCXProcess::Run(command, processInput, processOutput, processError, timeout * 1000,
+            returncode = SCXCoreLib::SCXProcess::Run(command,
+                processInput, processOutput, processError, timeout * 1000,
                 m_Configurator->GetCWD(), m_Configurator->GetChRootPath());
             SCXFile::Delete(scriptfile);
 
@@ -256,6 +259,14 @@ namespace SCXCore
         }
         catch (SCXCoreLib::SCXException& e)
         {
+            SCX_LOGHYSTERICAL(m_log, L"\"" + command + L"\" returned " + e.What());
+
+            // Delete the script file if one was created
+            if ( ! scriptfile.Get().empty() )
+            {
+                SCXFile::Delete(scriptfile);
+            }
+
             resultOut = L"";
             resultErr = e.What();
             returncode = -1;
