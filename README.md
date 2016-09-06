@@ -86,11 +86,27 @@ instance of SCX_Agent
 
 ```
 > /opt/omi/bin/omicli ei root/scx SCX_Application_Server
+instance of SCX_Application_Server
+{
+    Caption=SCX Application Server
+    Description=Represents a JEE Application Server
+    [Key] Name=/root/tomcat/apache-tomcat-7.0.11/
+    HttpPort=8080
+    HttpsPort=8443
+    Port=
+    Protocol=
+    Version=7.0.11
+    MajorVersion=7
+    DiskPath=/root/tomcat/apache-tomcat-7.0.11/
+    Type=Tomcat
+    Profile=
+    Cell=
+    Node=
+    Server=
+    IsDeepMonitored=false
+    IsRunning=true
+}
 ```
-
-Enumeration of SCX_Application_Server requires one or more application
-servers (JBoss, WebLogic, etc) to be installed. Since my test system
-doesn't have one installed, no instances were enumerated.
 
 ### Enumeration of SCX_DiskDrive
 
