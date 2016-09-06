@@ -220,12 +220,13 @@ namespace SCXCore
 
         try
         {
-        	bool tmpDirExists = SCXCoreLib::SCXDirectory::Exists(m_defaultTmpDir);
-        	std::wstring tmpDir = tmpDirExists ? m_defaultTmpDir : L"/tmp/";
-        	if(!tmpDirExists) {
-        		static SCXCoreLib::LogSuppressor suppressor(SCXCoreLib::eWarning, SCXCoreLib::eHysterical);
-        		SCX_LOG(m_log, suppressor.GetSeverity(m_defaultTmpDir), L"Default tmp Directory does not exist. Falling back to /tmp");
-        	}
+            bool tmpDirExists = SCXCoreLib::SCXDirectory::Exists(m_defaultTmpDir);
+            std::wstring tmpDir = tmpDirExists ? m_defaultTmpDir : L"/tmp/";
+            if(!tmpDirExists) {
+                static SCXCoreLib::LogSuppressor suppressor(SCXCoreLib::eWarning, SCXCoreLib::eHysterical);
+                SCX_LOG(m_log, suppressor.GetSeverity(m_defaultTmpDir), L"Default tmp Directory does not exist. Falling back to /tmp");
+            }
+
             SCXFilePath scriptfile = SCXFile::CreateTempFile(script, tmpDir);
             SCXFileSystem::Attributes attribs = SCXFileSystem::GetAttributes(scriptfile);
             attribs.insert(SCXFileSystem::eUserExecute);
