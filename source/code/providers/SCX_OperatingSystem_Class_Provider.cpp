@@ -567,7 +567,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand(
     SCX_PEX_BEGIN
     {
         SCX_OperatingSystem_Command_ThreadParam* params = new SCX_OperatingSystem_Command_ThreadParam(context.context(), in);
-        new SCXCoreLib::SCXThread(Invoke_ExecuteCommand_ThreadBody, params);
+        SCXCoreLib::SCXThread(Invoke_ExecuteCommand_ThreadBody, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteCommand", log );
 }
@@ -672,7 +672,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand(
     SCX_PEX_BEGIN
     {
         SCX_OperatingSystem_ShellCommand_ThreadParam* params = new SCX_OperatingSystem_ShellCommand_ThreadParam(context.context(), in);
-        new SCXCoreLib::SCXThread(Invoke_ExecuteShellCommand_ThreadBody, params);
+        SCXCoreLib::SCXThread(Invoke_ExecuteShellCommand_ThreadBody, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteShellCommand", SCXCore::g_RunAsProvider.GetLogHandle() );
 }
@@ -789,7 +789,7 @@ void SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript(
     SCX_PEX_BEGIN
     {
         SCX_OperatingSystem_Script_ThreadParam* params = new SCX_OperatingSystem_Script_ThreadParam(context.context(), in);
-        new SCXCoreLib::SCXThread(Invoke_ExecuteScript_ThreadBody, params);
+        SCXCoreLib::SCXThread(Invoke_ExecuteScript_ThreadBody, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::Invoke_ExecuteScript", log );
 }
