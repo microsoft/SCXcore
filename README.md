@@ -1,4 +1,4 @@
-# SCXcore [![Build Status](https://travis-ci.org/Microsoft/SCXcore.svg?branch=master)](https://travis-ci.org/Microsoft/SCXcore)
+# SCXcore [![Build Status](https://travis-ci.org/Microsoft/SCXcore.svg?branch=2016-URNext)](https://travis-ci.org/Microsoft/SCXcore)
 
 SCXcore, started as the [Microsoft Operations Manager][] UNIX/Linux Agent,
 is now used in a host of products including
