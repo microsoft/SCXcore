@@ -36,7 +36,7 @@ Results from this test will be in three sections:
 ##### Output from Startup
 
 ```
-> ./testleak.sh               
+> ./testleak.sh 
 Invoking RunAs provider (to insure it's running) ...
 instance of ExecuteShellCommand
 {
@@ -48,42 +48,86 @@ instance of ExecuteShellCommand
 }
 
 Starting values for omiagent process:
-PID 33704
+PID 29574
 Thread count 3
-FD count 42
+FD count 40
 Memstats:
   PID   RSS    VSZ COMMAND
-33704  5740 302932 omiagent
-```
+29574  4648  16348 omiagent
 
+```
 ##### Output from Stabilization
-
 ```
-Will now exercise RunAs provider under load:
-........................................
 
-Intermediate values for RunAs provider:
-PID 33704
+Will now exercise Provide_ExShell_Load RunAs provider under load:
+..............
+
+Intermediate values for Provide_ExShell_Load RunAs provider:
+PID 29574
 Thread count 3
-FD count 42
+FD count 40
 Memstats:
   PID   RSS    VSZ COMMAND
-33704  5880 368468 omiagent
-```
+29574  4648  16376 omiagent
 
+Will now exercise Provide_ExScript_Load RunAs provider under load:
+..............
+
+Intermediate values for Provide_ExScript_Load RunAs provider:
+PID 29574
+Thread count 3
+FD count 40
+Memstats:
+  PID   RSS    VSZ COMMAND
+29574  4736  16376 omiagent
+
+Will now exercise Provide_ExCommand_Load RunAs provider under load:
+..............
+
+Intermediate values for Provide_ExCommand_Load RunAs provider:
+PID 29574
+Thread count 3
+FD count 40
+Memstats:
+  PID   RSS    VSZ COMMAND
+29574  4752  16376 omiagent
+
+```
 ##### Output from Leak Detection
-
 ```
-Will exercise RunAs provider again under load:
-........................................
 
-Current values for RunAs provider:
-PID 33704
+Will exercise Provide_ExShell_Load RunAs provider again under load:
+..............
+
+Current values for Provide_ExShell_Load RunAs provider:
+PID 29574
 Thread count 3
-FD count 42
+FD count 40
 Memstats:
   PID   RSS    VSZ COMMAND
-33704  5880 368468 omiagent
+29574  4756  16376 omiagent
+
+Will exercise Provide_ExScript_Load RunAs provider again under load:
+..............
+
+Current values for Provide_ExScript_Load RunAs provider:
+PID 29574
+Thread count 3
+FD count 40
+Memstats:
+  PID   RSS    VSZ COMMAND
+29574  4756  16376 omiagent
+
+Will exercise Provide_ExCommand_Load RunAs provider again under load:
+..............
+
+Current values for Provide_ExCommand_Load RunAs provider:
+PID 29574
+Thread count 3
+FD count 40
+Memstats:
+  PID   RSS    VSZ COMMAND
+29574  4756  16376 omiagent
 
 Note: These values should be very close to intermediate values!
       If they are not very close, this must be investigated.
@@ -95,13 +139,13 @@ During the Startup phase, the script will launch the RunAs provider
 (if not already running) and will print startup statistics about it's
 size, thread count, and file descriptor count.
 
-During the stabilization phase, the test will then enumerate the RunAs
-provider 1000 times to reach a *baseline* for memory utilization.
-After this, the test will display intermediate statistics for the
-provider.
+During the stabilization phase, the test will then enumerate each RunAs
+provider [ExecuteShellCommand, ExecuteScript, ExecuteCommand] 350 times 
+to reach a *baseline* for memory utilization. After this, the test will 
+display intermediate statistics for the provider.
 
-During the leak detection phase, the test will enumerate the RunAs
-provider 1000 times. Finally, the test will print final statistics
+During the leak detection phase, the test will enumerate each RunAs
+provider 350 times. Finally, the test will print final statistics
 and exit.
 
 Of particular interest is the output after the stabilization phase and
@@ -111,8 +155,8 @@ values:
 
 Phase | PID | Threads | FDs | RSS | VSZ
 ----- | --- | ------- | --- | --- | ---
-Intermediate | 33704 | 3 | 42 | 5880 | 368468
-Leak Detection | 33704 | 3 | 42 | 5880 | 368468
+Intermediate | 29574 | 3 | 40 | 4648 | 16348
+Leak Detection | 29574 | 3 | 40 | 4756 | 16376
 
 The RSS for Intermediate and Leak Detection phases should be very close
 (within 250 or so), and the VSZ should be within 50,000 or so. In this

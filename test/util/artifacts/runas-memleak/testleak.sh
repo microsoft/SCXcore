@@ -2,16 +2,57 @@
 
 # Note: /bin/bash is required for mathmatical computions in workflow below.
 
-Provide_Load()
+Provide_ExShell_Load()
 {
-    # Run the RunAs provider 1000 times, printing a "." after 25 iterations
+    # Run the ExecuteShellCommand RunAs provider 350 times, printing a "." after 25 iterations
     # (We want to give some indication we're running, but not flood the screen)
 
     I=0
-    while [ $I -lt 1000 ]; do
+    while [ $I -lt 350 ]; do
         R=$(($I % 25))
         [ $R -eq 0 ] && echo -n "."
         /opt/omi/bin/omicli iv root/scx { SCX_OperatingSystem } ExecuteShellCommand { command "$FULLPATH" timeout 0 } > /dev/null
+        I=$(( $I + 1 ))
+    done
+
+    echo
+}
+
+Provide_ExScript_Load()
+{
+    # Run the ExecuteScript RunAs provider 350 times, printing a "." after 25 iterations
+    # (We want to give some indication we're running, but not flood the screen)
+    #
+    # The simple shell script:
+    #
+    # echo ""
+    # echo "Hello"
+    # echo "Goodbye"
+    #
+    # will yield ZWNobyAiIg0KZWNobyAiSGVsbG8iDQplY2hvICJHb29kYnllIg== when converted to Base64. As a result, the following is a simple invocation of the ExecuteScript 
+
+
+    I=0
+    while [ $I -lt 350 ]; do
+        R=$(($I % 25))
+        [ $R -eq 0 ] && echo -n "."
+        /opt/omi/bin/omicli iv root/scx { SCX_OperatingSystem } ExecuteScript { Script "ZWNobyAiIg0KZWNobyAiSGVsbG8iDQplY2hvICJHb29kYnllIg==" Arguments "" timeout 0 b64encoded "true" } > /dev/null
+        I=$(( $I + 1 ))
+    done
+
+    echo
+}
+
+Provide_ExCommand_Load()
+{
+    # Run the ExecuteCommand RunAs provider 350 times, printing a "." after 25 iterations
+    # (We want to give some indication we're running, but not flood the screen)
+
+    I=0
+    while [ $I -lt 350 ]; do
+        R=$(($I % 25))
+        [ $R -eq 0 ] && echo -n "."
+        /opt/omi/bin/omicli iv root/scx { SCX_OperatingSystem } ExecuteCommand { command hostname timeout 0 } > /dev/null
         I=$(( $I + 1 ))
     done
 
@@ -33,6 +74,7 @@ esac
 
 BASEDIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 FULLPATH=$BASEDIR/measureleak.sh
+ARRAY=( Provide_ExShell_Load Provide_ExScript_Load Provide_ExCommand_Load )
 
 # Don't allow errors to be ignored
 set -e
@@ -44,21 +86,31 @@ echo
 echo "Starting values for omiagent process:"
 $FULLPATH
 
-echo
-echo "Will now exercise RunAs provider under load:"
-Provide_Load
+# First run
 
-echo
-echo "Intermediate values for RunAs provider:"
-$FULLPATH
+for i in "${ARRAY[@]}"
+do
+   echo
+   echo "Will now exercise $i RunAs provider under load:"
+   $i
 
-echo
-echo "Will exercise RunAs provider again under load:"
-Provide_Load
+   echo
+   echo "Intermediate values for $i RunAs provider:"
+   $FULLPATH
+done
 
-echo
-echo "Current values for RunAs provider:"
-$FULLPATH
+# Second Run
+
+for i in "${ARRAY[@]}"
+do
+   echo
+   echo "Will exercise $i RunAs provider again under load:"
+   $i
+
+   echo
+   echo "Current values for $i RunAs provider:"
+   $FULLPATH
+done
 
 echo
 echo "Note: These values should be very close to intermediate values!"
