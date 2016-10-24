@@ -254,6 +254,12 @@ int main(int argc, char *argv[])
             // MUST exit here, due to fwide() call above ... cannot call fwide() more than once w/out closing/reopening handle
             exit(3);
         }
+        catch(SCXCoreLib::SCXErrnoERANGE_Exception &e)
+        {
+            cout << SCXCoreLib::StrToUTF8(e.Where()) << endl
+                 << SCXCoreLib::StrToUTF8(e.What()) << endl;
+            exit(3);
+        }
     }
 
     // If the user did not supply a domain name, use default.
