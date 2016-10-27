@@ -177,8 +177,32 @@ namespace SCXSystemLib
         // The Logging property is optional when running in domain mode, thus the server data directory is used
         configFromJBossDomainProperty = ParseOutCommandLineArg(params, "-Djboss.server.data.dir", true, false);
         configFromJBossStandaloneProperty = ParseOutCommandLineArg(params, "-Dlogging.configuration",true,false);
-
-        if ( configFromDashC.length() != 0 )
+        
+        // Give priority to JBoss 7 and wildfly as they can have non default config.
+        // If config from -c is checked first It would lead to incorrect install path for JBoss 7 and wildfly.
+        if ( configFromJBossDomainProperty.length() != 0 )
+        {
+            // Sample domain value: /root/wildfly-8.1.0.CR2/domain/servers/server-one/data
+            config = configFromJBossDomainProperty;
+        }
+        else if ( configFromJBossStandaloneProperty.length() != 0 )
+        {
+        	// JBoss standalone can have non default config file (standalone-full.xml, standalone-ha.xml etc.)
+        	// If -c argument is also present then ports should be read from that file
+        	if ( configFromDashC.length() != 0 )
+        	{
+        		// -c gives relative path of config file wrt configuration directory. 
+        		string::size_type loc = configFromJBossStandaloneProperty.find("logging.properties");
+        		config = configFromJBossStandaloneProperty.substr(0,loc);
+        		config.append(configFromDashC);
+        	}
+        	else
+        	{
+        		// Sample standalone value: /root/wildfly-8.1.0.CR2/standalone/configuration/logging.properties
+        		config = configFromJBossStandaloneProperty;
+        	}
+        }
+        else if ( configFromDashC.length() != 0 )
         {
             config = configFromDashC;
         }
@@ -186,17 +210,7 @@ namespace SCXSystemLib
         {
             config = configFromJBossProperty;
         }
-        else if ( configFromJBossDomainProperty.length() != 0 )
-        {
-            // Sample domain value: /root/wildfly-8.1.0.CR2/domain/servers/server-one/data
-            config = configFromJBossDomainProperty;
-        }
-        else if ( configFromJBossStandaloneProperty.length() != 0 )
-        {
-            // Sample standalone value: /root/wildfly-8.1.0.CR2/standalone/configuration/logging.properties
-            config = configFromJBossStandaloneProperty;
-        }
-        else // ( configFromDashC.length() == 0 ) && ( configFromJBossProperty.length() == 0 )
+        else
         {
             config = "default";
         }

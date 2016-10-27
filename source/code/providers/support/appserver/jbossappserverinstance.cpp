@@ -179,8 +179,13 @@ namespace SCXSystemLib
 
         if (config.find(fJBossStandaloneStr) != std::string::npos) 
         {
-            fJBossStandaloneCheck = true;
-            m_config = L"/standalone/configuration/";
+        	fJBossStandaloneCheck = true;
+        	if(config.find(L".xml") != std::string::npos)
+        	{
+        		std::string::size_type loc = config.find(L"standalone/configuration/");
+        		m_jbossStandaloneConfigFile = config.substr(loc);
+        	}
+        	m_config = L"/standalone/configuration/";
         }
         else if (config.find(fJBossDomainStr) != std::string::npos)
         {
@@ -898,8 +903,15 @@ namespace SCXSystemLib
 			const string cHttpName("http");
 			const string cHttpsName("https");
 			const string cPortAttributeName("port");
-
-            filename.Append(L"standalone/configuration/standalone.xml");
+			
+			if(m_jbossStandaloneConfigFile.length() != 0)
+			{
+				filename.Append(m_jbossStandaloneConfigFile);
+			}
+			else
+			{
+				filename.Append(L"standalone/configuration/standalone.xml");
+			}
             try 
             {
                 SCXHandle<istream> mystream = m_deps->OpenXmlPortsFile(filename.Get());

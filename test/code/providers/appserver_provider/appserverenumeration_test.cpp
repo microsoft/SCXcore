@@ -251,6 +251,7 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( JBoss_Process_Good_Params_3_Running );
     CPPUNIT_TEST( JBoss_Process_Good_Params_22_Running );
     CPPUNIT_TEST( JBoss_Domain_Process_Good_Params );
+    CPPUNIT_TEST( JBoss_Standalone_Non_Default_Config );
     CPPUNIT_TEST( testReadInstancesMethodCalledAtInit );
     CPPUNIT_TEST( testWriteInstancesMethodCalledAtCleanup );
     CPPUNIT_TEST( Tomcat_Process_Good_Params );
@@ -883,6 +884,58 @@ public:
         std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
         
         CPPUNIT_ASSERT_EQUAL(L"/root/wildfly-8.1.0.CR2/wildfly-8.1.0.CR2/domain/servers/server-one/",(*it)->GetId());
+        
+        asEnum.CleanUp();
+    }
+    
+    void JBoss_Standalone_Non_Default_Config()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("-D[Standalone]");
+        inst->AddParameter("-XX:+UseCompressedOops");
+        inst->AddParameter("-verbose:gc");
+        inst->AddParameter("-Xloggc:/konsens/log/rmsvlg/as/4.2.0.2/gc.log");
+        inst->AddParameter("-XX:+PrintGCDetails");
+        inst->AddParameter("-server");
+        inst->AddParameter("-XX:+PrintGCDateStamps");
+        inst->AddParameter("-XX:+UseGCLogFileRotation");
+        inst->AddParameter("-XX:NumberOfGCLogFiles=5");
+        inst->AddParameter("-XX:GCLogFileSize=3M");
+        inst->AddParameter("-XX:-TraceClassUnloading");
+        inst->AddParameter("-Xms2048m");
+        inst->AddParameter("-Xmx2048m");
+        inst->AddParameter("-Dorg.jboss.boot.log.file=/konsens/log/rmsvlg/as/4.2.0.2/server.log");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-jar");
+        inst->AddParameter("/konsens/app/jboss-eap-6.4/jboss-modules.jar ");
+        inst->AddParameter("-mp");
+        inst->AddParameter("/konsens/app/jboss-eap-6.4/modules");
+        inst->AddParameter("-jaxpmodule");
+        inst->AddParameter("javax.xml.jaxp-provider");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/standalone");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-c");
+        inst->AddParameter("standalone-full.xml");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 1);
+        
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        
+        CPPUNIT_ASSERT_EQUAL(L"/konsens/app/jboss-eap-6.4/standalone/configuration/",(*it)->GetId());
         
         asEnum.CleanUp();
     }

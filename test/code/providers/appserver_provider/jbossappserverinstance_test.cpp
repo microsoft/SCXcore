@@ -808,6 +808,7 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testBadVersionXml );
     CPPUNIT_TEST( testBadHttpPortValue );
     CPPUNIT_TEST( testBadPortOffsetValue );
+    CPPUNIT_TEST( testJBoss7WithNonDefaultConfig );
     CPPUNIT_TEST( testPort_XMLSetTo_Junk_CommandLineSetTo_ports01 );
     CPPUNIT_TEST( testPort_XMLSetTo_Port01_CommandLineSetTo_Junk );
     CPPUNIT_TEST( testPort_XMLSetTo_Junk_NoCommandLineBinding );
@@ -1037,6 +1038,34 @@ class JBossAppServerInstance_Test : public CPPUNIT_NS::TestFixture
         CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
         
         CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/standalone.xml", deps->m_xmlPortsFilename);
+    }
+    
+    void testJBoss7WithNonDefaultConfig()
+    {
+        SCXHandle<JBossAppServerInstanceTestPALDependencies> deps(new JBossAppServerInstanceTestPALDependencies());
+        
+        deps->SetVersion5(false);
+        deps->SetIncludeJbossJar(false);
+        deps->SetHttpBinding(false);
+        deps->SetHttpsBinding(false);
+        deps->SetVersion7(true);
+        deps->SetNoVersionFile(true);
+        
+        deps->SetBadPortOffsetValue(false);
+          
+        SCXHandle<JBossAppServerInstance> asInstance( new JBossAppServerInstance(L"id/", L"id/standalone/configuration/standalone-full.xml", L"", deps) );
+ 
+        asInstance->Update();
+             
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetId());
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/", asInstance->GetDiskPath());
+        CPPUNIT_ASSERT_EQUAL(L"JBoss", asInstance->GetType());
+        CPPUNIT_ASSERT_EQUAL(L"7.0.0.Final",asInstance->GetVersion());
+        CPPUNIT_ASSERT_EQUAL(L"7",asInstance->GetMajorVersion());
+        CPPUNIT_ASSERT_EQUAL(L"8080", asInstance->GetHttpPort());
+        CPPUNIT_ASSERT_EQUAL(L"8443", asInstance->GetHttpsPort());
+        
+        CPPUNIT_ASSERT_EQUAL( L"id/standalone/configuration/standalone-full.xml", deps->m_xmlPortsFilename);
     }
 
     // Test with XML containing bad port-offset attribute in binding socket

@@ -81,6 +81,7 @@ namespace SCXSystemLib
         std::wstring m_serverName;
         std::wstring m_basePath;
         std::wstring m_portsBinding;
+        std::wstring m_jbossStandaloneConfigFile;
 
         SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> m_deps;
     };
