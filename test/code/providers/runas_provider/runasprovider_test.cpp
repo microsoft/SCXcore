@@ -620,6 +620,7 @@ public:
             ofs << "FILESET=\"\\" << std::endl;
             ofs << "    /bin/touch \\" << std::endl;
             ofs << "    /lib64/ld-linux-x86-64.so.2 \\" << std::endl;
+            ofs << "    /lib64/ld64.so.2 \\" << std::endl;
             ofs << "    /lib64/libc.so.6 \\" << std::endl;
             ofs << "    /lib64/libpthread.so.0 \\" << std::endl;
             ofs << "    /lib64/librt.so.1 \\" << std::endl;
