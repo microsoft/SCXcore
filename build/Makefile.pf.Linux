@@ -131,7 +131,10 @@ SSL_LIBS = `pkg-config --libs openssl`
 # Compiler switch tweaks
 #--------------------------------------------------------------------------------
 
-CXXFLAGS+=
+# C++ 11 for IBM atomic support
+ifeq  ($(ARCH),ppc)
+	CXXFLAGS += -std=c++11 -D=linux
+endif
 
 #--------------------------------------------------------------------------------
 # InstallBuilder datafile determination
