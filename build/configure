@@ -81,8 +81,8 @@ do
       ;;
 
     --enable-system-build)
-      if [ `uname -s` = "Linux" ]; then
-	  perform_ulinux_build
+      if [ `uname -s` = "Linux" -a `uname -m` != "ppc64le" ]; then
+          perform_ulinux_build
       fi
       ;;
 
