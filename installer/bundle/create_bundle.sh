@@ -102,7 +102,7 @@ if [ -z "$PLATFORM_TYPE" ]; then
 fi
 
 case "$PLATFORM_TYPE" in
-    Linux|AIX|HPUX|SunOS)
+    Linux|AIX|HPUX|SunOS|PPC-RHEL)
 	;;
 
     *)
@@ -239,7 +239,12 @@ case "$PLATFORM_TYPE" in
 	BUNDLE_FILE=`echo $3 | sed -e "s/.pkg//" -e "s/.tar//"`.sh
 	compress -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
 	;;
-
+	
+    PPC-RHEL)
+	BUNDLE_FILE=`echo $3 | sed -e "s/.rpm//" -e "s/.tar//"`.sh
+	gzip -c $3 | cat bundle_skel.sh - > $BUNDLE_FILE
+	;;
+	
     *)
 	echo "Invalid platform encoded in variable \$PACKAGE; aborting" >&2
 	exit 2
