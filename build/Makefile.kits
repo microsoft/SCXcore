@@ -7,6 +7,11 @@
 
 ifneq ($(COMBINED_PACKAGES),1)
   DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
+	ifeq ($(PF_ARCH),ppc)
+                SCX_PREFIX=scx
+                OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
+                PF_DISTRO=REDHAT
+	endif
 else
   DATAFILES = Base_SCXCore.data Linux.data
   DATAFILES_R = Linux_RPM.data
@@ -57,7 +62,6 @@ kit : GetLinuxOS scx_scripts
         # The options passed to the installbuilder are inserted into the Variables list.  They will override whatever variables are specified in the datafiles.
 
 ifneq ($(COMBINED_PACKAGES),1)
-
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
@@ -177,6 +181,12 @@ ifneq ($(COMBINED_PACKAGES),1)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(INTERMEDIATE_DIR)/omi_package_filename
 
+ifeq ($(PF_ARCH),ppc)
+	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
+	../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+	# Copy the shell bundle to the target directory
+	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
+endif
 	# We only build shell bundles for Linux (combined packages) or non-Linux platforms
 ifneq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
