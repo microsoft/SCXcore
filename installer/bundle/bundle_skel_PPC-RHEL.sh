@@ -422,8 +422,9 @@ cd $EXTRACT_DIR
 # Do we need to remove the package?
 if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
-    /opt/microsoft/scx/bin/uninstall $installMode
-
+    if [ -f /opt/microsoft/scx/bin/uninstall ]; then
+        /opt/microsoft/scx/bin/uninstall $installMode
+    fi
     if [ "$installMode" = "P" ]
     then
         echo "Purging all files in cross-platform agent ..."
