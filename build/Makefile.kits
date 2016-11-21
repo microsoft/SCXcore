@@ -7,11 +7,12 @@
 
 ifneq ($(COMBINED_PACKAGES),1)
   DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
-	ifeq ($(PF_ARCH),ppc)
-                SCX_PREFIX=scx
-                OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
-                PF_DISTRO=REDHAT
-	endif
+  ifeq ($(PF_ARCH),ppc)
+    ifeq ($(PF_DISTRO),REDHAT)
+      SCX_PREFIX=scx
+      OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
+    endif
+  endif
 else
   DATAFILES = Base_SCXCore.data Linux.data
   DATAFILES_R = Linux_RPM.data
@@ -38,6 +39,12 @@ else
   endif
 
   OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal.$(PF_ARCH)
+endif
+
+# InstallBuilder has it's own concept of naming of installer files, but
+# we will override that in certain cases via the --OUTPUTFILE option
+ifneq ($(OUTPUT_PACKAGE_PREFIX),"")
+  OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
 endif
 
 DISTRO_TYPE = $(PF)
@@ -78,6 +85,7 @@ ifneq ($(COMBINED_PACKAGES),1)
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX= \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
 		$(DATAFILES)
 
 else
@@ -103,7 +111,7 @@ else
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
+		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
 		$(DATAFILES) $(DATAFILES_R)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -121,7 +129,7 @@ else
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
+		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
 		$(DATAFILES) $(DATAFILES_R)
 
 	# Next comes DEB packages
@@ -142,7 +150,7 @@ else
 		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
+		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
 		$(DATAFILES) $(DATAFILES_D)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -161,7 +169,7 @@ else
 		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX) \
+		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
 		$(DATAFILES) $(DATAFILES_D)
 
 endif
