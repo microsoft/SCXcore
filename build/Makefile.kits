@@ -5,12 +5,16 @@
 # 2007-08-23
 #--------------------------------------------------------------------------------
 
+OUTPUT_PACKAGE_PREFIX=
+OUTPUT_PACKAGE_SPECIFICATION=
+
 ifneq ($(COMBINED_PACKAGES),1)
   DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
   ifeq ($(PF_ARCH),ppc)
     ifeq ($(PF_DISTRO),REDHAT)
       SCX_PREFIX=scx
       OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
+      OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
     endif
   endif
 else
@@ -39,11 +43,6 @@ else
   endif
 
   OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal.$(PF_ARCH)
-endif
-
-# InstallBuilder has it's own concept of naming of installer files, but
-# we will override that in certain cases via the --OUTPUTFILE option
-ifneq ($(OUTPUT_PACKAGE_PREFIX),"")
   OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
 endif
 
@@ -85,7 +84,7 @@ ifneq ($(COMBINED_PACKAGES),1)
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX= \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
+		$(OUTPUT_PACKAGE_SPECIFICATION) \
 		$(DATAFILES)
 
 else
@@ -111,7 +110,7 @@ else
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
+		$(OUTPUT_PACKAGE_SPECIFICATION) \
 		$(DATAFILES) $(DATAFILES_R)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -129,7 +128,7 @@ else
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
+		$(OUTPUT_PACKAGE_SPECIFICATION) \
 		$(DATAFILES) $(DATAFILES_R)
 
 	# Next comes DEB packages
@@ -150,7 +149,7 @@ else
 		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
+		$(OUTPUT_PACKAGE_SPECIFICATION) \
 		$(DATAFILES) $(DATAFILES_D)
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
@@ -169,7 +168,7 @@ else
 		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
-		"$(OUTPUT_PACKAGE_SPECIFICATION)" \
+		$(OUTPUT_PACKAGE_SPECIFICATION) \
 		$(DATAFILES) $(DATAFILES_D)
 
 endif
@@ -189,21 +188,25 @@ ifneq ($(COMBINED_PACKAGES),1)
 	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
 	cp `find $(SCXOMI_DIR)/output -name package_filename` $(INTERMEDIATE_DIR)/omi_package_filename
 
-ifeq ($(PF_ARCH),ppc)
+  # Handle Redhat on PPC
+  ifeq ($(PF_ARCH),ppc)
+    ifeq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
 	# Copy the shell bundle to the target directory
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
-endif
-	# We only build shell bundles for Linux (combined packages) or non-Linux platforms
-ifneq ($(DISTRO_TYPE),Linux)
+    endif # ifeq ($(DISTRO_TYPE),Linux)
+  endif # ifeq ($(PF_ARCH),ppc)
+
+  # We only build shell bundles for Linux (combined packages) or non-Linux platforms
+  ifneq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
 	# Remove package extension from `package_filename` file (AIX: .lpp, HP: .depot, Sun: .pkg)
 	cd $(INTERMEDIATE_DIR); sed -e 's/.lpp$$//' -e 's/.depot$$//' -e 's/.pkg$$//' package_filename > package_filename.tmp; mv package_filename.tmp package_filename
 	# Copy the shell bundle to the target directory
 	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/package_filename`.sh $(TARGET_DIR)
-endif # ifneq ($(DISTRO_TYPE),Linux)
+  endif # ifneq ($(DISTRO_TYPE),Linux)
 
 else # ifneq ($(COMBINED_PACKAGES),1)
 
