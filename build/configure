@@ -11,7 +11,7 @@ enable_bullseye=""
 combined_packages=0
 
 enable_ulinux_qual=""
-omi_configure_quals="--enable-microsoft"
+omi_configure_quals="--prefix=/opt/omi --localstatedir=/var/opt/omi --sysconfdir=/etc/opt/omi/conf --certsdir=/etc/opt/omi/ssl"
 
 if [ ! -d "$scxpal_dir" ]; then
     echo "PAL directory ($scxpal_dir) does not exist"
@@ -31,7 +31,6 @@ perform_ulinux_build()
     fi
 
     enable_ulinux_qual="--enable-ulinux"
-    omi_configure_quals="$omi_configure_quals $enable_ulinux_qual"
     combined_packages=1
 }
 
@@ -131,7 +130,7 @@ fi
 
 (cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye $enable_ulinux_qual)
 
-omi_configure_quals="${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
+omi_configure_quals="--enable-preexec ${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
 
 ##==============================================================================
 ##

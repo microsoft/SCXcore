@@ -289,8 +289,55 @@ providers: \
 omi: omi_all
 
 omi_all:
+ifeq ($(COMBINED_PACKAGES),1)
+
+	$(ECHO) "========================= Performing make omi"
+
+	@echo Checking for local installation of OpenSSL version 0.9.8 on build machine ... 
+	@if ! [ -e $(LD_LIBRARY_PATH_OPENSSL098) ]; \
+	then \
+	echo Did not find $(LD_LIBRARY_PATH_OPENSSL098), which is required.; \
+	echo You must install a local copy of OpenSSL version 0.9.8 to build successfully.; \
+	exit 1; \
+	else \
+	echo Found local installation of OpenSSL 0.9.8, proceeding ; \
+	fi
+
+	@echo Checking for local installation of OpenSSL version 1.0.0 on build machine ... 
+	@if ! [ -e $(LD_LIBRARY_PATH_OPENSSL100) ]; \
+	then \
+	echo Did not find $(LD_LIBRARY_PATH_OPENSSL100), which is required.; \
+	echo You must install a local copy of OpenSSL version 1.0.0 to build successfully.; \
+	exit 1; \
+	else \
+	echo Found local installation of OpenSSL version 1.0.0, proceeding ; \
+	fi
+
+	$(ECHO) "========================= Performing make omi (0.9.8)"
+
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL098); \
+	cd $(SCXOMI_DIR); \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --opensslcflags="$(OPENSSL098_CFLAGS)" --openssllibs="$(OPENSSL098_LIBS)" --openssllibdir="$(OPENSSL098_LIBDIR)"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_0.9.8 --opensslcflags="$(OPENSSL098_CFLAGS)" --openssllibs="$(OPENSSL098_LIBS)" --openssllibdir="$(OPENSSL098_LIBDIR)"; \
+	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_0.9.8"
+
+	$(ECHO) "========================= Performing make omi (1.0.0)"
+
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH_OPENSSL100); \
+	cd $(SCXOMI_DIR); \
+	echo Running: ./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --opensslcflags="$(OPENSSL100_CFLAGS)" --openssllibs="$(OPENSSL100_LIBS)" --openssllibdir="$(OPENSSL100_LIBDIR)"; \
+	./configure $(OMI_CONFIGURE_QUALS) --outputdirname=output_openssl_1.0.0 --opensslcflags="$(OPENSSL100_CFLAGS)" --openssllibs="$(OPENSSL100_LIBS)" --openssllibdir="$(OPENSSL100_LIBDIR)"; \
+	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder OUTPUTDIR="$(SCXOMI_DIR)/output_openssl_1.0.0"
+
+else
+
 	$(ECHO) "========================= Performing make omi"
 	$(MAKE) -C $(SCXOMI_DIR) all
+	$(MAKE) -C $(SCXOMI_DIR)/installbuilder
+
+endif
 
 # Testing tool (needs to be built on each of our platforms)
 $(TARGET_DIR)/testapp :
