@@ -471,13 +471,20 @@ void SCXSSLCertificate::DoGenerate()
         // We will access it the right way ...
         // There is no need to free the pointer returned here, no memory is allocated
         ASN1_OBJECT * serverAuthOBJ = OBJ_nid2obj(NID_server_auth);
+        ASN1_OBJECT * clientAuthOBJ = OBJ_nid2obj(NID_client_auth);
         if(serverAuthOBJ == NULL)
         {
             throw SCXSSLException(L"Unable to get serverAuth ASN1_OBJECT pointer", SCXSRCLOCATION);
         }
+        
+        if(clientAuthOBJ == NULL)
+        {
+            throw SCXSSLException(L"Unable to get clientAuth ASN1_OBJECT pointer", SCXSRCLOCATION);
+        }
 
         // The oid is of known length, 17 bytes  ... pad it a little ...
         char serverAuthOIDBuf[24] = {0};
+        char clientAuthOIDBuf[24] = {0};
 
         // The flag 1 denotes that the numeric form of the answer (not long or short name) will be used
         // The return is (apparently) the string length of the converted string (this is undocumented) ..
@@ -485,18 +492,25 @@ void SCXSSLCertificate::DoGenerate()
         {
             throw SCXSSLException(L"Not able to convert OBJ_server_auth to text", SCXSRCLOCATION);
         }
+        
+        if(OBJ_obj2txt(clientAuthOIDBuf, static_cast<int> (sizeof(clientAuthOIDBuf)/sizeof(*clientAuthOIDBuf)), clientAuthOBJ, 1) <= 0)
+        {
+        	throw SCXSSLException(L"Not able to convert OBJ_client_auth to text", SCXSRCLOCATION);
+        }
+        
+        std::string ekuOIDBuf = std::string(serverAuthOIDBuf) + "," + std::string(clientAuthOIDBuf);
 
-        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, serverAuthOIDBuf);
+        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, const_cast<char*> (ekuOIDBuf.c_str()));
         if(!ext)
         {
-            throw SCXSSLException(L"Unable to get extension pointer for serverAuth extension", SCXSRCLOCATION);
+            throw SCXSSLException(L"Unable to get extension pointer for serverAuth,clientAuth extension", SCXSRCLOCATION);
         }
 
         int ext_OK = X509_add_ext(x509ss.Get(), ext, -1);
         X509_EXTENSION_free(ext);
         if(!ext_OK)
         {
-            throw SCXSSLException(L"Unable to add serverAuth extension", SCXSRCLOCATION);
+            throw SCXSSLException(L"Unable to add serverAuth,clientAuth extension", SCXSRCLOCATION);
         }
 
         // Sign the certificate

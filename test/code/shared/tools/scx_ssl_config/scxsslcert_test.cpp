@@ -50,6 +50,7 @@ class ScxSSLCertTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testCertGeneration8Bit );
     CPPUNIT_TEST( test7BitCertGenerationAndCheckFiles );
     CPPUNIT_TEST( test8BitCertGenerationAndCheckFiles );
+    CPPUNIT_TEST( testCertificateKeyUsage );
     CPPUNIT_TEST( testNonRFCcompliantDomainFailure );
     CPPUNIT_TEST( testNonRFCcompliantHostnameFailure );
     CPPUNIT_TEST( testNonRFCcompliantDomainFallback );
@@ -380,6 +381,40 @@ public:
 
             CPPUNIT_ASSERT_MESSAGE("Expected a failure to convert on this platform, but it succeeded (" + debugChatter.str() + ")", hLib != NULL);
         }
+    }
+    
+    void testCertificateKeyUsage()
+    {
+        std::ostringstream debugChatter;
+        
+        std::istringstream in;
+        std::ostringstream out, err;
+ 
+        SCXCoreLib::SelfDeletingFilePath keyPath(L"./testfiles/scx-test-key.pem");
+        SCXCoreLib::SelfDeletingFilePath certPath(L"./testfiles/scx-test-cert.pem");
+
+        std::wstring hostname(L"myhost");
+        std::wstring domainname(L"mydomain.com");
+        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, hostname, domainname, 2048);
+
+        try
+        {
+            cert.Generate(debugChatter);
+            if (SCXCoreLib::SCXProcess::Run(L"openssl x509 -noout -text -in " + certPath.Get(), in, out, err))
+            {
+                std::string msg("Error running openssl, error message is: " + err.str()); 
+                CPPUNIT_ASSERT_MESSAGE(msg, false);
+            }
+            std::string keyString("TLS Web Server Authentication, TLS Web Client Authentication");
+            if(out.str().find(keyString) == std::string::npos)
+            {
+            	CPPUNIT_ASSERT_MESSAGE("Expected extended key usage not present", false);
+            }
+        }
+        catch(SCXSSLException &e)
+        {
+            CPPUNIT_ASSERT_MESSAGE("Unexpected Exception=" + SCXCoreLib::StrToMultibyte(e.What()),false); 
+        }	
     }
 
     void testNonRFCcompliantDomainFailure()
