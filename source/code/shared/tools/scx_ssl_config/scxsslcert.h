@@ -87,6 +87,7 @@ class SCXSSLCertificate
     int m_startDays;                     ///< Days to offset valid start time with;
     int m_endDays;                       ///< Days to offset valid end time with;
     int m_bits;                          ///< Number of bits in key
+    bool m_clientCert;                   ///<  Certificate to be used for client authentication
 
 protected:
     SCXCoreLib::SCXFilePath m_KeyPath;   ///< Path to key file;
@@ -97,7 +98,7 @@ protected:
 public:
     SCXSSLCertificate(SCXCoreLib::SCXFilePath keyPath, SCXCoreLib::SCXFilePath certPath,
                       int startDays, int endDays, const std::wstring & hostname,
-                      const std::wstring & domainname, int bits);
+                      const std::wstring & domainname, int bits, bool clientCert = false);
     
     virtual ~SCXSSLCertificate();
 
@@ -146,7 +147,7 @@ class SCXSSLCertificateLocalizedDomain : public SCXSSLCertificate
 public:
     SCXSSLCertificateLocalizedDomain(SCXCoreLib::SCXFilePath keyPath, SCXCoreLib::SCXFilePath certPath,
                               int startDays, int endDays, const std::wstring & hostname,
-                                     const std::wstring & domainname_raw, int bits);
+                                     const std::wstring & domainname_raw, int bits, bool clientCert = false);
 
     using SCXSSLCertificate::Generate; 
     void Generate(std::ostringstream& verbage);

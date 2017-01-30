@@ -36,7 +36,7 @@ using SCXCoreLib::SCXFilePath;
 
 static void usage(const char * name, int exitValue);
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
-                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false);
+                      const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false, bool clientCert = false);
 const int ERROR_CERT_GENERATE = 3;
 
 
@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
     const string hostFlag       ("-h");
     const string startdaysFlag  ("-s");
     const string debugFlag      ("-v");
+    const string clientcertFlag ("-c");
     const string testFlag       ("-t"); // Undocummented, for testing only
 
     // Control variables built from command line arguments (defaulted as needed by SCX)
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
     wstring targetPath = L"/etc/opt/omi/ssl";
     int startDays = -365;
     int endDays = 7300;
+    bool clientCert = false;
 #if defined(hpux) && defined(hppa)
     int bits = 1024;
 #else
@@ -212,6 +214,10 @@ int main(int argc, char *argv[])
             }
             endDays = (int) SCXCoreLib::StrToLong(SCXCoreLib::StrFromUTF8(argv[i]));
         }
+        else if (clientcertFlag == argv[i])
+        {
+        	clientCert = true;
+        }
         else if (testFlag == argv[i])
         {
             testMode = true;
@@ -306,7 +312,7 @@ int main(int argc, char *argv[])
     int rc = 0;
     if (doGenerateCert)
     {
-        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode);
+        rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode, clientCert);
 
         // When the domain or host name is specified through the command line we do not allow recovery.
         // Add an exception to this rule for testing purposes.
@@ -342,7 +348,7 @@ int main(int argc, char *argv[])
 */
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname,
-                      int bits, bool bDebug)
+                      int bits, bool bDebug, bool clientCert)
 {
     // Output what we'll be using for certificate generation
     wcout << L"Generating certificate with hostname=\"" << hostname << L"\"";
@@ -369,7 +375,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         SCXFilePath certPath;
         certPath.SetDirectory(targetPath);
         certPath.SetFilename(c_certFilename);
-        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, startDays, endDays, hostname, domainname, bits);
+        SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, startDays, endDays, hostname, domainname, bits, clientCert);
 
         std::ostringstream debugChatter;
         debugChatter << endl;
@@ -476,7 +482,7 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
 */
 static void usage(char const * const name, int exitValue)
 {
-    wcout << L"Usage: " << name << L" [-v] [-s days] [-e days] [-d domain] [-h host] [-g targetpath]" << endl
+    wcout << L"Usage: " << name << L" [-v] [-s days] [-e days] [-d domain] [-h host] [-g targetpath] [-c]" << endl
           << endl
           << L"-v             - toggle debug flag" << endl
           << L"-g targetpath  - generate certificates in targetpath" << endl
@@ -486,6 +492,7 @@ static void usage(char const * const name, int exitValue)
           << L"-d domain      - domain name" << endl
           << L"-h host        - host name" << endl
           << L"-b bits        - number of key bits" << endl
+          << L"-c             - generate certificate with extended key usage as clientAuth" << endl
           << L"-?             - this help message" << endl
     ;
     exit(exitValue);

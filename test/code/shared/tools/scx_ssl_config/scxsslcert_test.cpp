@@ -50,6 +50,7 @@ class ScxSSLCertTest : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( testCertGeneration8Bit );
     CPPUNIT_TEST( test7BitCertGenerationAndCheckFiles );
     CPPUNIT_TEST( test8BitCertGenerationAndCheckFiles );
+    CPPUNIT_TEST( testClientCertGeneration );
     CPPUNIT_TEST( testNonRFCcompliantDomainFailure );
     CPPUNIT_TEST( testNonRFCcompliantHostnameFailure );
     CPPUNIT_TEST( testNonRFCcompliantDomainFallback );
@@ -379,6 +380,40 @@ public:
             SCXSSLCertificateLocalizedDomain::AutoClose aclib(hLib);
 
             CPPUNIT_ASSERT_MESSAGE("Expected a failure to convert on this platform, but it succeeded (" + debugChatter.str() + ")", hLib != NULL);
+        }
+    }
+    
+    void testClientCertGeneration()
+    {
+    	std::ostringstream debugChatter;
+    	
+    	std::istringstream in;
+    	std::ostringstream out, err;
+    	
+    	SCXCoreLib::SelfDeletingFilePath keyPath(L"./testfiles/scx-client-key.pem");
+    	SCXCoreLib::SelfDeletingFilePath certPath(L"./testfiles/scx-test-cert.pem");
+    	std::wstring hostname(L"testhost");
+    	std::wstring domainname(L"testcompany.com");
+    	
+    	SCXSSLCertificateLocalizedDomain cert(keyPath, certPath, -365, 7300, hostname, domainname, 2048, true);
+    	
+        try
+        {
+            cert.Generate(debugChatter);
+            if (SCXCoreLib::SCXProcess::Run(L"openssl x509 -noout -text -in " + certPath.Get(), in, out, err))
+            {
+                std::string msg("Error running openssl, error message is: " + err.str()); 
+                CPPUNIT_ASSERT_MESSAGE(msg, false);
+            }
+            std::string keyString("TLS Web Client Authentication");
+            if(out.str().find(keyString) == std::string::npos)
+            {
+            	CPPUNIT_ASSERT_MESSAGE("Expected extended key usage not present", false);
+            }
+        }
+        catch(SCXSSLException &e)
+        {
+            CPPUNIT_ASSERT_MESSAGE("Unexpected Exception=" + SCXCoreLib::StrToMultibyte(e.What()),false); 
         }
     }
 

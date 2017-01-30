@@ -117,15 +117,17 @@ wstring SCXSSLException::What() const
    \param[in] hostname Hostname to use in the certificates.
    \param[in] domainname Domainname to use in the certificates.
    \param[in] bits Number of bits in key.
+   \param[in] clientCert generate certificate with clientAuth eku
 
    \date   1-17-2008
 */
 SCXSSLCertificate::SCXSSLCertificate(SCXCoreLib::SCXFilePath keyPath, SCXCoreLib::SCXFilePath certPath,
                                      int startDays, int endDays, const wstring & hostname,
-                                     const wstring & domainname, int bits)
+                                     const wstring & domainname, int bits, bool clientCert /* = false */)
     : m_startDays(startDays),
       m_endDays(endDays),
       m_bits(bits),
+      m_clientCert(clientCert),
       m_KeyPath(keyPath),
       m_CertPath(certPath),
       m_hostname(hostname),
@@ -470,33 +472,41 @@ void SCXSSLCertificate::DoGenerate()
         // section 4.2.1.13 "Extended Key Usage", as "1.3.6.1.5.5.7.3.1"
         // We will access it the right way ...
         // There is no need to free the pointer returned here, no memory is allocated
-        ASN1_OBJECT * serverAuthOBJ = OBJ_nid2obj(NID_server_auth);
-        if(serverAuthOBJ == NULL)
+        ASN1_OBJECT * authOBJ = NULL;
+        if (m_clientCert)
         {
-            throw SCXSSLException(L"Unable to get serverAuth ASN1_OBJECT pointer", SCXSRCLOCATION);
+        	authOBJ = OBJ_nid2obj(NID_client_auth);
+        }
+        else
+        {
+        	authOBJ = OBJ_nid2obj(NID_server_auth);
+        }
+        if(authOBJ == NULL)
+        {
+            throw SCXSSLException(L"Unable to get serverAuth/clientAuth ASN1_OBJECT pointer", SCXSRCLOCATION);
         }
 
         // The oid is of known length, 17 bytes  ... pad it a little ...
-        char serverAuthOIDBuf[24] = {0};
+        char authOIDBuf[24] = {0};
 
         // The flag 1 denotes that the numeric form of the answer (not long or short name) will be used
         // The return is (apparently) the string length of the converted string (this is undocumented) ..
-        if(OBJ_obj2txt(serverAuthOIDBuf, static_cast<int> (sizeof(serverAuthOIDBuf)/sizeof(*serverAuthOIDBuf)), serverAuthOBJ, 1) <= 0)
+        if(OBJ_obj2txt(authOIDBuf, static_cast<int> (sizeof(authOIDBuf)/sizeof(*authOIDBuf)), authOBJ, 1) <= 0)
         {
-            throw SCXSSLException(L"Not able to convert OBJ_server_auth to text", SCXSRCLOCATION);
+            throw SCXSSLException(L"Not able to convert OBJ_server_auth/OBJ_client_auth to text", SCXSRCLOCATION);
         }
 
-        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, serverAuthOIDBuf);
+        X509_EXTENSION * ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, (int)NID_ext_key_usage, authOIDBuf);
         if(!ext)
         {
-            throw SCXSSLException(L"Unable to get extension pointer for serverAuth extension", SCXSRCLOCATION);
+            throw SCXSSLException(L"Unable to get extension pointer for serverAuth/clientAuth extension", SCXSRCLOCATION);
         }
 
         int ext_OK = X509_add_ext(x509ss.Get(), ext, -1);
         X509_EXTENSION_free(ext);
         if(!ext_OK)
         {
-            throw SCXSSLException(L"Unable to add serverAuth extension", SCXSRCLOCATION);
+            throw SCXSSLException(L"Unable to add serverAuth/clientAuth extension", SCXSRCLOCATION);
         }
 
         // Sign the certificate
@@ -685,14 +695,15 @@ void SCXSSLCertificate::DisplaySeedWarning(size_t goodRandomNeeded)
    \param[in] hostname Hostname to use in the certificates.
    \param[in] domainname Domainname to use in the certificates.
    \param[in] bits Number of bits in key.
+   \param[in] clientCert generate certificate with clientAuth eku.
 
    Note that it passes an empty string for the domain to the parent. It is expected that
 the user will call Generate() to create a punycode domain string after this is called.
 */
 SCXSSLCertificateLocalizedDomain::SCXSSLCertificateLocalizedDomain(SCXCoreLib::SCXFilePath keyPath, SCXCoreLib::SCXFilePath certPath,
                                      int startDays, int endDays, const wstring & hostname,
-                                     const wstring & domainname_raw, int bits)
-    :SCXSSLCertificate(keyPath, certPath, startDays, endDays, hostname, wstring(L""), bits), m_domainname_raw(domainname_raw)
+                                     const wstring & domainname_raw, int bits, bool clientCert)
+    :SCXSSLCertificate(keyPath, certPath, startDays, endDays, hostname, wstring(L""), bits, clientCert), m_domainname_raw(domainname_raw)
 {
 }
 
