@@ -239,6 +239,9 @@ void SCX_Agent_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_MetaProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"MetaProvider EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for MetaProvider class
@@ -248,7 +251,9 @@ void SCX_Agent_Class_Provider::EnumerateInstances(
         EnumerateOneInstance( context, inst, keysOnly );
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_Agent_Class_Provider::EnumerateInstances", SCXCore::g_MetaProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_Agent_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"MetaProvider EnumerateInstances end");
 }
 
 void SCX_Agent_Class_Provider::GetInstance(

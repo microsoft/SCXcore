@@ -112,6 +112,7 @@ void SCX_Application_Server_Class_Provider::EnumerateInstances(
     const MI_Filter* filter)
 {
     SCXLogHandle& log = SCXCore::g_AppServerProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"App Server EnumerateInstances begin");
 
     SCX_PEX_BEGIN
     {
@@ -133,6 +134,8 @@ void SCX_Application_Server_Class_Provider::EnumerateInstances(
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_Application_Server_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"App Server EnumerateInstances end");
 }
 
 void SCX_Application_Server_Class_Provider::GetInstance(

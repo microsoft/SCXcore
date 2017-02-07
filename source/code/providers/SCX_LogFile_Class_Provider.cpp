@@ -151,6 +151,7 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
      */
 
     SCXCoreLib::SCXLogHandle log = SCXCore::g_LogFileProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"LogFile Provider Invoke begin");
 
     SCX_PEX_BEGIN
     {
@@ -267,6 +268,8 @@ void SCX_LogFile_Class_Provider::Invoke_GetMatchedRows(
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_LogFile_Class_Provider::Load", log );
+
+    SCX_LOGTRACE(log, L"LogFile Provider Invoke end");
 }
 
 void SCX_LogFile_Class_Provider::Invoke_ResetStateFile(

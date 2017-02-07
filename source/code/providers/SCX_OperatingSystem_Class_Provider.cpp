@@ -345,6 +345,9 @@ void SCX_OperatingSystem_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_OSProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         SCXThreadLock lock(ThreadLockHandleGet(L"SCXCore::OSProvider::Lock"));
@@ -359,7 +362,9 @@ void SCX_OperatingSystem_Class_Provider::EnumerateInstances(
         EnumerateOneInstance( context, inst, keysOnly, osEnum->GetTotalInstance(), memEnum->GetTotalInstance() );
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::EnumerateInstances", SCXCore::g_OSProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances end");
 }
 
 void SCX_OperatingSystem_Class_Provider::GetInstance(

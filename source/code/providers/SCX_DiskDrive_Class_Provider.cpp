@@ -179,6 +179,9 @@ void SCX_DiskDrive_Class_Provider::EnumerateInstances(
         bool keysOnly,
         const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_DiskProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"DiskDrive EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for DiskProvider class
@@ -207,8 +210,9 @@ void SCX_DiskDrive_Class_Provider::EnumerateInstances(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_DiskDrive_Class_Provider::EnumerateInstances",
-                     SCXCore::g_DiskProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_DiskDrive_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"DiskDrive EnumerateInstances end");
 }
 
 void SCX_DiskDrive_Class_Provider::GetInstance(

@@ -216,6 +216,9 @@ void SCX_MemoryStatisticalInformation_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_MemoryProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"MemoryStat EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for MemoryProvider class
@@ -239,8 +242,9 @@ void SCX_MemoryStatisticalInformation_Class_Provider::EnumerateInstances(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_MemoryStatisticalInformation_Class_Provider::EnumerateInstances",
-                       SCXCore::g_MemoryProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_MemoryStatisticalInformation_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"MemoryStat EnumerateInstances end");
 }
 
 void SCX_MemoryStatisticalInformation_Class_Provider::GetInstance(
