@@ -188,12 +188,15 @@ void SCX_FileSystemStatisticalInformation_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_FileSystemProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"FileSystemStat EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for DiskProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
 
-        //  Prepare FIle System Enumeration
+        // Prepare File System Enumeration
         // (Note: Only do full update if we're not enumerating keys)
         SCXHandle<SCXSystemLib::StatisticalLogicalDiskEnumeration> diskEnum = SCXCore::g_FileSystemProvider.getEnumstatisticalLogicalDisks();
         diskEnum->Update(!keysOnly);
@@ -215,8 +218,9 @@ void SCX_FileSystemStatisticalInformation_Class_Provider::EnumerateInstances(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_FileSystemStatisticalInformation_Class_Provider::EnumerateInstances",
-                      SCXCore::g_FileSystemProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_FileSystemStatisticalInformation_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"FileSystemStat EnumerateInstances end");
 }
 
 void SCX_FileSystemStatisticalInformation_Class_Provider::GetInstance(

@@ -194,34 +194,39 @@ void SCX_FileSystem_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
-   SCX_PEX_BEGIN
-   {
-       // Global lock for DiskProvider class
-       SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
+    SCXLogHandle& log = SCXCore::g_FileSystemProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"FileSystem EnumerateInstances begin");
 
-       // (Note: Only do full update if we're not enumerating keys) 
-       SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
-       staticLogicalDisksEnum->Update(!keysOnly);
+    SCX_PEX_BEGIN
+    {
+        // Global lock for DiskProvider class
+        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
 
-       for(size_t i = 0; i < staticLogicalDisksEnum->Size(); i++) 
-       {
-           SCX_FileSystem_Class inst;
-           SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> diskinst = staticLogicalDisksEnum->GetInstance(i);
-           EnumerateOneInstance(context, inst, keysOnly, diskinst);
-       }
+        // (Note: Only do full update if we're not enumerating keys) 
+        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
+        staticLogicalDisksEnum->Update(!keysOnly);
 
-       // Enumerate Total instance
-       SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> totalInst = staticLogicalDisksEnum->GetTotalInstance();
-       if (totalInst != NULL)
-       {
-           // There will always be one total instance
-           SCX_FileSystem_Class inst;
-           EnumerateOneInstance(context, inst, keysOnly, totalInst);
-       }
+        for(size_t i = 0; i < staticLogicalDisksEnum->Size(); i++) 
+        {
+            SCX_FileSystem_Class inst;
+            SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> diskinst = staticLogicalDisksEnum->GetInstance(i);
+            EnumerateOneInstance(context, inst, keysOnly, diskinst);
+        }
 
-       context.Post(MI_RESULT_OK);
-   }
-   SCX_PEX_END( L"SCX_FileSystem_Class_Provider::EnumerateInstances", SCXCore::g_FileSystemProvider.GetLogHandle() );
+        // Enumerate Total instance
+        SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> totalInst = staticLogicalDisksEnum->GetTotalInstance();
+        if (totalInst != NULL)
+        {
+            // There will always be one total instance
+            SCX_FileSystem_Class inst;
+            EnumerateOneInstance(context, inst, keysOnly, totalInst);
+        }
+
+        context.Post(MI_RESULT_OK);
+    }
+    SCX_PEX_END( L"SCX_FileSystem_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"FileSystem EnumerateInstances end");
 }
 
 void SCX_FileSystem_Class_Provider::GetInstance(

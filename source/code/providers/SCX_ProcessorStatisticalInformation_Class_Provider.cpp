@@ -191,6 +191,9 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = g_CPUProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"ProcessorStat EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for CPUProvider class
@@ -219,8 +222,9 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances",
-                     g_CPUProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"ProcessorStat EnumerateInstances end");
 }
 
 void SCX_ProcessorStatisticalInformation_Class_Provider::GetInstance(

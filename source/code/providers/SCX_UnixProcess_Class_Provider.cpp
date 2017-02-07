@@ -254,16 +254,18 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for ProcessProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
-        SCX_LOGTRACE(SCXCore::g_ProcessProvider.GetLogHandle(), L"Process Provider EnumerateInstances");
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
         processEnum->Update();
 
-        SCX_LOGTRACE(SCXCore::g_ProcessProvider.GetLogHandle(), StrAppend(L"Number of Processes = ", processEnum->Size()));
+        SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
 
         for(size_t i = 0; i < processEnum->Size(); i++)
         {
@@ -272,7 +274,9 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
         }
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", SCXCore::g_ProcessProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances end");
 }
 
 void SCX_UnixProcess_Class_Provider::GetInstance(

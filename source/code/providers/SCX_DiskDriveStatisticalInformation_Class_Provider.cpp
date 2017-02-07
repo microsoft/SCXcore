@@ -159,6 +159,9 @@ void SCX_DiskDriveStatisticalInformation_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_DiskProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"DiskDriveStat EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for DiskProvider class
@@ -187,8 +190,9 @@ void SCX_DiskDriveStatisticalInformation_Class_Provider::EnumerateInstances(
 
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_DiskDriveStatisticalInformation_Class_Provider::EnumerateInstances",
-                     SCXCore::g_DiskProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_DiskDriveStatisticalInformation_Class_Provider::EnumerateInstances", log );
+
+    SCX_LOGTRACE(log, L"DiskDriveStat EnumerateInstances end");
 }
 
 void SCX_DiskDriveStatisticalInformation_Class_Provider::GetInstance(
@@ -226,7 +230,7 @@ void SCX_DiskDriveStatisticalInformation_Class_Provider::GetInstance(
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_DiskDriveStatisticalInformation_Class_Provider::GetInstance",
-                      SCXCore::g_DiskProvider.GetLogHandle() );
+                 SCXCore::g_DiskProvider.GetLogHandle());
 }
 
 void SCX_DiskDriveStatisticalInformation_Class_Provider::CreateInstance(

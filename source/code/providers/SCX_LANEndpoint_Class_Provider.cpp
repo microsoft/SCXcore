@@ -114,19 +114,20 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    SCXLogHandle& log = SCXCore::g_NetworkProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"LANEndpoint Provider EnumerateInstances begin");
+
     SCX_PEX_BEGIN
     {
         // Global lock for NetworkProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::NetworkProvider::Lock"));
-
-        SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"LANEndpoint Provider EnumerateInstances");
 
         // Update network PAL instance. This is both update of number of interfaces and
         // current statistics for each interfaces.
         SCXHandle<SCXCore::NetworkProviderDependencies> deps = SCXCore::g_NetworkProvider.getDependencies();
         deps->UpdateIntf(false);
 
-        SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), StrAppend(L"Number of interfaces = ", deps->IntfCount()));
+        SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
 
         for(size_t i = 0; i < deps->IntfCount(); i++)
         {
@@ -136,8 +137,9 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
         }
         context.Post(MI_RESULT_OK);
     }
-    SCX_PEX_END( L"SCX_LANEndpoint_Class_Provider::EnumerateInstances", SCXCore::g_NetworkProvider.GetLogHandle() );
+    SCX_PEX_END( L"SCX_LANEndpoint_Class_Provider::EnumerateInstances", log );
 
+    SCX_LOGTRACE(log, L"LANEndpoint Provider EnumerateInstances end");
 }
 
 void SCX_LANEndpoint_Class_Provider::GetInstance(
