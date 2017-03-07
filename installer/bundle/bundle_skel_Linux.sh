@@ -295,7 +295,6 @@ pkg_upd() {
 
 getInstalledVersion()
 {
-
     # Parameter: Package to check if installed
     # Returns: Printable string (version installed or "None")
     if check_if_pkg_is_installed $1; then
@@ -591,7 +590,8 @@ case "$installMode" in
         if [ $PROVIDER_ONLY -eq 0 ]; then
             check_if_pkg_is_installed omi
             if [ $? -eq 0 ]; then
-                pkg_upd $OMI_PKG omi
+                shouldInstall_omi
+                pkg_upd $OMI_PKG omi $?
                 OMI_EXIT_STATUS=$?
             else
                 pkg_add $OMI_PKG omi
