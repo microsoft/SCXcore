@@ -78,6 +78,64 @@ cleanup_and_exit()
     fi
 }
 
+check_version_installable() {
+    # POSIX Semantic Version <= Test
+    # Exit code 0 is true (i.e. installable).
+    # Exit code non-zero means existing version is >= version to install.
+    #
+    # Parameter:
+    #   Installed: "x.y.z.b" (like "4.2.2.135"), for major.minor.patch.build versions
+    #   Available: "x.y.z.b" (like "4.2.2.135"), for major.minor.patch.build versions
+
+    if [ $# -ne 2 ]; then
+        echo "INTERNAL ERROR: Incorrect number of parameters passed to check_version_installable" >&2
+        cleanup_and_exit 1
+    fi
+
+    # Current version installed
+    local INS_MAJOR=`echo $1 | cut -d. -f1`
+    local INS_MINOR=`echo $1 | cut -d. -f2`
+    local INS_PATCH=`echo $1 | cut -d. -f3`
+    local INS_BUILD=`echo $1 | cut -d. -f4`
+
+    # Available version number
+    local AVA_MAJOR=`echo $2 | cut -d. -f1`
+    local AVA_MINOR=`echo $2 | cut -d. -f2`
+    local AVA_PATCH=`echo $2 | cut -d. -f3`
+    local AVA_BUILD=`echo $2 | cut -d. -f4`
+
+    # Check bounds on MAJOR
+    if [ $INS_MAJOR -lt $AVA_MAJOR ]; then
+        return 0
+    elif [ $INS_MAJOR -gt $AVA_MAJOR ]; then
+        return 1
+    fi
+
+    # MAJOR matched, so check bounds on MINOR
+    if [ $INS_MINOR -lt $AVA_MINOR ]; then
+        return 0
+    elif [ $INS_MINOR -gt $AVA_MINOR ]; then
+        return 1
+    fi
+
+    # MINOR matched, so check bounds on PATCH
+    if [ $INS_PATCH -lt $AVA_PATCH ]; then
+        return 0
+    elif [ $INS_PATCH -gt $AVA_PATCH ]; then
+        return 1
+    fi
+
+    # PATCH matched, so check bounds on BUILD
+    if [ $INS_BUILD -lt $AVA_BUILD ]; then
+        return 0
+    elif [ $INS_BUILD -gt $AVA_BUILD ]; then
+        return 1
+    fi
+
+    # Version available is idential to installed version, so don't install
+    return 1
+}
+
 getVersionNumber()
 {
     # Parse a version number from a string.
@@ -106,7 +164,7 @@ verifyNoInstallationOption()
 
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
-    lslpp $1 2> /dev/null 1> /dev/null
+    lslpp -L $1.rte 2> /dev/null 1> /dev/null
     return $?
 }
 
@@ -134,11 +192,49 @@ pkg_rm() {
 pkg_upd() {
     pkg_filename=$1
     pkg_name=$2
+    pkg_allowed=$3
 
     echo "----- Updating package: $pkg_name ($pkg_filename) -----"
 
+    if [ -z "${forceFlag}" -a -n "$pkg_allowed" ]; then
+        if [ $pkg_allowed -ne 0 ]; then
+            echo "Skipping package since existing version >= version available"
+            return 0
+        fi
+    fi
+
     [ -n "${forceFlag}" -o "${pkg_name}" = "omi" ] && FORCE="-F" || FORCE=""
     /usr/sbin/installp -a -X $FORCE -d ${pkg_filename} $pkg_name.rte
+}
+
+getInstalledVersion()
+{
+    # Parameter: Package to check if installed
+    # Returns: Printable string (version installed or "None")
+    if check_if_pkg_is_installed $1; then
+        local version="`lslpp -L $1.rte | awk 'NR==3 { print $2 }'`"
+        getVersionNumber $version ${1}-
+    else
+        echo "None"
+    fi
+}
+
+shouldInstall_omi()
+{
+    local versionInstalled=`getInstalledVersion omi`
+    [ "$versionInstalled" = "None" ] && return 0
+    local versionAvailable=`getVersionNumber $OMI_PKG omi-`
+
+    check_version_installable $versionInstalled $versionAvailable
+}
+
+shouldInstall_scx()
+{
+    local versionInstalled=`getInstalledVersion scx`
+    [ "$versionInstalled" = "None" ] && return 0
+    local versionAvailable=`getVersionNumber $OM_PKG scx-`
+
+    check_version_installable $versionInstalled $versionAvailable
 }
 
 #
@@ -325,10 +421,9 @@ case "$installMode" in
 
         check_if_pkg_is_installed omi
         if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
-            # It is acceptable that this fails due to the new omi being
-            # the same version (or less) than the one currently installed.
-            OMI_EXIT_STATUS=0
+            shouldInstall_omi
+            pkg_upd $OMI_PKG omi $?
+            OMI_EXIT_STATUS=$?
         else
             pkg_add $OMI_PKG omi
             OMI_EXIT_STATUS=$?
@@ -343,16 +438,16 @@ case "$installMode" in
         echo "Updating cross-platform agent ..."
         check_if_pkg_is_installed omi
         if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
-            # It is acceptable that this fails due to the new omi being
-            # the same version (or less) than the one currently installed.
-            OMI_EXIT_STATUS=0
+            shouldInstall_omi
+            pkg_upd $OMI_PKG omi $?
+            OMI_EXIT_STATUS=$?
         else
             pkg_add $OMI_PKG omi
             OMI_EXIT_STATUS=$?
         fi
 
-        pkg_upd $OM_PKG scx
+        shouldInstall_scx
+        pkg_upd $OM_PKG scx $?
         SCX_EXIT_STATUS=$?
 
         ;;

@@ -82,6 +82,64 @@ cleanup_and_exit()
     fi
 }
 
+check_version_installable() {
+    # POSIX Semantic Version <= Test
+    # Exit code 0 is true (i.e. installable).
+    # Exit code non-zero means existing version is >= version to install.
+    #
+    # Parameter:
+    #   Installed: "x.y.z.b" (like "4.2.2.135"), for major.minor.patch.build versions
+    #   Available: "x.y.z.b" (like "4.2.2.135"), for major.minor.patch.build versions
+
+    if [ $# -ne 2 ]; then
+        echo "INTERNAL ERROR: Incorrect number of parameters passed to check_version_installable" >&2
+        cleanup_and_exit 1
+    fi
+
+    # Current version installed
+    INS_MAJOR=`echo $1 | cut -d. -f1`
+    INS_MINOR=`echo $1 | cut -d. -f2`
+    INS_PATCH=`echo $1 | cut -d. -f3`
+    INS_BUILD=`echo $1 | cut -d. -f4`
+
+    # Available version number
+    AVA_MAJOR=`echo $2 | cut -d. -f1`
+    AVA_MINOR=`echo $2 | cut -d. -f2`
+    AVA_PATCH=`echo $2 | cut -d. -f3`
+    AVA_BUILD=`echo $2 | cut -d. -f4`
+
+    # Check bounds on MAJOR
+    if [ $INS_MAJOR -lt $AVA_MAJOR ]; then
+        return 0
+    elif [ $INS_MAJOR -gt $AVA_MAJOR ]; then
+        return 1
+    fi
+
+    # MAJOR matched, so check bounds on MINOR
+    if [ $INS_MINOR -lt $AVA_MINOR ]; then
+        return 0
+    elif [ $INS_MINOR -gt $AVA_MINOR ]; then
+        return 1
+    fi
+
+    # MINOR matched, so check bounds on PATCH
+    if [ $INS_PATCH -lt $AVA_PATCH ]; then
+        return 0
+    elif [ $INS_PATCH -gt $AVA_PATCH ]; then
+        return 1
+    fi
+
+    # PATCH matched, so check bounds on BUILD
+    if [ $INS_BUILD -lt $AVA_BUILD ]; then
+        return 0
+    elif [ $INS_BUILD -gt $AVA_BUILD ]; then
+        return 1
+    fi
+
+    # Version available is idential to installed version, so don't install
+    return 1
+}
+
 getVersionNumber()
 {
     # Parse a version number from a string.
@@ -142,41 +200,55 @@ pkg_rm() {
 pkg_upd() {
     pkg_filename=$1
     pkg_name=$2
+    pkg_allowed=$3
 
     echo "----- Updating package: $pkg_name ($pkg_filename) -----"
+
+    if [ -z "${forceFlag}" -a -n "$pkg_allowed" ]; then
+        if [ $pkg_allowed -ne 0 ]; then
+            echo "Skipping package since existing version >= version available"
+            return 0
+        fi
+    fi
 
     # No notion of "--force" since Sun package has no notion of update
     check_if_pkg_is_installed ${pkg_name}
     if [ $? -eq 0 ]; then
-        # Check version numbers of this package, both installed and the new file
-        INSTALLED_VERSION=`pkginfo -l MSFT${pkg_name} | grep VERSION | awk '{ print $2 }'`
-        FILE_VERSION=`pkginfo -l -d $1 | grep VERSION | awk '{ print $2 }'`
-        IV_1=`echo $INSTALLED_VERSION | awk -F. '{ print $1 }'`
-        IV_2=`echo $INSTALLED_VERSION | awk -F. '{ print $2 }'`
-        IV_3=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $1 }'`
-        IV_4=`echo $INSTALLED_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $2 }'`
-        FV_1=`echo $FILE_VERSION | awk -F. '{ print $1 }'`
-        FV_2=`echo $FILE_VERSION | awk -F. '{ print $2 }'`
-        FV_3=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $1 }'`
-        FV_4=`echo $FILE_VERSION | awk -F. '{ print $3 }' | awk -F- '{ print $2 }'`
-
-        # If the new version is greater than the previous, upgrade it. We expect at least 3 tokens in the version.
-        UPGRADE_PACKAGE=0
-        if [ $FV_1 -gt $IV_1 -o $FV_2 -gt $IV_2 -o  $FV_3 -gt $IV_3 ]; then
-            UPGRADE_PACKAGE=1
-        elif [ -n "$FV_4" -a -n "$IV_4" ]; then
-            if [ $FV_4 -gt $IV_4 ]; then
-                UPGRADE_PACKAGE=1
-            fi
-        fi
-
-        if [ $UPGRADE_PACKAGE -eq 1 ]; then
-            pkg_rm $pkg_name force
-            pkg_add $1 $pkg_name
-        fi
+        pkg_rm $pkg_name force
+        pkg_add $1 $pkg_name
     else
         pkg_add $1 $pkg_name
+    fi   
+}
+
+getInstalledVersion()
+{
+    # Parameter: Package to check if installed
+    # Returns: Printable string (version installed or "None")
+    if check_if_pkg_is_installed $1; then
+        version="`pkginfo -l MSFT$1 | grep VERSION | awk '{ print $2 }'`"
+        getVersionNumber $version ${1}-
+    else
+        echo "None"
     fi
+}
+
+shouldInstall_omi()
+{
+    versionInstalled=`getInstalledVersion omi`
+    [ "$versionInstalled" = "None" ] && return 0
+    versionAvailable=`getVersionNumber $OMI_PKG omi-`
+
+    check_version_installable $versionInstalled $versionAvailable
+}
+
+shouldInstall_scx()
+{
+    versionInstalled=`getInstalledVersion scx`
+    [ "$versionInstalled" = "None" ] && return 0
+    versionAvailable=`getVersionNumber $OM_PKG scx-`
+
+    check_version_installable $versionInstalled $versionAvailable
 }
 
 #
@@ -384,7 +456,8 @@ case "$installMode" in
 
         check_if_pkg_is_installed omi
         if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
+            shouldInstall_omi
+            pkg_upd $OMI_PKG omi $?
             OMI_EXIT_STATUS=$?
         else
             pkg_add $OMI_PKG omi
@@ -400,14 +473,16 @@ case "$installMode" in
         echo "Updating cross-platform agent ..."
         check_if_pkg_is_installed omi
         if [ $? -eq 0 ]; then
-            pkg_upd $OMI_PKG omi
+            shouldInstall_omi
+            pkg_upd $OMI_PKG omi $?
             OMI_EXIT_STATUS=$?
         else
             pkg_add $OMI_PKG omi
             OMI_EXIT_STATUS=$?
         fi
 
-        pkg_upd $OM_PKG scx
+        shouldInstall_scx
+        pkg_upd $OM_PKG scx $?
         SCX_EXIT_STATUS=$?
 
         ;;
