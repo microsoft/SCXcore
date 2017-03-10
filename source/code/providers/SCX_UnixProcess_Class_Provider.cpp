@@ -43,11 +43,13 @@ static void EnumerateOneInstance(Context& context,
     SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
 
     // Add the key properties first.
-    scxulong pid;
+    scxulong pid = 0;
     if (processinst->GetPID(pid))
     {
         inst.Handle_value(StrToUTF8(StrFrom(pid)).c_str());
     }
+
+    SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sending instance for handle: ", StrFrom(pid)));
     
     // Add keys of scoping operating system
     try {
@@ -199,6 +201,8 @@ static void EnumerateOneInstance(Context& context,
         }
     }
     context.Post(inst);
+
+    SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
 }
 
 SCX_UnixProcess_Class_Provider::SCX_UnixProcess_Class_Provider(
