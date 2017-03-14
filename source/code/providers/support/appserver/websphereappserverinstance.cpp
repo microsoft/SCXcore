@@ -360,11 +360,15 @@ namespace SCXSystemLib
                 
         if (SCXDirectory::Exists(profileDiskPath))
         {
+            // Atleast on Websphere 8.5 wsBundleMetadata is a directory.
+            // Hence adding check for presence of the directory along with the file.
             SCXCoreLib::SCXFilePath serverDiskPath(m_diskPath);
             serverDiskPath.AppendDirectory(L"configuration");
+            SCXCoreLib::SCXFilePath metadataDiskPath(serverDiskPath);
             serverDiskPath.Append(L"wsBundleMetadata");
+            metadataDiskPath.AppendDirectory(L"wsBundleMetadata");
                         
-            if (SCXFile::Exists(serverDiskPath.Get()))
+            if (SCXFile::Exists(serverDiskPath.Get()) || SCXDirectory::Exists(metadataDiskPath))
             {
                 return true;
             }
