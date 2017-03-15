@@ -220,72 +220,55 @@ check_if_pkg_is_installed() {
 # $1 - The filename of the package to be installed
 # $2 - The package name of the package to be installed
 # Enqueues the package to the queue of packages to be added
-pkg_add_list() {
+pkg_add() {
     pkg_filename=$1
     pkg_name=$2
 
-    echo "----- Queuing package: $pkg_name ($pkg_filename) for installation -----"
+    echo "----- Installing package: $pkg_name ($pkg_filename) -----"
     ulinux_detect_openssl_version
     pkg_filename=$TMPBINDIR/$pkg_filename
 
     if [ "$INSTALLER" = "DPKG" ]
     then
-        ADD_PKG_QUEUE="${ADD_PKG_QUEUE} ${pkg_filename}.deb"
+        dpkg ${DPKG_CONF_QUALS} --install --refuse-downgrade ${pkg_filename}.deb
+        return $?
     else
-        ADD_PKG_QUEUE="${ADD_PKG_QUEUE} ${pkg_filename}.rpm"
-    fi
-}
-
-# $1.. : The paths of the packages to be installed
-pkg_add() {
-   pkg_list=
-   while [ $# -ne 0 ]
-   do
-      pkg_list="${pkg_list} $1"
-      shift 1
-   done
-
-   if [ "${pkg_list}" = "" ]
-   then
-       # Nothing to add
-       return 0
-   fi
-   echo "----- Installing packages: ${pkg_list} -----"
-   ulinux_detect_openssl_version
-
-    if [ "$INSTALLER" = "DPKG" ]
-    then
-        dpkg ${DPKG_CONF_QUALS} --install --refuse-downgrade ${pkg_list}
-    else
-        rpm --install ${pkg_list}
+        rpm --install ${pkg_filename}.rpm
+        return $?
     fi
 }
 
 # $1 - The package name of the package to be uninstalled
-# $2 - Optional parameter. Only used when forcibly removing omi on SunOS
+# $2 - Optional parameter. Only used when forcibly removing a package
 pkg_rm() {
     echo "----- Removing package: $1 -----"
     if [ "$INSTALLER" = "DPKG" ]
     then
         if [ "$installMode" = "P" ]; then
             dpkg --purge ${1}
+        elif [ "$2" = "force" ]; then
+            dpkg --remove --force-all ${1}
         else
             dpkg --remove ${1}
         fi
     else
-        rpm --erase ${1}
+        if [ "$2" = "force" ]; then
+            rpm --erase --nodeps ${1}
+        else
+            rpm --erase ${1}
+        fi
     fi
 }
 
 # $1 - The filename of the package to be installed
 # $2 - The package name of the package to be installed
 # $3 - Okay to upgrade the package? (Optional)
-pkg_upd_list() {
+pkg_upd() {
     pkg_filename=$1
     pkg_name=$2
     pkg_allowed=$3
 
-    echo "----- Queuing package for upgrade: $pkg_name ($pkg_filename) -----"
+    echo "----- Upgrading package: $pkg_name ($pkg_filename) -----"
 
     if [ -z "${forceFlag}" -a -n "$pkg_allowed" ]; then
         if [ $pkg_allowed -ne 0 ]; then
@@ -299,39 +282,13 @@ pkg_upd_list() {
 
     if [ "$INSTALLER" = "DPKG" ]
     then
-        UPD_PKG_QUEUE="${UPD_PKG_QUEUE} ${pkg_filename}.deb"
-    else
-        UPD_PKG_QUEUE="${UPD_PKG_QUEUE} ${pkg_filename}.rpm"
-    fi
-}
-
-# $* - The list of packages to be updated
-pkg_upd() {
-   pkg_list=
-   while [ $# -ne 0 ]
-   do
-      pkg_list="${pkg_list} $1"
-      shift 1
-   done
-
-   if [ "${pkg_list}" = "" ]
-   then
-       # Nothing to update
-       return 0
-   fi
-    echo "----- Updating packages: ($pkg_list) -----"
-
-    ulinux_detect_openssl_version
-
-    if [ "$INSTALLER" = "DPKG" ]
-    then
         [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
-        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_list}
-
-        export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb
+        return $?
     else
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        rpm --upgrade $FORCE ${pkg_list}
+        rpm --upgrade $FORCE ${pkg_filename}.rpm
+        return $?
     fi
 }
 
@@ -371,6 +328,34 @@ shouldInstall_scx()
     check_version_installable $versionInstalled $versionAvailable
 }
 
+remove_and_install()
+{
+    check_if_pkg_is_installed apache-cimprov
+    if [ $? -eq 0 ]; then
+        pkg_rm apache-cimprov force
+    fi
+    check_if_pkg_is_installed mysql-cimprov
+    if [ $? -eq 0 ]; then
+        pkg_rm mysql-cimprov force
+    fi
+    check_if_pkg_is_installed scx
+    if [ $? -eq 0 ]; then
+        pkg_rm scx force
+    fi
+    check_if_pkg_is_installed omi
+    if [ $? -eq 0 ]; then
+        pkg_rm omi force
+    fi
+    pkg_add $OMI_PKG omi
+    if [ "$?" -ne 0 ]; then
+        return 1
+    fi
+    pkg_add $OM_PKG scx
+    if [ "$?" -ne 0 ]; then
+        return 1
+    fi
+    return 0
+}
 #
 # Main script follows
 #
@@ -569,8 +554,9 @@ fi
 #
 
 EXIT_STATUS=0
-SCX_OMI_EXIT_STATUS=0
 BUNDLE_EXIT_STATUS=0
+OMI_EXIT_STATUS=0
+SCX_EXIT_STATUS=0
 
 case "$installMode" in
     E)
@@ -584,17 +570,24 @@ case "$installMode" in
         if [ $PROVIDER_ONLY -eq 0 ]; then
             check_if_pkg_is_installed omi
             if [ $? -eq 0 ]; then
-                pkg_upd_list $OMI_PKG omi
-                pkg_upd ${UPD_PKG_QUEUE}
+                pkg_upd $OMI_PKG omi
+                OMI_EXIT_STATUS=$?
             else
-                pkg_add_list $OMI_PKG omi
+                pkg_add $OMI_PKG omi
+                OMI_EXIT_STATUS=$?
             fi
         fi
 
-        pkg_add_list $OM_PKG scx
+        pkg_add $OM_PKG scx
+        SCX_EXIT_STATUS=$?
 
-        pkg_add ${ADD_PKG_QUEUE}
-        SCX_OMI_EXIT_STATUS=$?
+        if [ "${OMI_EXIT_STATUS}" -ne 0 -o "${SCX_EXIT_STATUS}" -ne 0 ]; then
+            remove_and_install
+            if [ "$?" -ne 0 ]; then
+                echo "Install failed"
+                cleanup_and_exit 1
+            fi
+        fi
 
         if [ $PROVIDER_ONLY -eq 0 ]; then
             # Install bundled providers
@@ -617,14 +610,21 @@ case "$installMode" in
         echo "Updating cross-platform agent ..."
         if [ $PROVIDER_ONLY -eq 0 ]; then
             shouldInstall_omi
-            pkg_upd_list $OMI_PKG omi $?
+            pkg_upd $OMI_PKG omi $?
+            OMI_EXIT_STATUS=$?
         fi
 
         shouldInstall_scx
-        pkg_upd_list $OM_PKG scx $?
+        pkg_upd $OM_PKG scx $?
+        SCX_EXIT_STATUS=$?
 
-        pkg_upd ${UPD_PKG_QUEUE}
-        SCX_OMI_EXIT_STATUS=$?
+        if [ "${OMI_EXIT_STATUS}" -ne 0 -o "${SCX_EXIT_STATUS}" -ne 0 ]; then
+            remove_and_install
+            if [ "$?" -ne 0 ]; then
+                echo "Upgrade failed"
+                cleanup_and_exit 1
+            fi
+        fi
 
         if [ $PROVIDER_ONLY -eq 0 ]; then
             # Upgrade bundled providers
@@ -650,8 +650,7 @@ case "$installMode" in
 esac
 
 # Remove temporary files (now part of cleanup_and_exit) and exit
-
-if [ "$SCX_OMI_EXIT_STATUS" -ne 0 -o "$BUNDLE_EXIT_STATUS" -ne 0 ]; then
+if [ "$BUNDLE_EXIT_STATUS" -ne 0 ]; then
     cleanup_and_exit 1
 else
     cleanup_and_exit 0
