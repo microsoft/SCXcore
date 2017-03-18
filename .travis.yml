@@ -1,3 +1,6 @@
+# Note: This version of .travis.yml is specific for the 2016-URNext branch!
+#       See "before_install" step below for specific branches in Git.
+
 language: c
 
 branches:
@@ -43,6 +46,10 @@ before_install:
   - # Master branch for all submodules
   - cd ../bld-scxcore
   - git submodule foreach git checkout master
+  -
+  - # The 2016-URNext branch uses specific versions of subcomponents
+  - (cd omi; git checkout v1.0.8-6)
+  - (cd pal; git checkout 2016-URNext)
   -
   - # Patch in the version of SCXcore that Travis gave to us
   - rm -rf opsmgr
