@@ -49,6 +49,7 @@ usage()
     echo "  --restart-deps         Reconfigure and restart dependent service"
     echo "  --source-references    Show source code reference hashes."
     echo "  --upgrade              Upgrade the package in the system."
+    echo "  --enable-opsmgr        Enable port 1270 for usage with opsmgr."
     echo "  --version              Version of this shell bundle."
     echo "  --debug                use shell debug mode."
     echo "  -? | --help            shows this usage text."
@@ -210,6 +211,13 @@ do
         --upgrade)
             verifyNoInstallationOption
             installMode=U
+            shift 1
+            ;;
+
+        --enable-opsmgr)
+            if [ ! -f /etc/scxagent-enable-port ]; then
+                touch /etc/scxagent-enable-port
+            fi
             shift 1
             ;;
 

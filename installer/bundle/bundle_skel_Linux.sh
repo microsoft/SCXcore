@@ -61,6 +61,7 @@ usage()
     echo "  --restart-deps         Reconfigure and restart dependent service"
     echo "  --source-references    Show source code reference hashes."
     echo "  --upgrade              Upgrade the package in the system."
+    echo "  --enable-opsmgr        Enable port 1270 for usage with opsmgr."
     echo "  --version              Version of this shell bundle."
     echo "  --version-check        Check versions already installed to see if upgradable"
     echo "                         (Linux platforms only)."
@@ -332,11 +333,11 @@ remove_and_install()
 {
     check_if_pkg_is_installed apache-cimprov
     if [ $? -eq 0 ]; then
-        pkg_rm apache-cimprov force
+        pkg_rm apache-cimprov
     fi
     check_if_pkg_is_installed mysql-cimprov
     if [ $? -eq 0 ]; then
-        pkg_rm mysql-cimprov force
+        pkg_rm mysql-cimprov
     fi
     check_if_pkg_is_installed scx
     if [ $? -eq 0 ]; then
@@ -431,6 +432,13 @@ do
             shift 1
             ;;
 
+        --enable-opsmgr)
+            if [ ! -f /etc/scxagent-enable-port ]; then
+                touch /etc/scxagent-enable-port
+            fi
+            shift 1
+            ;;
+
         --version)
             echo "Version: `getVersionNumber $OM_PKG scx-`"
             exit 0
@@ -513,10 +521,23 @@ then
 
     if [ "$installMode" = "P" ]
     then
-        echo "Purging all files in cross-platform agent ..."
-        rm -rf /etc/opt/microsoft/*-cimprov /etc/opt/microsoft/scx /opt/microsoft/*-cimprov /opt/microsoft/scx /var/opt/microsoft/*-cimprov /var/opt/microsoft/scx
-        rmdir /etc/opt/microsoft /opt/microsoft /var/opt/microsoft 1>/dev/null 2>/dev/null
-
+        check_if_pkg_is_installed apache-cimprov
+        if [ $? -ne 0 ]; then
+            echo "Purging all files in apache provider ..."
+            rm -rf /etc/opt/microsoft/apache-cimprov /opt/microsoft/apache-cimprov /var/opt/microsoft/apache-cimprov
+        fi
+        check_if_pkg_is_installed mysql-cimprov
+        if [ $? -ne 0 ]; then
+            echo "Purging all files in mysql provider ..."
+            rm -rf /etc/opt/microsoft/mysql-cimprov /opt/microsoft/mysql-cimprov /var/opt/microsoft/mysql-cimprov
+        fi
+        # Remove directories only if scx got removed successfully (Other products might be dependent on scx)
+        check_if_pkg_is_installed scx
+        if [ $? -ne 0 ]; then
+            echo "Purging all files in cross-platform agent ..."
+            rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
+            rmdir /etc/opt/microsoft /opt/microsoft /var/opt/microsoft 1>/dev/null 2>/dev/null
+        fi
         # If OMI is not installed, purge its directories as well.
         check_if_pkg_is_installed omi
         if [ $? -ne 0 ]; then
