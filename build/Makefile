@@ -15,6 +15,7 @@ PF_POSIX=true
 # Get the root of the SCXPAL directory (and other easy locations)
 SCXPAL_DIR := $(shell cd ../../pal; pwd)
 SCXOMI_DIR := $(shell cd ../../omi/Unix; pwd -P)
+OMIKITS_DIR := $(shell cd ../../omi-kits/release; pwd)
 
 include $(SCXPAL_DIR)/build/config.mak
 include $(SCX_BRD)/build/config.mak
