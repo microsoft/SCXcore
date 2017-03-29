@@ -107,7 +107,7 @@ verifyNoInstallationOption()
 
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
-    lslpp $1 2> /dev/null 1> /dev/null
+    lslpp -L $1.rte 2> /dev/null 1> /dev/null
     return $?
 }
 
@@ -356,6 +356,11 @@ case "$installMode" in
             # the same version (or less) than the one currently installed.
             OMI_EXIT_STATUS=0
         else
+            # If omi is not installed and scx is installed the installed agent is 2012, in that case stoppping the service before updating
+            check_if_pkg_is_installed scx
+            if [ $? -eq 0 ]; then
+                /opt/microsoft/scx/bin/tools/scxadmin -stop
+            fi
             pkg_add $OMI_PKG omi
             OMI_EXIT_STATUS=$?
         fi
