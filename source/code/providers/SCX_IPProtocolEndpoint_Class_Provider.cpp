@@ -148,6 +148,7 @@ void SCX_IPProtocolEndpoint_Class_Provider::EnumerateInstances(
 
     SCX_PEX_BEGIN
     {
+        SCX_LOGTRACE(SCXCore::g_NetworkProvider.GetLogHandle(), L"SCXCore::NetworkProvider::Enumerate entry");
         // Global lock for NetworkProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::NetworkProvider::Lock"));
  
