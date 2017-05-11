@@ -14,6 +14,9 @@
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxlocale.h>
 #include <scxcorelib/scxstream.h>
+#include <scxcorelib/scxfile.h>
+#include <scxcorelib/scxfilepath.h>
+#include <scxcorelib/stringaid.h>
 
 #include "metaprovider.h"
 #include "scxcimutils.h"
@@ -41,6 +44,7 @@ namespace SCXCore
 #else
     static const string installInfoFileName = "/etc/opt/microsoft/scx/conf/installinfo.txt";
 #endif
+    static const string omsInstallInfoFileName = "/etc/opt/microsoft/omsagent/sysconf/installinfo.txt";
 
     //
     // Meta provider class implementation
@@ -107,7 +111,17 @@ namespace SCXCore
     */
     void MetaProvider::ReadInstallInfoFile()
     {
-        std::wifstream infofile( installInfoFileName.c_str() );
+        std::string infoFileName;
+        SCXCoreLib::SCXFilePath omsInstallFilePath(SCXCoreLib::StrFromUTF8(omsInstallInfoFileName));
+        if (SCXFile::Exists(omsInstallFilePath))
+        {
+            infoFileName = omsInstallInfoFileName;
+        }
+        else
+        {
+            infoFileName = installInfoFileName;
+        }
+        std::wifstream infofile( infoFileName.c_str() );
 
         m_readInstallInfoFile = false;
 
@@ -117,21 +131,51 @@ namespace SCXCore
             SCXStream::NLFs nlfs;
 
             // Read all lines from install info file
+            // if omsagent install info file is present it will be read.
+            // omsagent install info format:
+            // First line should have space seperated version, build date and build type
+            // Second line should have install date
+            // Example:
+            // 1.3.4-143 20170509 Developer_Build
+            // 2017-05-10T00:41:07.0Z
             // First line should be install date on ISO8601 format
             // Second line should be install version string
             // Example:
             // 2008-03-17T17:28:32.0Z
             // 1.0.1-70
+            //
             SCXStream::ReadAllLines(infofile, lines, nlfs);
             if (lines.size() == 2)
             {
-                SCX_LOGTRACE(m_log, StrAppend(L"Read time from installinfo file: ", lines[0]));
-                SCX_LOGTRACE(m_log, StrAppend(L"Read install version from installinfo file: ", lines[1]));
-
-                m_installVersion = lines[1];
+                if (infoFileName == omsInstallInfoFileName)
+                {
+                    size_t pos = lines[0].find(L" ");
+                    if (pos != std::wstring::npos)
+                    {
+                        m_installVersion = lines[0].substr(0, pos);
+                    }
+                    else
+                    {
+                        SCX_LOGERROR(m_log, L"Unexpected format for omsagent install info file");
+                    }
+                }
+                else
+                {
+                    m_installVersion = lines[1];
+                }
+                SCX_LOGTRACE(m_log, StrAppend(L"Read install version from installinfo file: ", m_installVersion));
                 try
                 {
-                    m_installTime = SCXCalendarTime::FromISO8601(lines[0]);
+                    if (infoFileName == omsInstallInfoFileName)
+                    {
+                        m_installTime = SCXCalendarTime::FromISO8601(lines[1]);
+                        SCX_LOGTRACE(m_log, StrAppend(L"Read time from installinfo file: ", lines[1]));
+                    }
+                    else
+                    {
+                        m_installTime = SCXCalendarTime::FromISO8601(lines[0]);
+                        SCX_LOGTRACE(m_log, StrAppend(L"Read time from installinfo file: ", lines[0]));
+                    }
                     m_readInstallInfoFile = true;
                 }
                 catch (SCXCoreLib::SCXException &e)
