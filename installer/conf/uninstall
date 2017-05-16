@@ -5,6 +5,11 @@ if [ -n "$1" ]; then
     uninstallMode=$1
 fi
 
+if [ "$2" = "force" ]; then
+    dpkgForce="--force-all"
+    rpmForce="--nodeps"
+fi
+
 PATH=/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
@@ -45,22 +50,22 @@ pkg_rm() {
                         if [ "$uninstallMode" = "P" ]; then
                             dpkg --purge $1 # 1> /dev/null 2> /dev/null
                         else
-                            dpkg --remove $1 # 1> /dev/null 2> /dev/null
+                            dpkg --remove $dpkgForce $1 # 1> /dev/null 2> /dev/null
                         fi
                     else
-                        rpm --erase $1 # 1> /dev/null 2> /dev/null
+                        rpm --erase $rpmForce $1 # 1> /dev/null 2> /dev/null
                     fi
                     ;;
 		
                 REDHAT|SUSE)
-                    rpm --erase $1 # 1> /dev/null 2> /dev/null
+                    rpm --erase $rpmForce $1 # 1> /dev/null 2> /dev/null
                     ;;
 
                 UBUNTU)
                     if [ "$uninstallMode" = "P" ]; then
                         dpkg --purge $1 # 1> /dev/null 2> /dev/null
                     else
-                        dpkg --remove $1 # 1> /dev/null 2> /dev/null
+                        dpkg --remove $dpkgForce $1 # 1> /dev/null 2> /dev/null
                     fi
                     ;;
 
@@ -107,6 +112,10 @@ service_action_delay()
 
 
 stop_omiserver() {
+    if [ -f /opt/omi/bin/service_control ]; then
+        /opt/omi/bin/service_control stop
+        return $?
+    fi
     if [ -f /var/opt/omi/run/omiserver.pid ]; then
         case "$PF" in
             AIX)
@@ -165,6 +174,10 @@ stop_omiserver() {
 
 
 start_omiserver() {
+    if [ -f /opt/omi/bin/service_control ]; then
+        /opt/omi/bin/service_control start
+        return $?
+    fi
     case "$PF" in
         AIX)
             startsrc -s omiserverd -e "LD_LIBRARY_PATH=$OMI_HOME/lib"

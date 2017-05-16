@@ -330,20 +330,18 @@ shouldInstall_scx()
 
 remove_and_install()
 {
-    check_if_pkg_is_installed apache-cimprov
-    if [ $? -eq 0 ]; then
-        pkg_rm apache-cimprov
-    fi
-    check_if_pkg_is_installed mysql-cimprov
-    if [ $? -eq 0 ]; then
-        pkg_rm mysql-cimprov
-    fi
-    check_if_pkg_is_installed scx
-    if [ $? -eq 0 ]; then
+    if [ -f /opt/microsoft/scx/bin/uninstall ]; then
+        /opt/microsoft/scx/bin/uninstall R force
+    else
+        check_if_pkg_is_installed apache-cimprov
+        if [ $? -eq 0 ]; then
+            pkg_rm apache-cimprov
+        fi
+        check_if_pkg_is_installed mysql-cimprov
+        if [ $? -eq 0 ]; then
+            pkg_rm mysql-cimprov
+        fi
         pkg_rm scx force
-    fi
-    check_if_pkg_is_installed omi
-    if [ $? -eq 0 ]; then
         pkg_rm omi force
     fi
     pkg_add $OMI_PKG omi
