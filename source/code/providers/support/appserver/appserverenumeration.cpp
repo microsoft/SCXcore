@@ -146,7 +146,7 @@ namespace SCXSystemLib
         string configFromJBossDomainProperty;
         string configFromJBossStandaloneProperty;
         string ports;
-        
+        wstring deployment = L"";
         
         // We have a 'JBoss' instance, now get the base directory from the 'classpath' commandline argument
         string arg = ParseOutCommandLineArg(params, "-classpath",true,true);
@@ -187,20 +187,41 @@ namespace SCXSystemLib
         }
         else if ( configFromJBossStandaloneProperty.length() != 0 )
         {
-        	// JBoss standalone can have non default config file (standalone-full.xml, standalone-ha.xml etc.)
-        	// If -c argument is also present then ports should be read from that file
-        	if ( configFromDashC.length() != 0 )
-        	{
-        		// -c gives relative path of config file wrt configuration directory. 
-        		string::size_type loc = configFromJBossStandaloneProperty.find("logging.properties");
-        		config = configFromJBossStandaloneProperty.substr(0,loc);
-        		config.append(configFromDashC);
-        	}
-        	else
-        	{
-        		// Sample standalone value: /root/wildfly-8.1.0.CR2/standalone/configuration/logging.properties
-        		config = configFromJBossStandaloneProperty;
-        	}
+            // Sample standalone value: /root/wildfly-8.1.0.CR2/standalone/configuration/logging.properties
+
+            /* Following is the preference for getting configuration directory:
+               jboss.server.config.dir
+               jboss.server.base.dir + /configuration
+               jboss.home.dir + /standalone/configuration 
+            */
+            string confDir = ParseOutCommandLineArg(params, "-Djboss.server.config.dir",true,false);
+            string baseDir = ParseOutCommandLineArg(params, "-Djboss.server.base.dir",true,false);
+            string homeDir = ParseOutCommandLineArg(params, "-Djboss.home.dir",true,false);
+
+            if(confDir.size() > 0)
+            {
+                confDir.append("/");
+                config = confDir;
+            }
+            else if(baseDir.size() > 0)
+            {
+                baseDir.append("/configuration/");
+                config = baseDir;
+            }
+            else
+            {
+                homeDir.append("/standalone/configuration/");
+                config = homeDir;
+            }
+            // JBoss standalone can have non default config file (standalone-full.xml, standalone-ha.xml etc.)
+            // If -c argument is also present then ports should be read from that file
+            if ( configFromDashC.length() != 0 )
+            {
+                // -c gives relative path of config file wrt configuration directory. 
+                config.append(configFromDashC);
+            }
+            ports = ParseOutCommandLineArg(params, "-Djboss.socket.binding.port-offset",true,false); 
+            deployment = L"standalone";
         }
         else if ( configFromDashC.length() != 0 )
         {
@@ -215,14 +236,18 @@ namespace SCXSystemLib
             config = "default";
         }
         
-        ports =  ParseOutCommandLineArg(params, "-Djboss.service.binding.set",true,false);
+        if(ports.empty())
+        {
+            ports =  ParseOutCommandLineArg(params, "-Djboss.service.binding.set",true,false);
+        }
         
         if(gotInstPath)
         {
+            SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies());
             SCXCoreLib::SCXHandle<JBossAppServerInstance> inst ( 
-                new JBossAppServerInstance(instDir,StrFromUTF8(config),StrFromUTF8(ports)) );
+                new JBossAppServerInstance(instDir,StrFromUTF8(config),StrFromUTF8(ports),deps,deployment) );
             inst->Update();
-            
+
             SCX_LOGTRACE(m_log, L"Found a running app server process");
             inst->SetIsRunning(true);
             ASInstances->push_back(inst);

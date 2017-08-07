@@ -19,6 +19,7 @@
 
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
+#include <scxcorelib/scxdirectoryinfo.h>
 #include <scxcorelib/scxprocess.h>
 #include <scxcorelib/scxfilepath.h>
 #include <scxcorelib/scxregex.h>
@@ -159,7 +160,7 @@ namespace SCXSystemLib
     */
     JBossAppServerInstance::JBossAppServerInstance(
         wstring id, wstring config, wstring portsBinding,
-        SCXHandle<JBossAppServerInstancePALDependencies> deps) : 
+        SCXHandle<JBossAppServerInstancePALDependencies> deps, wstring deployment) : 
         AppServerInstance(id, APP_SERVER_TYPE_JBOSS), 
         m_config(config), m_portsBinding(portsBinding), m_deps(deps)
     {
@@ -177,15 +178,11 @@ namespace SCXSystemLib
         wstring fJBossStandaloneStr = L"/standalone/";
         wstring fJBossDomainStr = L"/domain/";
 
-        if (config.find(fJBossStandaloneStr) != std::string::npos) 
+        if ((config.find(fJBossStandaloneStr) != std::string::npos) || (deployment.compare(L"standalone") == 0)) 
         {
-        	fJBossStandaloneCheck = true;
-        	if(config.find(L".xml") != std::string::npos)
-        	{
-        		std::string::size_type loc = config.find(L"standalone/configuration/");
-        		m_jbossStandaloneConfigFile = config.substr(loc);
-        	}
-        	m_config = L"/standalone/configuration/";
+            fJBossStandaloneCheck = true;
+            m_jbossStandaloneConfigFile = config;
+            m_config = L"";
         }
         else if (config.find(fJBossDomainStr) != std::string::npos)
         {
@@ -213,9 +210,28 @@ namespace SCXSystemLib
         {
             installPath.AppendDirectory(L"server");
         }
-
         installPath.AppendDirectory(m_config);
-        SetId(installPath.Get());
+
+        /*  JBoss standalone mode allows running multiple instances using same installation.
+            The identifying component among instances is the port offset.
+            Our agent assumes that each instance has it's own disk path but in this scenario
+            that is not the case.
+            Hence ":PortOffset" is added to the standalone config dir/file to uniquely identify 
+            the instance. The disk path is later appropriately parsed to identify if the server
+            is still installed. 
+        */
+        if(fJBossStandaloneCheck && m_portsBinding.size() > 0)
+        {
+            SetId(m_jbossStandaloneConfigFile + L":" + m_portsBinding);    
+        }
+        else if(fJBossStandaloneCheck)
+        {
+            SetId(m_jbossStandaloneConfigFile);
+        }
+        else
+        {
+            SetId(installPath.Get());
+        }
         m_diskPath = GetId();
 
         SCX_LOGTRACE(m_log, wstring(L"JBossAppServerInstance default constructor - ").append(GetId()));
@@ -892,26 +908,26 @@ namespace SCXSystemLib
 
         if (m_serverName.length() == 0)
         {
-			const string cServerNodeName("server");
-			const string cHostNodeName("host");
-			const string cServersNodeName("servers");
-			const string cServerGroupName("server-group");
-			const string cSocketBindingGroupNodeName("socket-binding-group");
-			const string cPortOffsetAttributeName("port-offset");
-			const string cSocketBindingNodeName("socket-binding");
-			const string cNameAttributeName("name");
-			const string cHttpName("http");
-			const string cHttpsName("https");
-			const string cPortAttributeName("port");
-			
-			if(m_jbossStandaloneConfigFile.length() != 0)
-			{
-				filename.Append(m_jbossStandaloneConfigFile);
-			}
-			else
-			{
-				filename.Append(L"standalone/configuration/standalone.xml");
-			}
+            const string cServerNodeName("server");
+            const string cHostNodeName("host");
+            const string cServersNodeName("servers");
+            const string cServerGroupName("server-group");
+            const string cSocketBindingGroupNodeName("socket-binding-group");
+            const string cPortOffsetAttributeName("port-offset");
+            const string cSocketBindingNodeName("socket-binding");
+            const string cNameAttributeName("name");
+            const string cHttpName("http");
+            const string cHttpsName("https");
+            const string cPortAttributeName("port");
+            if(m_jbossStandaloneConfigFile.find(L".xml") != std::string::npos)
+            {
+                filename.Set(m_jbossStandaloneConfigFile);
+            }
+            else
+            {
+                filename.Set(m_jbossStandaloneConfigFile + L"standalone.xml");
+            }
+
             try 
             {
                 SCXHandle<istream> mystream = m_deps->OpenXmlPortsFile(filename.Get());
@@ -938,8 +954,12 @@ namespace SCXSystemLib
                         //Regex for port-offset and http/https
                         SCXRegex re(L"[0-9]+");
 
+                        if(m_portsBinding.size() > 0)
+                        {
+                            TryReadInteger(portOffset, portOffsetFound, m_portsBinding, L"Failed to Parse port offset");
+                        }
                         // chek if port-offset attribute, if not then value is preset to 0
-                        if(socketBindingGroupNode->GetAttributeValue(cPortOffsetAttributeName,offset))
+                        else if(socketBindingGroupNode->GetAttributeValue(cPortOffsetAttributeName,offset))
                         {
                             // There are two ways to set port-offset, one with port-offset="100",
                             // and the second with port-offset="${jboss.socket.binding.port-offset:100}";
@@ -954,6 +974,7 @@ namespace SCXSystemLib
                             }
                             TryReadInteger(portOffset, portOffsetFound, wPortOffset, L"Failed to Parse port offset");
                         }
+                        
                         // XMl Document Example for Standalone.xml
                         // <socket-binding-group name="standard sockets>
                         //   <socket-binding name="http" port="8080"/>
@@ -1527,6 +1548,28 @@ namespace SCXSystemLib
             content.append(tmp);
             content.append("\n");
         }
+    }
+
+    /*--------------------------------------------------------------------*/
+    /**
+        Check if the application server is still installed.
+        
+        This overrides the default logic
+
+    */
+    bool JBossAppServerInstance::IsStillInstalled()
+    {
+        SCXFilePath diskPath;
+        std::string::size_type loc = m_diskPath.find(L":");
+        if(loc != std::string::npos)
+        {
+            diskPath.Set(m_diskPath.substr(0,loc));
+        }
+        else
+        {
+            diskPath.Set(m_diskPath);
+        }
+        return (SCXDirectory::Exists(diskPath) || SCXFile::Exists(diskPath));
     }
 
 }
