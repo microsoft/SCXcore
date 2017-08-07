@@ -251,7 +251,10 @@ class AppServerEnumeration_Test : public CPPUNIT_NS::TestFixture
     CPPUNIT_TEST( JBoss_Process_Good_Params_3_Running );
     CPPUNIT_TEST( JBoss_Process_Good_Params_22_Running );
     CPPUNIT_TEST( JBoss_Domain_Process_Good_Params );
+    CPPUNIT_TEST( JBoss_Standalone_Config_Dir );
     CPPUNIT_TEST( JBoss_Standalone_Non_Default_Config );
+    CPPUNIT_TEST( JBoss_Standalone_CmdLine_Port_Offset );
+    CPPUNIT_TEST( JBoss_Standalone_no_standalone_base_dir );
     CPPUNIT_TEST( testReadInstancesMethodCalledAtInit );
     CPPUNIT_TEST( testWriteInstancesMethodCalledAtCleanup );
     CPPUNIT_TEST( Tomcat_Process_Good_Params );
@@ -311,6 +314,7 @@ public:
     /**************************************************************************************/
     void JBoss_Process_Good_Params_space()
     {
+    try {
         SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
         TestSpyAppServerEnumeration asEnum(pal);
 
@@ -345,6 +349,10 @@ public:
         CPPUNIT_ASSERT(L"/opt/jboss-6.0/server/default/" == (*it)->GetId());
         
         asEnum.CleanUp();
+    }
+    catch(const std::exception & ex) {
+        std::cout<<ex.what()<<std::endl;
+    }
     }
     
     /**************************************************************************************/
@@ -888,6 +896,57 @@ public:
         asEnum.CleanUp();
     }
     
+    void JBoss_Standalone_Config_Dir()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/standalone");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        inst = pal->CreateProcessInstance(12345, "12345");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/standalone");
+        inst->AddParameter("-Djboss.server.config.dir=/konsens/app/rmsvlg/as/4.2.0.0/standalone/configuration");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 3);
+
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        CPPUNIT_ASSERT(L"/konsens/app/jboss-eap-6.4/standalone/configuration/" == (*it)->GetId());
+        CPPUNIT_ASSERT(L"/konsens/app/rmsvlg/as/4.2.0.0/standalone/configuration/" == (*(++it))->GetId());
+        CPPUNIT_ASSERT(L"/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/" == (*(++it))->GetId());
+        
+        asEnum.CleanUp();
+    }
+
     void JBoss_Standalone_Non_Default_Config()
     {
         SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
@@ -935,7 +994,81 @@ public:
         
         std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
         
-        CPPUNIT_ASSERT_EQUAL(L"/konsens/app/jboss-eap-6.4/standalone/configuration/",(*it)->GetId());
+        CPPUNIT_ASSERT_EQUAL(L"/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/standalone-full.xml",(*it)->GetId());
+        
+        asEnum.CleanUp();
+    }
+
+    void JBoss_Standalone_CmdLine_Port_Offset()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/standalone");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-Djboss.socket.binding.port-offset=1000");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        inst = pal->CreateProcessInstance(12345, "12345");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/standalone");
+        inst->AddParameter("-Djboss.server.config.dir=/konsens/app/rmsvlg/as/4.2.0.0/standalone/configuration");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/logging.properties");
+        inst->AddParameter("-Djboss.socket.binding.port-offset=2000");
+        inst->AddParameter("-c");
+        inst->AddParameter("standalone-full.xml");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 2);
+
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        CPPUNIT_ASSERT(L"/konsens/app/rmsvlg/as/4.2.0.0/standalone/configuration/standalone-full.xml:2000" == (*it)->GetId());
+        CPPUNIT_ASSERT(L"/konsens/app/rmsvlg/as/4.2.0.2/standalone/configuration/:1000" == (*(++it))->GetId());
+        
+        asEnum.CleanUp();
+    }
+
+    void JBoss_Standalone_no_standalone_base_dir()
+    {
+        SCXCoreLib::SCXHandle<MockAppServerPALDependencies> pal = SCXCoreLib::SCXHandle<MockAppServerPALDependencies>(new MockAppServerPALDependencies());
+        TestSpyAppServerEnumeration asEnum(pal);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 0);
+
+        SCXCoreLib::SCXHandle<MockProcessInstance> inst;
+        
+        inst = pal->CreateProcessInstance(1234, "1234");
+        inst->AddParameter("/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java");
+        inst->AddParameter("org.jboss.as.standalone");
+        inst->AddParameter("-Djboss.home.dir=/konsens/app/jboss-eap-6.4");
+        inst->AddParameter("-Djboss.server.base.dir=/konsens/app/rmsvlg/as/4.2.0.2/instance0");
+        inst->AddParameter("-Djboss.server.log.dir=/konsens/log/rmsvlg/as/4.2.0.2");
+        inst->AddParameter("-Dlogging.configuration=file:/konsens/app/rmsvlg/as/4.2.0.2/instance0/configuration/logging.properties");
+        inst->AddParameter("-b");
+        inst->AddParameter("0.0.0.0");
+
+        asEnum.Update(false);
+
+        CPPUNIT_ASSERT(asEnum.Size() == 1);
+
+        std::vector<SCXCoreLib::SCXHandle<AppServerInstance> >::iterator it = asEnum.Begin();
+        CPPUNIT_ASSERT(L"/konsens/app/rmsvlg/as/4.2.0.2/instance0/configuration/" == (*it)->GetId());
         
         asEnum.CleanUp();
     }

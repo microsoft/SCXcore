@@ -58,13 +58,15 @@ namespace SCXSystemLib
             std::wstring id, 
             std::wstring config,
             std::wstring portsBinding,
-            SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies()));
+            SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies()),
+            std::wstring deployment = L"");
         JBossAppServerInstance(
             std::wstring diskPath,
             SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies> deps = SCXCoreLib::SCXHandle<JBossAppServerInstancePALDependencies>(new JBossAppServerInstancePALDependencies()));
         virtual ~JBossAppServerInstance();
 
         virtual void Update();
+        virtual bool IsStillInstalled();
 
     private:
         void UpdateVersion();
