@@ -181,18 +181,17 @@ http://opensource.org/licenses/ms-pl.html.
 The Providers for Linux and UNIX have been tested on the following
 operating systems:
 
--   Red Hat Enterprise Linux 4, 5, and 6 (x86/x64)
+-   Red Hat Enterprise Linux 4, 5, 6, and 7 (x86/x64)
 
--   SUSE Linux Enterprise Server 9 (x86), 10 SP1 (x86/x64), and
-    11 (x86/64)
+-   SUSE Linux Enterprise Server 9 (x86), 10 SP1 (x86/x64), 11 (x86/64)
 
--   CentOS Linux 5 and 6 (x86/64)
+-   CentOS Linux 5, 6, and 7 (x86/64)
 
--   Debian GNU/Linux 5, 6, and 7 (x86/x64)
+-   Debian GNU/Linux 5, 6, 7, 8, and 9 (x86/x64)
 
 -   Oracle Linux 5 and 6 (x86/x64)
 
--   Ubuntu Linux Server 10.04 and 12.04 (x86/x64)
+-   Ubuntu Linux Server 10.04, 12.04, 14.04, and 16.04 (x86/x64)
 
 -   IBM AIX 5.3, 6.1, and 7.1 (POWER)
 
@@ -201,17 +200,23 @@ operating systems:
 -   Oracle Solaris 9 (SPARC), Solaris 10 (SPARC and x86), and Solaris 11
     (SPARC and x86)
 
+Other platforms will be supported over time. See README.md in top level
+directory for details.
+
 1.3 About the Providers  
 The Providers for Linux and UNIX are intended for use with Open
-Management Infras- tructure(OMI):
-[*https://collaboration.opengroup.org/omi/*](https://collaboration.opengroup.org/omi/).  
+Management Infrastructure
+([OMI](https://www.github.com/Microsoft/omi)).  
   
 1.4 Installing and Using the Providers  
-Details on unpacking the source code, building the providers, and
-creating a working version of the Operations Manager agent for Linux and
-UNIX is described in a separate document entitled "Building Linux UNIX
-Agents.pdf". That document is available for download on the
-http://scx.codeplex.com site.
+Building the provider uses the
+[Build-SCXcore](https://github.com/Microsoft/Build-SCXcore)
+super-project on GitHub. Refer to that project for information on how to
+build the providers from source.
+
+Pre-built providers are available in repository
+[SCXcore-kits](https://github.com/Microsoft/SCXcore-kits), also on
+GitHub.
 
 **2 Provider Classes**
 
