@@ -34,6 +34,7 @@
 #include <openssl/dsa.h>
 #include <openssl/engine.h>
 #include <openssl/conf.h>
+#include <openssl/opensslv.h>
 
 #include "scxsslcert.h"
 #include "resourcehelper.h"
@@ -319,11 +320,15 @@ struct LoadASN1 {
 
    OpenSSL_add_all_algorithms() is a macro so it could not be passed as a function pointer.
 */
+#if OPENSSL_VERSION_NUMBER <= 0x100fffffL // SSL 1.0.x or lower?
 static void SSL_OpenSSL_add_all_algorithms()
 {
     // Call to a macro
     OpenSSL_add_all_algorithms();
 }
+#else
+void NoOp_Destructor(){}
+#endif
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -342,9 +347,13 @@ void SCXSSLCertificate::DoGenerate()
         string outfile(StrToMultibyte(m_CertPath));
         string keyout(StrToMultibyte(m_KeyPath));
 
-        ManagedResource res1(ERR_load_crypto_strings,        ERR_free_strings);
-        ManagedResource res2(SSL_OpenSSL_add_all_algorithms, EVP_cleanup);
-        ManagedResource res3(ENGINE_load_builtin_engines,    ENGINE_cleanup);
+        #if OPENSSL_VERSION_NUMBER <= 0x100fffffL // SSL 1.0.x or lower?
+            ManagedResource res1(ERR_load_crypto_strings,        ERR_free_strings);
+            ManagedResource res2(SSL_OpenSSL_add_all_algorithms, EVP_cleanup);
+            ManagedResource res3(ENGINE_load_builtin_engines,    ENGINE_cleanup);
+        #else
+            ManagedResource res1(ENGINE_load_builtin_engines,    NoOp_Destructor);
+        #endif
 
         // Serial number is always set to "1".
         // This is a self-signed certificate. Serial number is unimportant.
@@ -370,13 +379,40 @@ void SCXSSLCertificate::DoGenerate()
         }
 
         {
-            RSA * rsa = RSA_generate_key(newKeyLength, 0x10001, 0, 0);
-            if ( ! rsa )
-            {
-                throw SCXCoreLib::SCXNULLPointerException(L"Error allocating RSA structure.",
-                                                      SCXSRCLOCATION);
-            }
-            if ( ! EVP_PKEY_assign_RSA(pkey.Get(), rsa))
+            int ret = 1;
+
+            #if OPENSSL_VERSION_NUMBER < 0x0090800fL // SSL version lower than 0.9.8? It is needed for Solaris-10.
+                RSA * rsa = RSA_generate_key(newKeyLength, 0x10001, 0, 0);
+
+                if ( ! rsa )
+                {
+                    throw SCXCoreLib::SCXNULLPointerException(L"Error allocating RSA structure.",
+                                                          SCXSRCLOCATION);
+                }
+
+            #else
+
+                BIGNUM *bne = BN_new();
+
+                ret = BN_set_word(bne,RSA_F4);
+
+                if(ret !=1){
+                    throw SCXNULLPointerException(L"Unable to set empty private key structure.",
+                                                        SCXSRCLOCATION);
+                }
+
+                RSA * rsa = RSA_new();
+
+                if ( ! rsa )
+                {
+                    throw SCXCoreLib::SCXNULLPointerException(L"Error allocating RSA structure.",
+                                                          SCXSRCLOCATION);
+                }
+
+                ret = RSA_generate_key_ex(rsa, newKeyLength, bne, NULL);
+            #endif
+
+            if ( ret != 1 || ! EVP_PKEY_assign_RSA(pkey.Get(), rsa))
             {
                 // Free rsa if the assign was unsuccessful. (If it was successful, then rsa
                 // is owned by pkey.)
@@ -529,18 +565,24 @@ void SCXSSLCertificate::DoGenerate()
         }
 
         // Cleanup the rest of the resources that may have been allocated internally.
-        OBJ_cleanup();
+        #if OPENSSL_VERSION_NUMBER <= 0x100fffffL // SSL 1.0.x or lower?
+            OBJ_cleanup();
+        #endif
         CONF_modules_unload(1);
-        CRYPTO_cleanup_all_ex_data();
-        ERR_remove_state(0);
+        #if OPENSSL_VERSION_NUMBER <= 0x100fffffL // SSL 1.0.x or lower?
+            CRYPTO_cleanup_all_ex_data();
+            ERR_remove_state(0);
+        #endif
     }
     catch (SCXCoreLib::SCXException & e)
     {
         // Blunt force resource release functions.
-        OBJ_cleanup();
-        CONF_modules_free();
-        CRYPTO_cleanup_all_ex_data();
-        ERR_remove_state(0);
+        #if OPENSSL_VERSION_NUMBER <= 0x100fffffL // SSL 1.0.x or lower?
+            OBJ_cleanup();
+            CONF_modules_free();
+            CRYPTO_cleanup_all_ex_data();
+            ERR_remove_state(0);
+        #endif
 
         throw;
     }
