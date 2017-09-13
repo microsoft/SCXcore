@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <pwd.h>
 
 using std::wcerr;
 using std::cout;
@@ -460,6 +461,18 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         rc = chmod(sKeyFile.c_str(), 00400);
         if (0 != rc) {
             throw SCXCoreLib::SCXErrnoFileException(L"chmod", keyPath.Get(), errno, SCXSRCLOCATION);
+        }
+
+        struct passwd *pwd=NULL;
+        errno = 0;
+        if ((pwd = getpwnam("omi")) != NULL) {
+            rc = chown(sKeyFile.c_str(),pwd->pw_uid,pwd->pw_gid);
+            if (0 != rc){
+                throw SCXCoreLib::SCXErrnoFileException(L"chown", keyPath.Get(), errno, SCXSRCLOCATION);
+            }
+        } 
+        else if (errno != 0) {
+           throw SCXCoreLib::SCXErrnoException(L"getpwnam", errno, SCXSRCLOCATION);
         }
     }
     catch(const SCXCoreLib::SCXException & e)
