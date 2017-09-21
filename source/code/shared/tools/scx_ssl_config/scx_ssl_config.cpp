@@ -471,8 +471,12 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                 throw SCXCoreLib::SCXErrnoFileException(L"chown", keyPath.Get(), errno, SCXSRCLOCATION);
             }
         } 
-        else if (errno != 0) {
-           throw SCXCoreLib::SCXErrnoException(L"getpwnam", errno, SCXSRCLOCATION);
+        else if(errno !=0 && errno !=ENOENT && errno !=ESRCH) {
+            const char* isTestEnv = getenv("SCX_TESTRUN_ACTIVE");
+            if(isTestEnv)
+                wcout << "getpwnam() failed to fetch the record for user name \"omi\"." << "It has failed with error no "<< errno <<"."<<endl;
+            else
+                throw SCXCoreLib::SCXErrnoUserException(L"getpwnam", L"omi", errno, SCXSRCLOCATION);
         }
     }
     catch(const SCXCoreLib::SCXException & e)
