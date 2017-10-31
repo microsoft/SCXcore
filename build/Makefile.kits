@@ -315,7 +315,7 @@ else # ifneq ($(COMBINED_PACKAGES),1)
         ifeq ($(PF_ARCH),x64)
 	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} 110/*.{rpm,deb} $(OSS_KITS)
         else
-	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb}
+	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} $(OSS_KITS)
         endif
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/100/omi_package_filename` $(DISABLE_LISTENER)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
