@@ -1,6 +1,8 @@
 %Variables
 PF:	      'Linux'
 OMI_SERVICE:  '/opt/omi/bin/service_control'
+OMI_CONF_EDITOR: '/opt/omi/bin/omiconfigeditor'
+OMI_CONF_FILE: '/etc/opt/omi/conf/omiserver.conf'
 
 PFDISTRO: 'ULINUX'
 PFMAJOR: '1'
@@ -32,7 +34,13 @@ else
     fi
 fi
 
-
+%Postinstall_850
+# Open port 1270 on install if it was open at uninstall
+if [ -f /etc/opt/microsoft/scx/conf/scxagent-enable-port ]; then
+    ${{OMI_CONF_EDITOR}} httpsport -a 1270 < ${{OMI_CONF_FILE}} > ${{OMI_CONF_FILE}}_temp
+    mv ${{OMI_CONF_FILE}}_temp ${{OMI_CONF_FILE}}
+fi
+rm -f /etc/opt/microsoft/scx/conf/scxagent-enable-port
 
 %Postinstall_875
 set -e
@@ -58,9 +66,14 @@ fi
 #if DISABLE_PORT != true
     # If we're called for upgrade, don't do anything
     if ${{PERFORMING_UPGRADE_NOT}}; then
-        # Remove port 1270 from the list of ports that OMI will listen on
-        /opt/omi/bin/omiconfigeditor httpsport -r 1270 < /etc/opt/omi/conf/omiserver.conf > /etc/opt/omi/conf/omiserver.conf_temp
-        mv /etc/opt/omi/conf/omiserver.conf_temp /etc/opt/omi/conf/omiserver.conf
+        # Check if port 1270 is open
+        ${{OMI_CONF_EDITOR}} httpsport -q 1270 < ${{OMI_CONF_FILE}} > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            touch /etc/opt/microsoft/scx/conf/scxagent-enable-port
+            # Remove port 1270 from the list of ports that OMI will listen on
+            ${{OMI_CONF_EDITOR}} httpsport -r 1270 < ${{OMI_CONF_FILE}} > ${{OMI_CONF_FILE}}_temp
+            mv ${{OMI_CONF_FILE}}_temp ${{OMI_CONF_FILE}}
+        fi
     fi
 #endif
 
