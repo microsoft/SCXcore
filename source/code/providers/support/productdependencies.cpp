@@ -108,5 +108,10 @@ namespace SCXSystemLib
             (void)igfs;
             return;
         }
+        
+        std::wstring OSTypeInfo_GetConfigPath()
+        {
+            return std::wstring(L"/etc/opt/microsoft/scx/conf/scxconfig.conf");
+        }
     }
 }
