@@ -38,6 +38,7 @@ using SCXCoreLib::SCXFilePath;
 static void usage(const char * name, int exitValue);
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false, bool clientCert = false);
+int UpdateKeyOwnership(SCXFilePath keyPath);
 const int ERROR_CERT_GENERATE = 3;
 
 
@@ -293,6 +294,7 @@ int main(int argc, char *argv[])
 
     // We only generate the certificate if "-f" was specified, or if no certificate exists
     // (Note: If no certificate exists, we should still return a success error code!)
+    int rc = 0;
     if (!doGenerateCert)
     {
         SCXFilePath keyPath;
@@ -307,10 +309,11 @@ int main(int argc, char *argv[])
         else
         {
             wcerr << L"Certificate not generated - '" << keyPath.Get() << "' exists" << endl;
+            // Upgrade from 2012R2 should update the key ownership to omi:omi
+            rc = UpdateKeyOwnership(keyPath);
         }
     }
 
-    int rc = 0;
     if (doGenerateCert)
     {
         rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode, clientCert);
@@ -463,10 +466,29 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
             throw SCXCoreLib::SCXErrnoFileException(L"chmod", keyPath.Get(), errno, SCXSRCLOCATION);
         }
 
+        rc = UpdateKeyOwnership(keyPath);
+
+    }
+    catch(const SCXCoreLib::SCXException & e)
+    {
+        wcout << e.Where() << endl
+              << e.What() << endl;
+        // use -1 to indicate an exception occured.
+        rc = -1;
+    }
+    return rc;
+}
+
+int UpdateKeyOwnership(SCXFilePath keyPath)
+{
+    int rc = 0;
+    try
+    {
+        std::string keyFile = SCXCoreLib::StrToMultibyte(keyPath.Get());
         struct passwd *pwd=NULL;
         errno = 0;
         if ((pwd = getpwnam("omi")) != NULL) {
-            rc = chown(sKeyFile.c_str(),pwd->pw_uid,pwd->pw_gid);
+            rc = chown(keyFile.c_str(),pwd->pw_uid,pwd->pw_gid);
             if (0 != rc){
                 throw SCXCoreLib::SCXErrnoFileException(L"chown", keyPath.Get(), errno, SCXSRCLOCATION);
             }
@@ -481,10 +503,9 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
     {
         wcout << e.Where() << endl
               << e.What() << endl;
-        // use -1 to indicate an exception occured.
         rc = -1;
     }
-    return rc;
+    return rc; 
 }
 
 /*----------------------------------------------------------------------------*/
