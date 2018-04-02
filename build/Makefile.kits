@@ -5,6 +5,10 @@
 # 2007-08-23
 #--------------------------------------------------------------------------------
 
+SEPOLICY_SRC_DIR=$(SCX_BRD)/installer/selinux
+SEPOLICY_DIR=$(INTERMEDIATE_DIR)/selinux
+SEPOLICY_DIR_EL6=$(INTERMEDIATE_DIR)/selinux.el6
+
 OUTPUT_PACKAGE_PREFIX=
 OUTPUT_PACKAGE_SPECIFICATION=
 IS_OPENSSL_100=$(shell openssl version | grep 1.0 | wc -l)
@@ -63,7 +67,7 @@ installerOnly: bundle
 STAGING_DIR = $(SCX_BRD)/installer/intermediate/staging
 
 # Easy way to just run installer (if you know all targets are built properly)
-kit : GetLinuxOS scx_scripts
+kit : GetLinuxOS scx_scripts sepolicy
 	$(ECHO) "========================= Performing make installer"
 	$(ECHO) PF=$(PF) > $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
 	$(ECHO) PF_DISTRO=$(PF_DISTRO) >> $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/pf_file.sh
@@ -354,5 +358,29 @@ $(INTERMEDIATE_DIR)/GetLinuxOS.sh: $(SCXPAL_TARGET_DIR)/GetLinuxOS.sh
 else
 GetLinuxOS:
 endif
+
+# Build SELinux policy modules for scxagent-logrotate
+ifeq ($(PF)$(PF_ARCH)$(wildcard /usr/bin/dpkg-deb),$(filter $(PF)$(PF_ARCH)$(wildcard /usr/bin/dpkg-deb), Linuxx64 Linuxx86))
+    sepolicy: $(SEPOLICY_DIR)/scxagent-logrotate.pp $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp
+else
+    sepolicy:
+ifeq ("$(PF_ARCH)$(PF_DISTRO)","ppcREDHAT")
+	$(MKPATH) $(SEPOLICY_DIR_EL6) $(SEPOLICY_DIR)
+	touch $(SEPOLICY_DIR)/scxagent-logrotate.pp touch $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp
+endif
+endif
+
+$(SEPOLICY_DIR)/scxagent-logrotate.pp : $(SEPOLICY_SRC_DIR)/scxagent-logrotate.te $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc
+	@echo "========================= Building selinux policy module for scxagent-logrotate"
+	$(MKPATH) $(SEPOLICY_DIR)
+	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.te $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc $(SEPOLICY_DIR)
+	cd $(SEPOLICY_DIR); make -f /usr/share/selinux/devel/Makefile
+
+$(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp : $(SEPOLICY_SRC_DIR)/scxagent-logrotate.el6.te $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc
+	@echo "========================= Building EL6 selinux policy module for scxagent-logrotate"
+	$(MKPATH) $(SEPOLICY_DIR_EL6)
+	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.el6.te $(SEPOLICY_DIR_EL6)/scxagent-logrotate.t
+	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc $(SEPOLICY_DIR_EL6)
+	cd $(SEPOLICY_DIR_EL6); make -f /usr/share/selinux/devel/Makefile
 
 #-------------------------------- End of File -----------------------------------

@@ -1,6 +1,19 @@
 %Variables
 PERFORMING_UPGRADE_NOT: '[ "$1" -ne 1 ]'
 PACKAGE_TYPE: 'RPM'
+SEPKG_DIR_SCXAGENT: '/usr/share/selinux/packages/scxagent-logrotate'
+
+%Files
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.fc;                       installer/selinux/scxagent-logrotate.fc;                                 644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.te;                       installer/selinux/scxagent-logrotate.te;                                 644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.te;                   installer/selinux/scxagent-logrotate.el6.te;                             644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp;                       intermediate/${{BUILD_CONFIGURATION}}/selinux/scxagent-logrotate.pp;     755; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.pp;                   intermediate/${{BUILD_CONFIGURATION}}/selinux.el6/scxagent-logrotate.pp; 755; root; ${{ROOT_GROUP_NAME}};
+
+%Directories
+/usr/share/selinux/packages;                                                                                                                  755; root; ${{ROOT_GROUP_NAME}}; sysdir
+/usr/share/selinux/packages/scxagent-logrotate;                                                                                               755; root; ${{ROOT_GROUP_NAME}}; sysdir
+
 
 %Dependencies
 omi >= 1.0.8-6
@@ -17,3 +30,25 @@ if [ $1 -eq 0 ]; then
 
 %Preuninstall_5000
 fi  ## if [ $1 -eq 0 ]
+
+%Postinstall_1500
+if [ -e /usr/sbin/semodule ]; then
+    echo "System appears to have SELinux installed, attempting to install selinux policy module for logrotate"
+    echo "  Trying ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp ..."
+    /usr/sbin/semodule -i ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "ERROR: scxagent-logrotate selinux policy module versions could not be installed"
+        exit 0
+    fi
+
+    # Labeling scxagent log files
+    /sbin/restorecon -R /var/opt/microsoft/scx/log > /dev/null 2>&1
+fi
+
+%Postuninstall_1500
+if [ -e /usr/sbin/semodule ]; then
+    if [ ! -z "$(/usr/sbin/semodule -l | grep scxagent-logrotate)" ]; then
+        echo "Removing selinux policy module for scxagent-logrotate ..."
+        /usr/sbin/semodule -r scxagent-logrotate
+    fi
+fi
