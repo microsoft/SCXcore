@@ -379,7 +379,7 @@ $(SEPOLICY_DIR)/scxagent-logrotate.pp : $(SEPOLICY_SRC_DIR)/scxagent-logrotate.t
 $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp : $(SEPOLICY_SRC_DIR)/scxagent-logrotate.el6.te $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc
 	@echo "========================= Building EL6 selinux policy module for scxagent-logrotate"
 	$(MKPATH) $(SEPOLICY_DIR_EL6)
-	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.el6.te $(SEPOLICY_DIR_EL6)/scxagent-logrotate.t
+	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.el6.te $(SEPOLICY_DIR_EL6)/scxagent-logrotate.te
 	$(COPY) $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc $(SEPOLICY_DIR_EL6)
 	cd $(SEPOLICY_DIR_EL6); make -f /usr/share/selinux/devel/Makefile
 
