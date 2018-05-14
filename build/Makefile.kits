@@ -360,7 +360,7 @@ GetLinuxOS:
 endif
 
 # Build SELinux policy modules for scxagent-logrotate
-ifeq ($(PF)$(PF_ARCH)$(wildcard /usr/bin/dpkg-deb),$(filter $(PF)$(PF_ARCH)$(wildcard /usr/bin/dpkg-deb), Linuxx64 Linuxx86))
+ifeq ($(PF)$(PF_ARCH),$(filter $(PF)$(PF_ARCH), Linuxx64 Linuxx86))
     sepolicy: $(SEPOLICY_DIR)/scxagent-logrotate.pp $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp
 else
     sepolicy:

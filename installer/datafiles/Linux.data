@@ -3,6 +3,7 @@ PF:	      'Linux'
 OMI_SERVICE:  '/opt/omi/bin/service_control'
 OMI_CONF_EDITOR: '/opt/omi/bin/omiconfigeditor'
 OMI_CONF_FILE: '/etc/opt/omi/conf/omiserver.conf'
+SEPKG_DIR_SCXAGENT: '/usr/share/selinux/packages/scxagent-logrotate'
 
 PFDISTRO: 'ULINUX'
 PFMAJOR: '1'
@@ -12,16 +13,53 @@ PFMINOR: '0'
 ULINUX
 
 %Files
-/opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             intermediate/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                    755; root; root
-/etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                       644; root; ${{ROOT_GROUP_NAME}}; conffile
-/etc/opt/microsoft/scx/conf/logrotate.conf;                             installer/conf/logrotate.conf;                                    644; root; ${{ROOT_GROUP_NAME}}; conffile
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.fc;                          installer/selinux/scxagent-logrotate.fc;                                 644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.te;                          installer/selinux/scxagent-logrotate.te;                                 644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.te;                      installer/selinux/scxagent-logrotate.el6.te;                             644; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp;                          intermediate/${{BUILD_CONFIGURATION}}/selinux/scxagent-logrotate.pp;     755; root; ${{ROOT_GROUP_NAME}};
+${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.pp;                      intermediate/${{BUILD_CONFIGURATION}}/selinux.el6/scxagent-logrotate.pp; 755; root; ${{ROOT_GROUP_NAME}};
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             intermediate/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                     755; root; root
+/etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                              644; root; ${{ROOT_GROUP_NAME}}; conffile
+/etc/opt/microsoft/scx/conf/logrotate.conf;                             installer/conf/logrotate.conf;                                           644; root; ${{ROOT_GROUP_NAME}}; conffile
 
 %Links
 /etc/logrotate.d/scxagent;                                           /etc/opt/microsoft/scx/conf/logrotate.conf;                          644; root; ${{ROOT_GROUP_NAME}}
 
 %Directories
-/etc/logrotate.d;                                                                                                                         755; root; ${{ROOT_GROUP_NAME}}; sysdir
+/usr/share/selinux/packages;                                                                                                                     755; root; ${{ROOT_GROUP_NAME}}; sysdir
+/usr/share/selinux/packages/scxagent-logrotate;                                                                                                  755; root; ${{ROOT_GROUP_NAME}}; sysdir
+/etc/logrotate.d;                                                                                                                                755; root; ${{ROOT_GROUP_NAME}}; sysdir
 
+
+%Postinstall_1500
+if [ -e /usr/sbin/semodule ]; then
+    echo "System appears to have SELinux installed, attempting to install selinux policy module for logrotate"
+    echo "  Trying ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp ..."
+    sestatus=`sestatus|grep status|awk '{print $3}'`
+    if [ -e /usr/bin/dpkg-deb -a "$sestatus" = "disabled" ]; then
+        echo "WARNING: scxagent-logrotate selinux policy module has not yet installed due to selinux is disabled."
+        echo "When enabling selinux, load scxagent-logrotate module manually with following commands for logrotate feature to work properly for scx logs."
+        echo "/usr/sbin/semodule -i $SEPKG_DIR_SCXAGENT/scxagent-logrotate.pp >/dev/null 2>&1"
+        echo "/sbin/restorecon -R /var/opt/microsoft/scx/log > /dev/null 2>&1"
+    else
+        /usr/sbin/semodule -i ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "ERROR: scxagent-logrotate selinux policy module versions could not be installed"
+            exit 0
+        fi
+
+        # Labeling scxagent log files
+        /sbin/restorecon -R /var/opt/microsoft/scx/log > /dev/null 2>&1
+    fi
+fi
+
+%Postuninstall_1500
+if [ -e /usr/sbin/semodule ]; then
+    if [ ! -z "$(/usr/sbin/semodule -l | grep scxagent-logrotate)" ]; then
+        echo "Removing selinux policy module for scxagent-logrotate ..."
+        /usr/sbin/semodule -r scxagent-logrotate
+    fi
+fi
 
 %Preinstall_50
 # VerifySSLVersion

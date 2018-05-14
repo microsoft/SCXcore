@@ -23,6 +23,7 @@ addons:
       - libcurl4-openssl-dev
       - rpm
       - time
+      - selinux-policy-dev
 
 before_install:
   - date
