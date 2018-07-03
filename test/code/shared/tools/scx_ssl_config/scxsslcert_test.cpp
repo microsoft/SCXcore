@@ -351,10 +351,12 @@ public:
             SCXCoreLib::SelfDeletingFilePath sdCertPath(cert.m_CertPath.Get());
             SCXCoreLib::SelfDeletingFilePath sdKeyPath(cert.m_KeyPath.Get());
 
+#if !defined(sun)
             //xn--bcher-kva.com is what bücher.com should be in punycode
             CPPUNIT_ASSERT_MESSAGE("Punycode function produced incorrect output", 0 == cert.m_domainname.compare(L"xn--bcher-kva.com"));
-            CPPUNIT_ASSERT_MESSAGE("Output certificate file not found", SCXCoreLib::SCXFile::Exists(cert.m_CertPath));
             CPPUNIT_ASSERT_MESSAGE("Certificate mismatch or corruption", CheckCertificate(cert.m_CertPath.Get(), std::string("xn--bcher-kva"), hostname));
+#endif
+            CPPUNIT_ASSERT_MESSAGE("Output certificate file not found", SCXCoreLib::SCXFile::Exists(cert.m_CertPath));
             CPPUNIT_ASSERT_MESSAGE("Output key file not found", SCXCoreLib::SCXFile::Exists(cert.m_KeyPath));
 
             cout << debugChatter.str();

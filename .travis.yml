@@ -48,7 +48,7 @@ before_install:
   - git submodule foreach git checkout master
   -
   - # The 2016-URNext branch uses specific versions of subcomponents
-  - (cd omi; git checkout v1.0.8-6)
+  - (cd omi; git checkout stable)
   - (cd pal; git checkout 2016-URNext)
   -
   - # Patch in the version of SCXcore that Travis gave to us

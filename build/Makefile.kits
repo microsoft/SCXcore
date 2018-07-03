@@ -7,6 +7,7 @@
 
 OUTPUT_PACKAGE_PREFIX=
 OUTPUT_PACKAGE_SPECIFICATION=
+IS_OPENSSL_100=$(shell openssl version | grep 1.0 | wc -l)
 
 ifneq ($(COMBINED_PACKAGES),1)
   DATAFILES = Base_SCXCore.data $(PF_DEPENDENT_DATAFILES)
@@ -185,8 +186,37 @@ endif
 ifneq ($(COMBINED_PACKAGES),1)
 
 	# (Copying for non-combined packages)
-	cp `find $(SCXOMI_DIR)/output -name *.$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
-	cp `find $(SCXOMI_DIR)/output -name package_filename` $(INTERMEDIATE_DIR)/omi_package_filename
+	rm -f $(INTERMEDIATE_DIR)/omi-*.$(PACKAGE_SUFFIX)
+  ifeq ($(PF),SunOS)
+	cp `find $(OMIKITS_DIR) -name omi-*solaris.$(PF_MINOR).$(PF_ARCH).pkg.Z` $(INTERMEDIATE_DIR)/
+	cd $(INTERMEDIATE_DIR); uncompress `ls omi-*.Z`
+  endif
+
+  ifeq ($(PF_ARCH),ppc)
+    ifeq ($(PF),AIX)
+	cp `find $(OMIKITS_DIR) -name omi-*aix.$(PF_MAJOR).$(PF_ARCH).lpp` $(INTERMEDIATE_DIR)/
+    else
+	cp `find $(OMIKITS_DIR) -name omi-*rhel.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+    endif
+  endif
+
+  ifeq ($(PF),HPUX)
+	cp `find $(OMIKITS_DIR) -name omi-*hpux.$(PF_MAJOR)*.$(PF_ARCH).depot.Z` $(INTERMEDIATE_DIR)/
+	cd $(INTERMEDIATE_DIR); uncompress `ls omi-*.Z`
+  endif
+
+  # Handle Linux builds when combined packages not enabled
+  ifeq ($(PF),Linux)
+    ifneq ($(PF_ARCH),ppc)
+	# Copy omi kit depending on openssl version
+      ifeq ($(IS_OPENSSL_100),1)
+	cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+      else
+	cp `find $(OMIKITS_DIR) -name omi-*ssl_098.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+      endif
+    endif
+  endif
+	cd $(INTERMEDIATE_DIR); echo `ls omi-*.$(PACKAGE_SUFFIX)` > omi_package_filename
 
   # Handle Redhat on PPC
   ifeq ($(PF_ARCH),ppc)
@@ -213,11 +243,17 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	# (Copying for combined packages)
         ifeq ($(DISABLE_LISTENER),0)
 	  # Grab the OMI bits
-	  cd $(INTERMEDIATE_DIR); cp $(SCXOMI_DIR)/output_openssl_0.9.8/release/omi-*.{rpm,deb} 098
-	  cd $(INTERMEDIATE_DIR); cp $(SCXOMI_DIR)/output_openssl_1.0.0/release/omi-*.{rpm,deb} 100
+	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_098*$(PF_ARCH).{rpm,deb} 098
+	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(PF_ARCH).{rpm,deb} 100
+          # Remove ssl_098 and ssl_100 from omi filename
+	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_098\./\./g"`
+	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_098\./\./g"`
+	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_100\./\./g"`
+	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_100\./\./g"`
+	  cd $(INTERMEDIATE_DIR)/100; echo `ls omi-*.deb` > omi_package_filename
         endif
 	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} $(OSS_KITS)
-	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(SCXOMI_DIR)/output_openssl_1.0.0/release/package_filename` $(DISABLE_LISTENER)
+	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/100/omi_package_filename` $(DISABLE_LISTENER)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
 
 endif # ifneq ($(COMBINED_PACKAGES),1)

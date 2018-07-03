@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <pwd.h>
 
 using std::wcerr;
 using std::cout;
@@ -37,6 +38,7 @@ using SCXCoreLib::SCXFilePath;
 static void usage(const char * name, int exitValue);
 static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
                       const wstring & hostname, const wstring & domainname, int bits, bool bDebug = false);
+int UpdateKeyOwnership(SCXFilePath keyPath);
 const int ERROR_CERT_GENERATE = 3;
 
 
@@ -286,6 +288,7 @@ int main(int argc, char *argv[])
 
     // We only generate the certificate if "-f" was specified, or if no certificate exists
     // (Note: If no certificate exists, we should still return a success error code!)
+    int rc = 0;
     if (!doGenerateCert)
     {
         SCXFilePath keyPath;
@@ -300,10 +303,11 @@ int main(int argc, char *argv[])
         else
         {
             wcerr << L"Certificate not generated - '" << keyPath.Get() << "' exists" << endl;
+            // Upgrade from 2012R2 should update the key ownership to omi:omi
+            rc = UpdateKeyOwnership(keyPath);
         }
     }
 
-    int rc = 0;
     if (doGenerateCert)
     {
         rc = DoGenerate(targetPath, startDays, endDays, hostname, domainname, bits, debugMode);
@@ -455,6 +459,9 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         if (0 != rc) {
             throw SCXCoreLib::SCXErrnoFileException(L"chmod", keyPath.Get(), errno, SCXSRCLOCATION);
         }
+
+        rc = UpdateKeyOwnership(keyPath);
+
     }
     catch(const SCXCoreLib::SCXException & e)
     {
@@ -464,6 +471,35 @@ static int DoGenerate(const wstring & targetPath, int startDays, int endDays,
         rc = -1;
     }
     return rc;
+}
+
+int UpdateKeyOwnership(SCXFilePath keyPath)
+{
+    int rc = 0;
+    try
+    {
+        std::string keyFile = SCXCoreLib::StrToMultibyte(keyPath.Get());
+        struct passwd *pwd=NULL;
+        errno = 0;
+        if ((pwd = getpwnam("omi")) != NULL) {
+            rc = chown(keyFile.c_str(),pwd->pw_uid,pwd->pw_gid);
+            if (0 != rc){
+                throw SCXCoreLib::SCXErrnoFileException(L"chown", keyPath.Get(), errno, SCXSRCLOCATION);
+            }
+        } 
+        else if(errno !=0 && errno !=ENOENT && errno !=ESRCH) {
+            const char* isTestEnv = getenv("SCX_TESTRUN_ACTIVE");
+            if(!isTestEnv)
+                throw SCXErrnoUserNameException(L"getpwnam", L"omi", errno, SCXSRCLOCATION);
+        }
+    }
+    catch(const SCXCoreLib::SCXException & e)
+    {
+        wcout << e.Where() << endl
+              << e.What() << endl;
+        rc = -1;
+    }
+    return rc; 
 }
 
 /*----------------------------------------------------------------------------*/
