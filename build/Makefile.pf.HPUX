@@ -34,7 +34,7 @@ CXX_WARN_FLAGS=
 # The following flags get set:
 # -D__hpux -D__ia64=1 -D_BIG_ENDIAN=1 -D__STDCPP__
 # -D__HP_aCC=version-string -D_HP_NAMESPACE_STD
-COMMONFLAGS=+DD32 -AA -mt +Z
+COMMONFLAGS=+DD64 -AA -mt +Z
 
 # Use "warnings as errors", if available
 ifeq ($(ARCH),ia64)

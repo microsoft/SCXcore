@@ -30,7 +30,7 @@ C_WARN_FLAGS=-qformat -qhalt=w -qflag=w:w -qsuppress=1540-2864
 #    checks for compile-time consistency.
 # Since it's not clear if this ever helped us, is gone for now
 
-COMMONFLAGS=-q32 -qlanglvl=stdc99 -qrtti -qpic
+COMMONFLAGS=-q64 -qlanglvl=stdc99 -qrtti -qpic
 
 
 # CXX Compiler flags 
@@ -71,7 +71,7 @@ LINK=$(CXX) $(COMMONFLAGS) -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR) -L$(SCXO
 
 # Link command for static libraries (archives)
 #64bit: LINK_STATLIB=ar -rc -X 64
-LINK_STATLIB=ar -rc -X 32
+LINK_STATLIB=ar -rc -X 64 
 
 # Link a dynamic lib ("create a shared library that uses runtime linking")
 LINK_DYNLIB = $(CXX) -G $(COMMONFLAGS) -L$(INTERMEDIATE_DIR) -L$(SCXPAL_TARGET_DIR) -bernotok -blibpath:/usr/lib:/lib:/opt/microsoft/scx/lib
