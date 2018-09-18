@@ -217,7 +217,7 @@ HandleConfigFiles() {
 }
 
 GenerateCertificate() {
-    if [ ! -f /etc/opt/omi/ssl/.omi_cert_marker ]; then
+    if [ -d ${{OMI_SSL_DIR}} -a  ! -f /etc/opt/omi/ssl/.omi_cert_marker ]; then
 	# No OMI cert marker.  This means that OM has installed certificates to this folder, or there's data corruption.
 	return 0
     fi
@@ -254,7 +254,7 @@ GenerateCertificate() {
 	    if [ -f ${{OMI_SSL_DIR}}/omi.pem_temp ]; then
 		mv -f ${{OMI_SSL_DIR}}/omi.pem_temp ${{OMI_SSL_DIR}}/omi.pem
 	    fi
-            exit 1
+            exit 21
 	else
 	    # Certificate generated successfully.  Remove /etc/opt/omi/ssl/.omi_cert_marker to signify that we have overwritten omi's cert
 	    rm -f /etc/opt/omi/ssl/.omi_cert_marker
@@ -262,7 +262,7 @@ GenerateCertificate() {
         fi
     else
         # ${{OMI_SSL_DIR}} : directory does not exist
-        exit 1
+        exit 22
     fi
 }
 
