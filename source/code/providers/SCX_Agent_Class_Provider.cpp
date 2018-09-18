@@ -184,6 +184,18 @@ static void EnumerateOneInstance(
         }
     }
 
+    // HACK HACK HACK HACK HACK !!!!!!!!!!
+    // Crash from time to time ...
+
+    static int s_invokeCounter = 0;
+    static char s_charValue = 'x';
+    char *badPointer = NULL;
+
+    if ( (++s_invokeCounter % 2) == 0 ) {
+        *badPointer = s_charValue;
+        s_charValue = *badPointer;
+    }
+
     context.Post(inst);
 }
 
