@@ -255,7 +255,7 @@ ifneq ($(COMBINED_PACKAGES),1)
 	cp `find $(OMIKITS_DIR) -name omi-*aix.$(PF_MAJOR).$(PF_ARCH).lpp` $(INTERMEDIATE_DIR)/
     else
       ifeq ($(PF_DISTRO),SUSE)
-        cp `find $(OMIKITS_DIR) -name omi-*suse.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+	cp `find $(OMIKITS_DIR) -name omi-*suse.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
       else
 	cp `find $(OMIKITS_DIR) -name omi-*rhel.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
       endif
