@@ -24,6 +24,12 @@ ifneq ($(COMBINED_PACKAGES),1)
       SCX_PREFIX=scx
       OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
       OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+    else
+      ifeq ($(PF_DISTRO),SUSE)
+        SCX_PREFIX=scx
+        OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).suse.$(PF_MAJOR).$(PF_ARCH)
+        OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+      endif
     endif
   endif
 else
@@ -248,7 +254,11 @@ ifneq ($(COMBINED_PACKAGES),1)
     ifeq ($(PF),AIX)
 	cp `find $(OMIKITS_DIR) -name omi-*aix.$(PF_MAJOR).$(PF_ARCH).lpp` $(INTERMEDIATE_DIR)/
     else
+      ifeq ($(PF_DISTRO),SUSE)
+        cp `find $(OMIKITS_DIR) -name omi-*suse.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+      else
 	cp `find $(OMIKITS_DIR) -name omi-*rhel.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+      endif
     endif
   endif
 
@@ -278,7 +288,11 @@ ifneq ($(COMBINED_PACKAGES),1)
   ifeq ($(PF_ARCH),ppc)
     ifeq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
-	../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        ifeq ($(PF_DISTRO),REDHAT)
+	   ../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        else
+	   ../installer/bundle/create_bundle.sh 'PPC-SUSE' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        endif   
 	# Copy the shell bundle to the target directory
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
     endif # ifeq ($(DISTRO_TYPE),Linux)
