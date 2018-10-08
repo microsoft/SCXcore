@@ -178,18 +178,15 @@ verifyNoInstallationOption()
 
 ulinux_detect_openssl_version() {
     TMPBINDIR=
-    # the system OpenSSL version is 0.9.8.  Likewise with OPENSSL_SYSTEM_VERSION_100
+    # the system OpenSSL version is 1.0.  Likewise with OPENSSL_SYSTEM_VERSION_100
     OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
-    OPENSSL_SYSTEM_VERSION_098=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^0.9.8'; echo $?`
     OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
-    if [ $OPENSSL_SYSTEM_VERSION_098 = 0 ]; then
-        TMPBINDIR=098
-    elif [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
+    if [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
         TMPBINDIR=100
     else
         echo "Error: This system does not have a supported version of OpenSSL installed."
         echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
-        echo "Supported versions: 0.9.8*, 1.0.*"
+        echo "Supported versions: 1.0.*"
         cleanup_and_exit 60
     fi
 }

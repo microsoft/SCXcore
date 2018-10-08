@@ -211,8 +211,6 @@ ifneq ($(COMBINED_PACKAGES),1)
 	# Copy omi kit depending on openssl version
       ifeq ($(IS_OPENSSL_100),1)
 	cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
-      else
-	cp `find $(OMIKITS_DIR) -name omi-*ssl_098.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
       endif
     endif
   endif
@@ -243,16 +241,13 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	# (Copying for combined packages)
         ifeq ($(DISABLE_LISTENER),0)
 	  # Grab the OMI bits
-	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_098*$(PF_ARCH).{rpm,deb} 098
 	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(PF_ARCH).{rpm,deb} 100
           # Remove ssl_098 and ssl_100 from omi filename
-	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_098\./\./g"`
-	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_098\./\./g"`
 	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_100\./\./g"`
 	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_100\./\./g"`
 	  cd $(INTERMEDIATE_DIR)/100; echo `ls omi-*.deb` > omi_package_filename
         endif
-	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} $(OSS_KITS)
+	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 100/*.{rpm,deb} $(OSS_KITS)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/100/omi_package_filename` $(DISABLE_LISTENER)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
 
