@@ -22,23 +22,17 @@ esac
 SCRIPT_DIR="`(cd \"$SCRIPT_INDIRECT\"; pwd -P)`"
 SCRIPT="$SCRIPT_DIR/`basename $0`"
 EXTRACT_DIR="`pwd -P`/scxbundle.$$"
-DPKG_CONF_QUALS="--force-confold --force-confdef"
 
 # These symbols will get replaced during the bundle creation process.
 #
 # The OM_PKG symbol should contain something like:
-#       scx-1.5.1-115.rhel.6.x64 (script adds .rpm or .deb, as appropriate)
+#       scx-1.5.1-115.suse.12.ppc (script adds .rpm)
 # Note that for non-Linux platforms, this symbol should contain full filename.
 #
-# PROVIDER_ONLY is normally set to '0'. Set to non-zero if you wish to build a
-# version of SCX that is only the provider (no OMI, no bundled packages). This
-# essentially provides a "scx-cimprov" type package if just the provider alone
-# must be included as part of some other package.
 
 TAR_FILE=<TAR_FILE>
 OM_PKG=<OM_PKG>
 OMI_PKG=<OMI_PKG>
-PROVIDER_ONLY=0
 
 SCRIPT_LEN=<SCRIPT_LEN>
 SCRIPT_LEN_PLUS_ONE=<SCRIPT_LEN+1>
@@ -156,7 +150,7 @@ getVersionNumber()
     # Parse a version number from a string.
     #
     # Parameter 1: string to parse version number string from
-    #     (should contain something like mumble-4.2.2.135.universal.x86.tar)
+    #     (should contain something like mumble-4.2.2.135.suse.ppc.tar)
     # Parameter 2: prefix to remove ("mumble-" in above example)
 
     if [ $# -ne 2 ]; then
@@ -164,7 +158,7 @@ getVersionNumber()
         cleanup_and_exit 1
     fi
 
-    echo $1 | sed -e "s/$2//" -e 's/\.universal\..*//' -e 's/\.x64.*//' -e 's/\.x86.*//' -e 's/-/./'
+    echo $1 | sed -e "s/$2//" -e 's/\.suse\..*//' -e 's/\.ppc.*//' -e 's/-/./'
 }
 
 verifyNoInstallationOption()
@@ -177,103 +171,59 @@ verifyNoInstallationOption()
     return;
 }
 
-ulinux_detect_openssl_version() {
-    TMPBINDIR=
-    # the system OpenSSL version is 0.9.8.  Likewise with OPENSSL_SYSTEM_VERSION_100 and OPENSSL_SYSTEM_VERSION_110
-    OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
-    OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
-    [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_110=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.1.'; echo $?`
-    if [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
-        TMPBINDIR=100
-    elif [ $OPENSSL_SYSTEM_VERSION_110 = 0 ]; then
-        TMPBINDIR=110
-    else
-        echo "Error: This system does not have a supported version of OpenSSL installed."
-        echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
-        if [ `uname -m` = "x86_64" ];then
-           echo "Supported versions: 1.0.*, 1.1.*"
-        else
-           echo "Supported versions: 1.0.*"
-        fi
-        cleanup_and_exit 60
-    fi
-}
-
-ulinux_detect_installer()
-{
-    INSTALLER=
-
-    # If DPKG lives here, assume we use that. Otherwise we use RPM.
-    type dpkg > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        INSTALLER=DPKG
-    else
-        INSTALLER=RPM
-    fi
-}
 
 # $1 - The name of the package to check as to whether it's installed
 check_if_pkg_is_installed() {
-    if [ "$INSTALLER" = "DPKG" ]
-    then
-        dpkg -s $1 2> /dev/null | grep Status | grep " installed" 2> /dev/null 1> /dev/null
-    else
         rpm -q $1 2> /dev/null 1> /dev/null
-    fi
 }
 
 # $1 - The filename of the package to be installed
 # $2 - The package name of the package to be installed
 # Enqueues the package to the queue of packages to be added
-pkg_add() {
+pkg_add_list() {
     pkg_filename=$1
     pkg_name=$2
 
-    echo "----- Installing package: $pkg_name ($pkg_filename) -----"
-    ulinux_detect_openssl_version
-    pkg_filename=$TMPBINDIR/$pkg_filename
+    echo "----- Queuing package: $pkg_name ($pkg_filename) for installation -----"
+    pkg_filename=$pkg_filename
 
-    if [ "$INSTALLER" = "DPKG" ]
-    then
-        dpkg ${DPKG_CONF_QUALS} --install --refuse-downgrade ${pkg_filename}.deb
-        return $?
-    else
-        rpm --install ${pkg_filename}.rpm
-        return $?
-    fi
+    ADD_PKG_QUEUE="${ADD_PKG_QUEUE} ${pkg_filename}.rpm"
+}
+
+# $1.. : The paths of the packages to be installed
+pkg_add() {
+   pkg_list=
+   while [ $# -ne 0 ]
+   do
+      pkg_list="${pkg_list} $1"
+      shift 1
+   done
+
+   if [ "${pkg_list}" = "" ]
+   then
+       # Nothing to add
+       return 0
+   fi
+   echo "----- Installing packages: ${pkg_list} -----"
+   rpm --install ${pkg_list}
 }
 
 # $1 - The package name of the package to be uninstalled
-# $2 - Optional parameter. Only used when forcibly removing a package
+# $2 - Optional parameter. Only used when forcibly removing omi on SunOS
 pkg_rm() {
     echo "----- Removing package: $1 -----"
-    if [ "$INSTALLER" = "DPKG" ]
-    then
-        if [ "$installMode" = "P" ]; then
-            dpkg --purge ${1}
-        elif [ "$2" = "force" ]; then
-            dpkg --remove --force-all ${1}
-        else
-            dpkg --remove ${1}
-        fi
-    else
-        if [ "$2" = "force" ]; then
-            rpm --erase --nodeps ${1}
-        else
-            rpm --erase ${1}
-        fi
-    fi
+    rpm --erase ${1}
 }
 
 # $1 - The filename of the package to be installed
 # $2 - The package name of the package to be installed
 # $3 - Okay to upgrade the package? (Optional)
-pkg_upd() {
+pkg_upd_list() {
     pkg_filename=$1
     pkg_name=$2
     pkg_allowed=$3
 
-    echo "----- Upgrading package: $pkg_name ($pkg_filename) -----"
+    echo "----- Queuing package for upgrade: $pkg_name ($pkg_filename) -----"
 
     if [ -z "${forceFlag}" -a -n "$pkg_allowed" ]; then
         if [ $pkg_allowed -ne 0 ]; then
@@ -282,33 +232,38 @@ pkg_upd() {
         fi
     fi
 
-    ulinux_detect_openssl_version
-    pkg_filename=$TMPBINDIR/$pkg_filename
+    pkg_filename=$pkg_filename
+    UPD_PKG_QUEUE="${UPD_PKG_QUEUE} ${pkg_filename}.rpm"
+}
 
-    if [ "$INSTALLER" = "DPKG" ]
-    then
-        [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
-        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb
-        return $?
-    else
-        [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        rpm --upgrade $FORCE ${pkg_filename}.rpm
-        return $?
-    fi
+# $* - The list of packages to be updated
+pkg_upd() {
+   pkg_list=
+   while [ $# -ne 0 ]
+   do
+      pkg_list="${pkg_list} $1"
+      shift 1
+   done
+
+   if [ "${pkg_list}" = "" ]
+   then
+       # Nothing to update
+       return 0
+   fi
+    echo "----- Updating packages: ($pkg_list) -----"
+
+    [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
+    rpm --upgrade $FORCE ${pkg_list}
 }
 
 getInstalledVersion()
 {
+
     # Parameter: Package to check if installed
     # Returns: Printable string (version installed or "None")
     if check_if_pkg_is_installed $1; then
-        if [ "$INSTALLER" = "DPKG" ]; then
-            local version="`dpkg -s $1 2> /dev/null | grep 'Version: '`"
-            getVersionNumber "$version" "Version: "
-        else
             local version=`rpm -q $1 2> /dev/null`
             getVersionNumber $version ${1}-
-        fi
     else
         echo "None"
     fi
@@ -332,40 +287,12 @@ shouldInstall_scx()
     check_version_installable $versionInstalled $versionAvailable
 }
 
-remove_and_install()
-{
-    if [ -f /opt/microsoft/scx/bin/uninstall ]; then
-        /opt/microsoft/scx/bin/uninstall R force
-    else
-        check_if_pkg_is_installed apache-cimprov
-        if [ $? -eq 0 ]; then
-            pkg_rm apache-cimprov
-        fi
-        check_if_pkg_is_installed mysql-cimprov
-        if [ $? -eq 0 ]; then
-            pkg_rm mysql-cimprov
-        fi
-        pkg_rm scx force
-        pkg_rm omi force
-    fi
-    pkg_add $OMI_PKG omi
-    if [ "$?" -ne 0 ]; then
-        return 1
-    fi
-    pkg_add $OM_PKG scx
-    if [ "$?" -ne 0 ]; then
-        return 1
-    fi
-    return 0
-}
 #
 # Main script follows
 #
 
 set +e
 
-# Validate package and initialize
-ulinux_detect_installer
 
 while [ $# -ne 0 ]
 do
@@ -456,7 +383,7 @@ do
 
             # scx
             versionInstalled=`getInstalledVersion scx`
-            versionAvailable=`getVersionNumber $OM_PKG scx-cimprov-`
+            versionAvailable=`getVersionNumber $OM_PKG scx`
             if shouldInstall_scx; then shouldInstall="Yes"; else shouldInstall="No"; fi
             printf '%-15s%-15s%-15s%-15s\n' scx $versionInstalled $versionAvailable $shouldInstall
 
@@ -505,40 +432,12 @@ if [ "$installMode" = "R" -o "$installMode" = "P" ]
 then
     if [ -f /opt/microsoft/scx/bin/uninstall ]; then
         /opt/microsoft/scx/bin/uninstall $installMode
-    else
-        # This is an old kit.  Let's remove each separate provider package
-        for i in /opt/microsoft/*-cimprov; do
-            PKG_NAME=`basename $i`
-            if [ "$PKG_NAME" != "*-cimprov" ]; then
-                echo "Removing ${PKG_NAME} ..."
-                pkg_rm ${PKG_NAME}
-            fi
-        done
-
-        # Now just simply pkg_rm scx (and omi if it has no dependencies)
-        pkg_rm scx
-        pkg_rm omi
     fi
-
     if [ "$installMode" = "P" ]
     then
-        check_if_pkg_is_installed apache-cimprov
-        if [ $? -ne 0 ]; then
-            echo "Purging all files in apache provider ..."
-            rm -rf /etc/opt/microsoft/apache-cimprov /opt/microsoft/apache-cimprov /var/opt/microsoft/apache-cimprov
-        fi
-        check_if_pkg_is_installed mysql-cimprov
-        if [ $? -ne 0 ]; then
-            echo "Purging all files in mysql provider ..."
-            rm -rf /etc/opt/microsoft/mysql-cimprov /opt/microsoft/mysql-cimprov /var/opt/microsoft/mysql-cimprov
-        fi
-        # Remove directories only if scx got removed successfully (Other products might be dependent on scx)
-        check_if_pkg_is_installed scx
-        if [ $? -ne 0 ]; then
-            echo "Purging all files in cross-platform agent ..."
-            rm -rf /etc/opt/microsoft/scx /opt/microsoft/scx /var/opt/microsoft/scx
-            rmdir /etc/opt/microsoft /opt/microsoft /var/opt/microsoft 1>/dev/null 2>/dev/null
-        fi
+        echo "Purging all files in cross-platform agent ..."
+        rmdir /etc/opt/microsoft /opt/microsoft /var/opt/microsoft 1>/dev/null 2>/dev/null
+
         # If OMI is not installed, purge its directories as well.
         check_if_pkg_is_installed omi
         if [ $? -ne 0 ]; then
@@ -576,9 +475,7 @@ fi
 #
 
 EXIT_STATUS=0
-BUNDLE_EXIT_STATUS=0
-OMI_EXIT_STATUS=0
-SCX_EXIT_STATUS=0
+SCX_OMI_EXIT_STATUS=0
 
 case "$installMode" in
     E)
@@ -589,82 +486,30 @@ case "$installMode" in
     I)
         echo "Installing cross-platform agent ..."
 
-        if [ $PROVIDER_ONLY -eq 0 ]; then
-            check_if_pkg_is_installed omi
-            if [ $? -eq 0 ]; then
-                shouldInstall_omi
-                pkg_upd $OMI_PKG omi $?
-                OMI_EXIT_STATUS=$?
-            else
-                pkg_add $OMI_PKG omi
-                OMI_EXIT_STATUS=$?
-            fi
+        check_if_pkg_is_installed omi
+        if [ $? -eq 0 ]; then
+            pkg_upd_list $OMI_PKG omi
+            pkg_upd ${UPD_PKG_QUEUE}
+        else
+            pkg_add_list $OMI_PKG omi
         fi
 
-        pkg_add $OM_PKG scx
-        SCX_EXIT_STATUS=$?
+        pkg_add_list $OM_PKG scx
 
-        if [ "${OMI_EXIT_STATUS}" -ne 0 -o "${SCX_EXIT_STATUS}" -ne 0 ]; then
-            remove_and_install
-            if [ "$?" -ne 0 ]; then
-                echo "Install failed"
-                cleanup_and_exit 1
-            fi
-        fi
-
-        if [ $PROVIDER_ONLY -eq 0 ]; then
-            # Install bundled providers
-            [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-            for i in *-oss-test.sh; do
-                # If filespec didn't expand, break out of loop
-                [ ! -f $i ] && break
-                ./$i
-                if [ $? -eq 0 ]; then
-                    OSS_BUNDLE=`basename $i -oss-test.sh`
-                    ./${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies
-                    TEMP_STATUS=$?
-                    [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
-                fi
-            done
-        fi
+        pkg_add ${ADD_PKG_QUEUE}
+        SCX_OMI_EXIT_STATUS=$?
         ;;
 
     U)
         echo "Updating cross-platform agent ..."
-        if [ $PROVIDER_ONLY -eq 0 ]; then
-            shouldInstall_omi
-            pkg_upd $OMI_PKG omi $?
-            OMI_EXIT_STATUS=$?
-        fi
+        shouldInstall_omi
+        pkg_upd_list $OMI_PKG omi $?
 
         shouldInstall_scx
-        pkg_upd $OM_PKG scx $?
-        SCX_EXIT_STATUS=$?
+        pkg_upd_list $OM_PKG scx $?
 
-        if [ "${OMI_EXIT_STATUS}" -ne 0 -o "${SCX_EXIT_STATUS}" -ne 0 ]; then
-            remove_and_install
-            if [ "$?" -ne 0 ]; then
-                echo "Upgrade failed"
-                cleanup_and_exit 1
-            fi
-        fi
-
-        if [ $PROVIDER_ONLY -eq 0 ]; then
-            # Upgrade bundled providers
-            [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-            echo "----- Updating bundled packages -----"
-            for i in *-oss-test.sh; do
-                # If filespec didn't expand, break out of loop
-                [ ! -f $i ] && break
-                ./$i
-                if [ $? -eq 0 ]; then
-                    OSS_BUNDLE=`basename $i -oss-test.sh`
-                    ./${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies
-                    TEMP_STATUS=$?
-                    [ $TEMP_STATUS -ne 0 ] && BUNDLE_EXIT_STATUS="$TEMP_STATUS"
-                fi
-            done
-        fi
+        pkg_upd ${UPD_PKG_QUEUE}
+        SCX_OMI_EXIT_STATUS=$?
         ;;
 
     *)
@@ -673,10 +518,7 @@ case "$installMode" in
 esac
 
 # Remove temporary files (now part of cleanup_and_exit) and exit
-if [ "$BUNDLE_EXIT_STATUS" -ne 0 ]; then
-    cleanup_and_exit 1
-else
+
     cleanup_and_exit 0
-fi
 
 #####>>- This must be the last line of this script, followed by a single empty line. -<<#####

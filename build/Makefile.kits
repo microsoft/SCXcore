@@ -24,6 +24,12 @@ ifneq ($(COMBINED_PACKAGES),1)
       SCX_PREFIX=scx
       OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
       OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+    else
+      ifeq ($(PF_DISTRO),SUSE)
+        SCX_PREFIX=scx
+        OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).sles.$(PF_MAJOR).$(PF_ARCH)
+        OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+      endif
     endif
   endif
 else
@@ -248,7 +254,11 @@ ifneq ($(COMBINED_PACKAGES),1)
     ifeq ($(PF),AIX)
 	cp `find $(OMIKITS_DIR) -name omi-*aix.$(PF_MAJOR).$(PF_ARCH).lpp` $(INTERMEDIATE_DIR)/
     else
+      ifeq ($(PF_DISTRO),SUSE)
+	cp `find $(OMIKITS_DIR) -name omi-*suse.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+      else
 	cp `find $(OMIKITS_DIR) -name omi-*rhel.$(PF_MAJOR).$(PF_ARCH).rpm` $(INTERMEDIATE_DIR)/
+      endif
     endif
   endif
 
@@ -266,8 +276,6 @@ ifneq ($(COMBINED_PACKAGES),1)
       else
         ifeq ($(IS_OPENSSL_100),1)
 	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
-        else
-	  cp `find $(OMIKITS_DIR) -name omi-*ssl_098.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
         endif
       endif
     endif
@@ -278,7 +286,11 @@ ifneq ($(COMBINED_PACKAGES),1)
   ifeq ($(PF_ARCH),ppc)
     ifeq ($(DISTRO_TYPE),Linux)
 	cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(OSS_KITS)
-	../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        ifeq ($(PF_DISTRO),REDHAT)
+	   ../installer/bundle/create_bundle.sh 'PPC-RHEL' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        else
+	   ../installer/bundle/create_bundle.sh 'PPC-SUSE' $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
+        endif   
 	# Copy the shell bundle to the target directory
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
     endif # ifeq ($(DISTRO_TYPE),Linux)
@@ -299,15 +311,12 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	# (Copying for combined packages)
         ifeq ($(DISABLE_LISTENER),0)
 	  # Grab the OMI bits
-	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_098*$(PF_ARCH).{rpm,deb} 098
 	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(PF_ARCH).{rpm,deb} 100
           ifeq ($(PF_ARCH),x64)
 	     cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(PF_ARCH).{rpm,deb} 110
           endif
 
           # Remove ssl_098, ssl_100 and ssl_110 from omi filename
-	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_098\./\./g"`
-	  cd $(INTERMEDIATE_DIR)/098; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_098\./\./g"`
 	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_100\./\./g"`
 	  cd $(INTERMEDIATE_DIR)/100; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_100\./\./g"`
           ifeq ($(PF_ARCH),x64)
@@ -317,9 +326,9 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	  cd $(INTERMEDIATE_DIR)/100; echo `ls omi-*.deb` > omi_package_filename
         endif
         ifeq ($(PF_ARCH),x64)
-	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} 110/*.{rpm,deb} $(OSS_KITS)
+	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 100/*.{rpm,deb} 110/*.{rpm,deb} $(OSS_KITS)
         else
-	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 098/*.{rpm,deb} 100/*.{rpm,deb} $(OSS_KITS)
+	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_PACKAGE_PREFIX).tar 100/*.{rpm,deb} $(OSS_KITS)
         endif
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_PACKAGE_PREFIX).tar $(OUTPUT_PACKAGE_PREFIX) `cat $(INTERMEDIATE_DIR)/100/omi_package_filename` $(DISABLE_LISTENER)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_PACKAGE_PREFIX).sh $(TARGET_DIR)
@@ -360,14 +369,10 @@ GetLinuxOS:
 endif
 
 # Build SELinux policy modules for scxagent-logrotate
-ifeq ($(PF)$(PF_ARCH),$(filter $(PF)$(PF_ARCH), Linuxx64 Linuxx86))
+ifeq ($(PF),Linux)
     sepolicy: $(SEPOLICY_DIR)/scxagent-logrotate.pp $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp
 else
     sepolicy:
-ifeq ("$(PF_ARCH)$(PF_DISTRO)","ppcREDHAT")
-	$(MKPATH) $(SEPOLICY_DIR_EL6) $(SEPOLICY_DIR)
-	touch $(SEPOLICY_DIR)/scxagent-logrotate.pp touch $(SEPOLICY_DIR_EL6)/scxagent-logrotate.pp
-endif
 endif
 
 $(SEPOLICY_DIR)/scxagent-logrotate.pp : $(SEPOLICY_SRC_DIR)/scxagent-logrotate.te $(SEPOLICY_SRC_DIR)/scxagent-logrotate.fc

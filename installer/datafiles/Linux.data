@@ -32,7 +32,7 @@ ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.pp;                      intermed
 
 
 %Postinstall_1500
-if [ -e /usr/sbin/semodule -a `uname -m` != "ppc64le" ]; then
+if [ -e /usr/sbin/semodule ]; then
     echo "System appears to have SELinux installed, attempting to install selinux policy module for logrotate"
     echo "  Trying ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.pp ..."
     sestatus=`sestatus|grep status|awk '{print $3}'`
