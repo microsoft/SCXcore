@@ -136,7 +136,7 @@ endif
 #--------------------------------------------------------------------------------
 
 # Path to where the CPPUNIT libraries are checked in 
-CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/hpuxacc/$(ARCH)/cppunit_64bit
+CPPUNIT_LIB_PATH=$(SCX_SHARED_TST_EXT_LIB_DIR)/hpuxacc/$(ARCH)/cppunit
 
 #--------------------------------------------------------------------------------
 # Link switches for this platform, per target
