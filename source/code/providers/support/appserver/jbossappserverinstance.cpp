@@ -1437,6 +1437,8 @@ namespace SCXSystemLib
 
 				wstring filePathForJB7 = L"/modules/org/jboss/as/server/main/module.xml";
 				wstring filePathForWF8 = L"/modules/system/layers/base/org/jboss/as/version/main/module.xml";
+				wstring wildflyVersionPrefix = L"wildfly-version-";
+				string::size_type prefixLen = wildflyVersionPrefix.length();
 
 				// If version returned we load the procedure
 				// Else report error in Log for no file found
@@ -1475,7 +1477,28 @@ namespace SCXSystemLib
 										resourcesRootNodes[jdx]->GetAttributeValue(cPathAttributeName, version))
 									{
 										vector<wstring> v_version;
-										SCXRegex re(L"([0-9].[0-9].[0-9]..*)(.jar)");
+										SCXRegex re(L"([0-9]+.[0-9].[0-9]..*)(.jar)");
+										/* Wildfly 9 onwards version is written
+										   as wildfly-version-1.0..., where 1
+										   corresponds to 9. To handle this we
+										   are adding 8 to the major version so
+										   that port information can be
+										   retrieved correctly */
+										if(StrIsPrefix(StrFromUTF8(version), wildflyVersionPrefix, true))
+										{
+											size_t pos = version.find(".");
+											string mVer = version.substr(prefixLen ,pos-prefixLen);
+											int ver = atoi(mVer.c_str());
+											//Revisit for wildfly 16
+											if(ver < 8)
+											{
+												int updatedVer = 8+ver;
+												stringstream ss;
+												ss<<updatedVer;
+												string newVer = ss.str();
+												version.replace(prefixLen, mVer.length(), newVer);
+											}
+										}
 										if(re.ReturnMatch(StrFromUTF8(version), v_version,0))
 										{
 											SetVersion(v_version[1]);
