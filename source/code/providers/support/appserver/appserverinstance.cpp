@@ -380,12 +380,15 @@ namespace SCXSystemLib
     wstring AppServerInstance::ExtractMajorVersion(const wstring& version)
     {
         vector<wstring> parts;
-
+        vector<wstring> majorVersionParts; 
         StrTokenizeStr(version, parts, L".");
-
         if (parts.size() > 0)
         {
-            return parts[0];
+            StrTokenizeStr(parts[0], majorVersionParts, L" ");
+            if (majorVersionParts.size() > 0)
+            {
+                return majorVersionParts[majorVersionParts.size() - 1];
+            }
         }
 
         return L"";

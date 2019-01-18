@@ -16,7 +16,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include <errno.h>
+#include <cstring>
 #include <scxcorelib/stringaid.h>
 #include <scxcorelib/scxfile.h>
 #include <scxcorelib/scxdirectoryinfo.h>
@@ -1339,6 +1340,18 @@ namespace SCXSystemLib
         return hostXmlVector;
     }
 
+
+    // remove shell character from the output of a command
+    void removeShellCharacter(string &str)
+    {
+        int i = 0;
+        while (!(str[i]=='0' && str[i+1]=='m'))
+        {
+            i++;
+        }
+        str.erase(0,i+2);
+    }
+
     /*----------------------------------------------------------------------------*/
     /**
        Update version
@@ -1348,183 +1361,225 @@ namespace SCXSystemLib
        Read specVersion property for that node
     */
     void JBossAppServerInstance::UpdateVersion()
-    {
-        const string cJarVersionsNodeName("jar-versions");
-        const string cJarNodeName("jar");
-        const string cNameAttributeName("name");
-        const string cJbossJarName("jboss.jar");
-        const string cSpecVersionAttributeName("specVersion");
-		const string cModuleNodeName("module");
-		const string cResourcesNodeName("resources");
-		const string cResourcesRootNodeName("resource-root");
-		const string cPathAttributeName("path");
-
-		bool fJboss7Check = false;
-
-        string xmlcontent;
-        SCXFilePath filename(m_basePath);
-		SCXFilePath moduleFilename(m_basePath);
-        
-
-        filename.Append(L"jar-versions.xml");
-
-        try {
-            SCXHandle<istream> mystream = m_deps->OpenXmlVersionFile(filename.Get());
-            GetStringFromStream(mystream, xmlcontent);
-
-            XElementPtr topNode;
-            XElement::Load(xmlcontent, topNode);
-            if (topNode->GetName() == cJarVersionsNodeName)
-            {
-                XElementList versionNodes;
-                topNode->GetChildren(versionNodes);
-                bool found = false;
-                for (size_t idx = 0; !found && idx < versionNodes.size(); ++idx)
+    {   
+        const char* isTestEnv = getenv("SCX_TESTRUN_ACTIVE");
+        if (!isTestEnv)
+        {
+            SCXFilePath filename(m_basePath);
+            SCXFilePath moduleFilename(m_basePath);
+            #if defined (linux)
+                moduleFilename.Append(L"/bin/standalone.sh -version | tail -1 |sed -r 's/\x1b\[[0-9]*[m|K]//g'");
+            #else
+                moduleFilename.Append(L"/bin/standalone.sh -version | tail -1 ");
+            #endif 
+            wstring script = L"sh ";
+            script.append(moduleFilename);
+            string command = SCXCoreLib::StrToUTF8(script);
+            char buffer[128];
+            wstring result =L"";
+            string tmpResult = "";
+            try {
+                FILE* pipe = popen(command.c_str(), "r");
+                if (pipe)
                 {
-                    string name;
-                    if (versionNodes[idx]->GetName() == cJarNodeName && 
-                        versionNodes[idx]->GetAttributeValue(cNameAttributeName, name) && 
-                        cJbossJarName == name)
+                    while (fgets(buffer, 128, pipe) != NULL) {
+                    tmpResult = buffer;
+                    }
+                    pclose(pipe);
+                    #if !defined (linux)
+                        removeShellCharacter(tmpResult); 
+                    #endif 
+                    result = SCXCoreLib::StrTrim(SCXCoreLib::StrFromUTF8(tmpResult));
+                    SetVersion(result);
+                }
+                else{
+                    SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - popen sytem call failed with error no: ").append(SCXCoreLib::StrFromUTF8(std::strerror(errno))));
+                }
+            }catch(...){
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - could not get the version from: ").append(filename));
+            }
+        
+        }
+        else{
+
+
+            const string cJarVersionsNodeName("jar-versions");
+            const string cJarNodeName("jar");
+            const string cNameAttributeName("name");
+            const string cJbossJarName("jboss.jar");
+            const string cSpecVersionAttributeName("specVersion");
+            const string cModuleNodeName("module");
+            const string cResourcesNodeName("resources");
+            const string cResourcesRootNodeName("resource-root");
+            const string cPathAttributeName("path");
+
+            bool fJboss7Check = false;
+
+            string xmlcontent;
+            SCXFilePath filename(m_basePath);
+            SCXFilePath moduleFilename(m_basePath);
+            
+
+            filename.Append(L"jar-versions.xml");
+
+            try {
+                SCXHandle<istream> mystream = m_deps->OpenXmlVersionFile(filename.Get());
+                GetStringFromStream(mystream, xmlcontent);
+
+                XElementPtr topNode;
+                XElement::Load(xmlcontent, topNode);
+                if (topNode->GetName() == cJarVersionsNodeName)
+                {
+                    XElementList versionNodes;
+                    topNode->GetChildren(versionNodes);
+                    bool found = false;
+                    for (size_t idx = 0; !found && idx < versionNodes.size(); ++idx)
                     {
-                        string version;
-                        if (versionNodes[idx]->GetAttributeValue(cSpecVersionAttributeName, version))
+                        string name;
+                        if (versionNodes[idx]->GetName() == cJarNodeName && 
+                            versionNodes[idx]->GetAttributeValue(cNameAttributeName, name) && 
+                            cJbossJarName == name)
                         {
-                            SetVersion(StrFromUTF8(version));
-                            found = true;
+                            string version;
+                            if (versionNodes[idx]->GetAttributeValue(cSpecVersionAttributeName, version))
+                            {
+                                SetVersion(StrFromUTF8(version));
+                                found = true;
+                            }
                         }
                     }
                 }
             }
-        }
-        catch (SCXFilePathNotFoundException&)
-        {
-            fJboss7Check = true;
-        }
-        catch (SCXUnauthorizedFileSystemAccessException&)
-        {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
-        }
-        catch (XmlException&)
-        {
-            SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
-        }
-        
-        if(fJboss7Check)
-        {
-
-            try {
-				// For JBoss 7.x we can traverse the java package files and retrieve the
-				// module.xml file that contains the name of the server jar file needed
-				// This server jar file contains the version number
-				// e.g
-				// <module xmlns="urn:jboss:module:1.0" name="org.jboss.as.server">
-				//    <main-class name="org.jboss.as.server.DomainServerMain"/>
-				//    <resources>
-				//			<resource-root path="jboss-as-server-7.0.0.Final.jar"/>
-				//    </resources>
-                //	</module>
-				//
-				// From this resource node, we can retrieve the name
-
-				// For Wildfly and JBoss Enterprise Application Server the module file
-				// can be found inside a version folder, with the same xml format
-
-				
-				// For JBoss 7 the module xml file is located at
-				// <server dir>/modules/org/jboss/as/server/main/module.xml
-				// For Wildfly and JBoss EAS the module xml file is located at
-				// <server dir>/modules/system/layers/base/org/jboss/as/version/main/module.xml
-
-				wstring filePathForJB7 = L"/modules/org/jboss/as/server/main/module.xml";
-				wstring filePathForWF8 = L"/modules/system/layers/base/org/jboss/as/version/main/module.xml";
-				wstring wildflyVersionPrefix = L"wildfly-version-";
-				string::size_type prefixLen = wildflyVersionPrefix.length();
-
-				// If version returned we load the procedure
-				// Else report error in Log for no file found
-				jboss_version_type vers;
-
-				if(m_deps->versionJBossWildfly(moduleFilename, vers))
-				{
-					if(vers == jboss_version_7)
-					{
-						moduleFilename.Append(filePathForJB7);
-					}
-					else if(vers == jboss_version_8)
-					{
-						moduleFilename.Append(filePathForWF8);
-					}
-					SCXHandle<istream> mystream = m_deps->OpenModuleXmlFile(moduleFilename.Get());
-					GetStringFromStream(mystream, xmlcontent);
-					XElementPtr topNode;
-					XElement::Load(xmlcontent, topNode);
-					if(topNode->GetName() == cModuleNodeName)
-					{
-						XElementList resourcesNodes;
-						topNode->GetChildren(resourcesNodes);
-						bool found = false;
-						for (size_t idx = 0; !found && idx < resourcesNodes.size(); ++idx)
-						{
-							string name;
-							if (resourcesNodes[idx]->GetName() == cResourcesNodeName)
-							{
-								XElementList resourcesRootNodes;
-								resourcesNodes[idx]->GetChildren(resourcesRootNodes);
-								for(size_t jdx = 0; jdx < resourcesRootNodes.size(); ++jdx)
-								{
-									string version;
-									if (resourcesRootNodes[jdx]->GetName() == cResourcesRootNodeName &&
-										resourcesRootNodes[jdx]->GetAttributeValue(cPathAttributeName, version))
-									{
-										vector<wstring> v_version;
-										SCXRegex re(L"([0-9]+.[0-9].[0-9]..*)(.jar)");
-										/* Wildfly 9 onwards version is written
-										   as wildfly-version-1.0..., where 1
-										   corresponds to 9. To handle this we
-										   are adding 8 to the major version so
-										   that port information can be
-										   retrieved correctly */
-										if(StrIsPrefix(StrFromUTF8(version), wildflyVersionPrefix, true))
-										{
-											size_t pos = version.find(".");
-											string mVer = version.substr(prefixLen ,pos-prefixLen);
-											int ver = atoi(mVer.c_str());
-											//Revisit for wildfly 16
-											if(ver < 8)
-											{
-												int updatedVer = 8+ver;
-												stringstream ss;
-												ss<<updatedVer;
-												string newVer = ss.str();
-												version.replace(prefixLen, mVer.length(), newVer);
-											}
-										}
-										if(re.ReturnMatch(StrFromUTF8(version), v_version,0))
-										{
-											SetVersion(v_version[1]);
-											found = true;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				else
-				{
-					SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename).append(filePathForJB7).append(L"- Or find file: ").append(moduleFilename).append(filePathForWF8));
-				}
-            }
             catch (SCXFilePathNotFoundException&)
             {
-                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename));
+                fJboss7Check = true;
             }
             catch (SCXUnauthorizedFileSystemAccessException&)
             {
-                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(moduleFilename));
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(filename));
+            }
+            catch (XmlException&)
+            {
+                SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not load XML from file: ").append(filename));
+            }
+            
+            if(fJboss7Check)
+            {
+
+                try {
+                    // For JBoss 7.x we can traverse the java package files and retrieve the
+                    // module.xml file that contains the name of the server jar file needed
+                    // This server jar file contains the version number
+                    // e.g
+                    // <module xmlns="urn:jboss:module:1.0" name="org.jboss.as.server">
+                    //    <main-class name="org.jboss.as.server.DomainServerMain"/>
+                    //    <resources>
+                    //          <resource-root path="jboss-as-server-7.0.0.Final.jar"/>
+                    //    </resources>
+                    //  </module>
+                    //
+                    // From this resource node, we can retrieve the name
+
+                    // For Wildfly and JBoss Enterprise Application Server the module file
+                    // can be found inside a version folder, with the same xml format
+
+                    
+                    // For JBoss 7 the module xml file is located at
+                    // <server dir>/modules/org/jboss/as/server/main/module.xml
+                    // For Wildfly and JBoss EAS the module xml file is located at
+                    // <server dir>/modules/system/layers/base/org/jboss/as/version/main/module.xml
+
+                    wstring filePathForJB7 = L"/modules/org/jboss/as/server/main/module.xml";
+                    wstring filePathForWF8 = L"/modules/system/layers/base/org/jboss/as/version/main/module.xml";
+                    wstring wildflyVersionPrefix = L"wildfly-version-";
+                    string::size_type prefixLen = wildflyVersionPrefix.length();
+
+                    // If version returned we load the procedure
+                    // Else report error in Log for no file found
+                    jboss_version_type vers;
+
+                    if(m_deps->versionJBossWildfly(moduleFilename, vers))
+                    {
+                        if(vers == jboss_version_7)
+                        {
+                            moduleFilename.Append(filePathForJB7);
+                        }
+                        else if(vers == jboss_version_8)
+                        {
+                            moduleFilename.Append(filePathForWF8);
+                        }
+                        SCXHandle<istream> mystream = m_deps->OpenModuleXmlFile(moduleFilename.Get());
+                        GetStringFromStream(mystream, xmlcontent);
+                        XElementPtr topNode;
+                        XElement::Load(xmlcontent, topNode);
+                        if(topNode->GetName() == cModuleNodeName)
+                        {
+                            XElementList resourcesNodes;
+                            topNode->GetChildren(resourcesNodes);
+                            bool found = false;
+                            for (size_t idx = 0; !found && idx < resourcesNodes.size(); ++idx)
+                            {
+                                string name;
+                                if (resourcesNodes[idx]->GetName() == cResourcesNodeName)
+                                {
+                                    XElementList resourcesRootNodes;
+                                    resourcesNodes[idx]->GetChildren(resourcesRootNodes);
+                                    for(size_t jdx = 0; jdx < resourcesRootNodes.size(); ++jdx)
+                                    {
+                                        string version;
+                                        if (resourcesRootNodes[jdx]->GetName() == cResourcesRootNodeName &&
+                                            resourcesRootNodes[jdx]->GetAttributeValue(cPathAttributeName, version))
+                                        {
+                                            vector<wstring> v_version;
+                                            SCXRegex re(L"([0-9]+.[0-9].[0-9]..*)(.jar)");
+                                            /* Wildfly 9 onwards version is written
+                                               as wildfly-version-1.0..., where 1
+                                               corresponds to 9. To handle this we
+                                               are adding 8 to the major version so
+                                               that port information can be
+                                               retrieved correctly */
+                                            if(StrIsPrefix(StrFromUTF8(version), wildflyVersionPrefix, true))
+                                            {
+                                                size_t pos = version.find(".");
+                                                string mVer = version.substr(prefixLen ,pos-prefixLen);
+                                                int ver = atoi(mVer.c_str());
+                                                //Revisit for wildfly 16
+                                                if(ver < 8)
+                                                {
+                                                    int updatedVer = 8+ver;
+                                                    stringstream ss;
+                                                    ss<<updatedVer;
+                                                    string newVer = ss.str();
+                                                    version.replace(prefixLen, mVer.length(), newVer);
+                                                }
+                                            }
+                                            if(re.ReturnMatch(StrFromUTF8(version), v_version,0))
+                                            {
+                                                SetVersion(v_version[1]);
+                                                found = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename).append(filePathForJB7).append(L"- Or find file: ").append(moduleFilename).append(filePathForWF8));
+                    }
+                }
+                catch (SCXFilePathNotFoundException&)
+                {
+                    SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - Could not find file: ").append(filename).append(L"- Or find file: ").append(moduleFilename));
+                }
+                catch (SCXUnauthorizedFileSystemAccessException&)
+                {
+                    SCX_LOGERROR(m_log, wstring(L"JBossAppServerInstance::UpdateVersion() - ").append(GetId()).append(L" - not authorized to open file: ").append(moduleFilename));
+                }
             }
         }
-    }
+    } 
     
     /*----------------------------------------------------------------------------*/
     /**
@@ -1534,9 +1589,7 @@ namespace SCXSystemLib
     void JBossAppServerInstance::Update()
     {
         SCX_LOGTRACE(m_log, wstring(L"JBossAppServerInstance::Update() - ").append(GetId()));
-
         UpdateVersion();
-
         if (m_majorVersion.length() > 0)
         {
             if(StrToLong(m_majorVersion) >= 7)
