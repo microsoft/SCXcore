@@ -177,9 +177,28 @@ verifyNoInstallationOption()
     return;
 }
 
+is_suse11_platform_with_openssl1(){
+  if [ -e /etc/SuSE-release ];then
+     VERSION=`cat /etc/SuSE-release|grep "VERSION = 11"|awk 'FS=":"{print $3}'`
+     if [ ! -z "$VERSION" ];then
+        which openssl1>/dev/null 2>&1
+        if [ $? -eq 0 -a $VERSION -eq 11 ];then
+           return 0
+        fi
+     fi
+  fi
+  return 1
+}
+
 ulinux_detect_openssl_version() {
     TMPBINDIR=
     # the system OpenSSL version is 0.9.8.  Likewise with OPENSSL_SYSTEM_VERSION_100 and OPENSSL_SYSTEM_VERSION_110
+    is_suse11_platform_with_openssl1
+    if [ $? -eq 0 ];then
+       OPENSSL_SYSTEM_VERSION_FULL=`openssl1 version | awk '{print $2}'`
+    else
+       OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
+    fi
     OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
     OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
     [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_110=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.1.'; echo $?`
