@@ -125,13 +125,43 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
         // Update network PAL instance. This is both update of number of interfaces and
         // current statistics for each interfaces.
         SCXHandle<SCXCore::NetworkProviderDependencies> deps = SCXCore::g_NetworkProvider.getDependencies();
-        deps->UpdateIntf(false);
+
+        bool updateAllInterface=true;
+        string interfaceString;
+
+        if(filter) {
+            char* exprStr[1000]={'\0'};
+            char* qtypeStr[1000]={'\0'};
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"LANEndpoint Provider Filter Set with Expression: ",*expr));
+
+            std::wstring pattern(L"select * from SCX_LANEndpoint where Name=%name");
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie cookie = 668;
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie found;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch matches; 
+            SCXCoreLib::SCXHandle<SCXCoreLib::SCXPatternFinder> patterenfinder = new SCXCoreLib::SCXPatternFinder();
+            patterenfinder->RegisterPattern(cookie, pattern);
+            patterenfinder->Match(expr,found,matches);
+            
+            if( cookie==found && matches.size() ==1 && matches.end() != matches.find(L"Name")){ 
+                enumAll=false;
+                interfaceString=matches.find(L"Name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"LANEndpoint Provider Enum Requested for Interface: ",interfaceString));
+            }
+            else
+                deps->UpdateIntf(false);
+        }
+        else
+            deps->UpdateIntf(false);
 
         SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
 
         for(size_t i = 0; i < deps->IntfCount(); i++)
         {
             SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(i);
+            if(!enumAll && StrToMultibyte(intf->GetName())!=interfaceString) continue;
             SCX_LANEndpoint_Class inst;
             EnumerateOneInstance(context, inst, keysOnly, intf);
         }
