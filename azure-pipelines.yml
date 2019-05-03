@@ -1,0 +1,48 @@
+trigger:
+  branches:
+    incude:
+      - master
+      - 2016-URNext
+
+# The PAL unit tests have a dependency on the PST timezone
+variables:
+  TZ: ':/usr/share/zoneinfo/America/Los_Angeles'
+
+steps:
+- script: |
+    sudo apt-get install pkg-config
+    sudo apt-get install libpam0g-dev
+    sudo apt-get install librpm-dev
+    sudo apt-get install libssl-dev
+    sudo apt-get install libcurl4-openssl-dev
+    sudo apt-get install rpm
+    sudo apt-get install time
+    sudo apt-get install selinux-policy-dev
+
+- script: |
+    date
+    -
+    # /etc/hosts and /etc/resolv.conf not set up with domain as we expect
+    cp /etc/resolv.conf .
+    cat resolv.conf
+    DOMAIN=`grep search resolv.conf | cut -f2 -d\ `
+    echo "domain $DOMAIN" >> resolv.conf
+    cat resolv.conf
+    sudo mv resolv.conf /etc/resolv.conf
+    sudo chown root:root /etc/resolv.conf
+    
+    # Fetch the Build-SCXcore repository for dependencies to build from
+    git config --global 'url.https://github.com/.insteadOf' 'git@github.com:'
+    git clone --recursive 'https://github.com/Microsoft/Build-SCXcore.git' ../bld-scxcore
+    
+    # Master branch for all submodules
+    cd ../bld-scxcore
+    git submodule foreach git checkout master
+    
+    # Patch in the version of SCXcore that Travis gave to us
+    rm -rf opsmgr
+    cp -R ../SCXcore opsmgr
+
+    cd opsmgr/build
+    ./configure
+    make all test
