@@ -2,12 +2,9 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-
 trigger:
-  branches:
-    incude:
-      - master
-      - 2016-URNext
+  - master
+  - 2016-URNext
 
 # The PAL unit tests have a dependency on the PST timezone
 variables:
