@@ -46,9 +46,11 @@ steps:
     cwd=`pwd`
     echo $cwd
     list=`ls $cwd`
+    echo $list
+    
+    git clone --recursive 'https://github.com/Microsoft/SCXcore.git' ../SCXcore
+    cp -R ../SCXcore opsmgr
 
-    cp -R ../$cwd/SCXcore opsmgr
-
-        cd opsmgr/build
+    cd opsmgr/build
     ./configure
     make all test
