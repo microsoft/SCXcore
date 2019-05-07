@@ -43,8 +43,12 @@ steps:
     
     # Patch in the version of SCXcore that Travis gave to us
     rm -rf opsmgr
-    cp -R ../SCXcore opsmgr
+    cwd=pwd
+    echo cwd
+    list=`ls $cwd`
 
-    cd opsmgr/build
+    cp -R ../$cwd/SCXcore opsmgr
+
+        cd opsmgr/build
     ./configure
     make all test
