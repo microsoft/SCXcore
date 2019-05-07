@@ -85,9 +85,11 @@ public:
         TestableContext context;
 
         agent.EnumerateInstances(context, NULL, context.GetPropertySet(), false, NULL);
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL( MI_RESULT_OK, context.GetResult() );
 
         const std::vector<TestableInstance>& instances = context.GetInstances();
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t> (1), instances.size());
 
         TestableInstance inst(instances[0]);
@@ -135,9 +137,11 @@ public:
         TestableContext context;
 
         agent.EnumerateInstances(context, NULL, context.GetPropertySet(), true, NULL);
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL( MI_RESULT_OK, context.GetResult() );
 
         const std::vector<TestableInstance>& instances = context.GetInstances();
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t> (1), instances.size());
 
         TestableInstance inst(instances[0]);
@@ -164,9 +168,11 @@ public:
         TestableContext context;
 
         agent.EnumerateInstances(context, NULL, context.GetPropertySet(), false, NULL);
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL( MI_RESULT_OK, context.GetResult() );
 
         const std::vector<TestableInstance>& instances = context.GetInstances();
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t> (1), instances.size());
 
         TestableInstance inst(instances[0]);
@@ -183,8 +189,10 @@ public:
 
         context.Reset();
         agent.EnumerateInstances(context, NULL, context.GetPropertySet(), false, NULL);
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL( MI_RESULT_OK, context.GetResult() );
         const std::vector<TestableInstance>& instances2 = context.GetInstances();
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t> (1), instances2.size());
 
         TestableInstance inst2(instances2[0]);
@@ -202,9 +210,11 @@ public:
         TestableContext context;
 
         agent.EnumerateInstances(context, NULL, context.GetPropertySet(), false, NULL);
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL( MI_RESULT_OK, context.GetResult() );
 
         const std::vector<TestableInstance>& instances = context.GetInstances();
+        context.WaitForResult();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t> (1), instances.size());
 
         TestableInstance inst(instances[0]);
