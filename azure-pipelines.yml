@@ -43,7 +43,7 @@ steps:
     
     # Patch in the version of SCXcore that Travis gave to us
     rm -rf opsmgr
-    cp -R ../SCXcore opsmgr
+    #cp -R ../SCXcore opsmgr
 
     cd opsmgr/build
     ./configure
