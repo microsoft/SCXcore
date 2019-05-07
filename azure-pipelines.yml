@@ -42,5 +42,4 @@ steps:
     git submodule foreach git checkout master
     
     # Patch in the version of SCXcore that Travis gave to us
-    rm -rf opsmgr    
-    make all test
+    rm -rf opsmgr        
