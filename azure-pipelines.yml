@@ -43,8 +43,8 @@ steps:
     
     # Patch in the version of SCXcore that Travis gave to us
     rm -rf opsmgr
-    cwd=pwd
-    echo cwd
+    cwd=`pwd`
+    echo $cwd
     list=`ls $cwd`
 
     cp -R ../$cwd/SCXcore opsmgr
