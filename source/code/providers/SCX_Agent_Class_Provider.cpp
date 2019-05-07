@@ -39,21 +39,49 @@ using namespace std;
 
 MI_BEGIN_NAMESPACE
 
-static void EnumerateOneInstance(
-    Context& context,
-    SCX_Agent_Class& inst,
-    bool keysOnly)
+class SCXAgentThreadParam : public SCXThreadParam
 {
+public:
+    SCXAgentThreadParam(MI_Context* context, bool keyOnly):SCXThreadParam(), m_context(context),keysOnly(keyOnly) {}
+
+    /*----------------------------------------------------------------------------*/
+    /**
+       Retrieves the context pointer for this thread to use
+
+       \returns  Pointer to context for this thread to use
+    */
+    Context& GetContext()
+    {
+        return m_context;
+    }
+
+    bool isKeysOnly()
+    {
+        return keysOnly;
+    }
+
+private:
+    Context m_context; //!< Context from OMI server
+    bool keysOnly;
+};
+
+static void SCX_Agent_Heartbit_thread(SCXCoreLib::SCXThreadParamHandle& param)
+{
+    SCXAgentThreadParam* params = dynamic_cast<SCXAgentThreadParam*>(param.GetData());
     // Fill in the key
+    SCX_Agent_Class inst;
+    Context& context = params->GetContext();
+    bool keysOnly = params->isKeysOnly();
+
     inst.Name_value("scx");
 
-    if ( !keysOnly )
+    if(!keysOnly)
     {
         inst.Caption_value("SCX Agent meta-information");
 
         //
         // Populate properties regarding the agent's build number
-        // 
+        //
         stringstream ss;
 
         ss << SCX_BUILDVERSION_MAJOR << "." << SCX_BUILDVERSION_MINOR << "." << SCX_BUILDVERSION_PATCH << "-" << SCX_BUILDVERSION_BUILDNR;
@@ -77,7 +105,7 @@ static void EnumerateOneInstance(
             inst.InstallDate_value( installTime );
         }
 
-        // 
+        //
         // Populate the build date - the value is looked up by constructor
         //
         string buildTime;
@@ -86,7 +114,7 @@ static void EnumerateOneInstance(
             inst.BuildDate_value( buildTime.c_str() );
         }
 
-        // 
+        //
         // Populate the hostname date - the value is cached internally in the MachnieInfo code.
         //
         try {
@@ -99,8 +127,8 @@ static void EnumerateOneInstance(
         }
 
 
-        // 
-        // Populate name, version and alias for the OS 
+        //
+        // Populate name, version and alias for the OS
         //
 
         // Keep an instance of class with static information about OS type
@@ -111,15 +139,15 @@ static void EnumerateOneInstance(
         inst.OSType_value( StrToMultibyte(osTypeInfo.GetOSFamilyString()).c_str() );
         inst.Architecture_value( StrToMultibyte(osTypeInfo.GetArchitectureString()).c_str() );
 
-        // 
+        //
         // This property contains the architecture as uname reports it
-        // 
+        //
         inst.UnameArchitecture_value( StrToMultibyte(osTypeInfo.GetUnameArchitectureString()).c_str() );
 
-        // 
-        // Set property indicating what the lowest log level currently in effect for 
+        //
+        // Set property indicating what the lowest log level currently in effect for
         // the agent is
-        // 
+        //
         inst.MinActiveLogSeverityThreshold_value(
             StrToMultibyte(SCXCoreLib::SCXLogHandleFactory::GetLogConfigurator()->GetMinActiveSeverityThreshold()).c_str() );
 
@@ -185,6 +213,7 @@ static void EnumerateOneInstance(
     }
 
     context.Post(inst);
+    context.Post(MI_RESULT_OK);
 }
 
 SCX_Agent_Class_Provider::SCX_Agent_Class_Provider(
@@ -244,12 +273,8 @@ void SCX_Agent_Class_Provider::EnumerateInstances(
 
     SCX_PEX_BEGIN
     {
-        // Global lock for MetaProvider class
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::MetaProvider::Lock"));
-
-        SCX_Agent_Class inst;
-        EnumerateOneInstance( context, inst, keysOnly );
-        context.Post(MI_RESULT_OK);
+        SCXAgentThreadParam *params= new SCXAgentThreadParam(context.context(), keysOnly);
+        SCXCoreLib::SCXThread(SCX_Agent_Heartbit_thread, params);
     }
     SCX_PEX_END( L"SCX_Agent_Class_Provider::EnumerateInstances", log );
 
@@ -279,10 +304,8 @@ void SCX_Agent_Class_Provider::GetInstance(
             context.Post(MI_RESULT_NOT_FOUND);
             return;
         }
-
-        SCX_Agent_Class inst;
-        EnumerateOneInstance( context, inst, false );
-        context.Post(MI_RESULT_OK);
+        SCXAgentThreadParam *params= new SCXAgentThreadParam(context.context(), false );
+        SCXCoreLib::SCXThread(SCX_Agent_Heartbit_thread, params);
     }
     SCX_PEX_END( L"SCX_Agent_Class_Provider::GetInstance", SCXCore::g_MetaProvider.GetLogHandle() );
 }
