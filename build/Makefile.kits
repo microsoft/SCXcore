@@ -26,9 +26,9 @@ ifneq ($(COMBINED_PACKAGES),1)
       OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
     else
       ifeq ($(PF_DISTRO),SUSE)
-        SCX_PREFIX=scx
-        OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).sles.$(PF_MAJOR).$(PF_ARCH)
-        OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+            SCX_PREFIX=scx
+            OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).sles.$(PF_MAJOR).$(PF_ARCH)
+            OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
       endif
     endif
   endif
@@ -272,10 +272,10 @@ ifneq ($(COMBINED_PACKAGES),1)
     ifneq ($(PF_ARCH),ppc)
 	# Copy omi kit depending on openssl version
       ifeq ($(IS_OPENSSL_110),1)
-        cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+            cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
       else
         ifeq ($(IS_OPENSSL_100),1)
-	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+            cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
         endif
       endif
     endif
