@@ -81,6 +81,17 @@ private:
     Context m_context; //!< Context from OMI server
 };
 
+class SCXOSThreadParam : public SCX_OperatingSystem_ThreadParam
+{
+public:
+    SCXOSThreadParam(MI_Context* context, bool keyOnly): SCX_OperatingSystem_ThreadParam(context), keysOnly(keyOnly)
+    {}
+    bool isKeysOnly() { return keysOnly; }
+
+private:
+    bool keysOnly;
+};
+
 class SCX_OperatingSystem_Command_ThreadParam : public SCX_OperatingSystem_ThreadParam
 {
 public:
@@ -117,16 +128,22 @@ private:
     const SCX_OperatingSystem_ExecuteScript_Class m_input;
 };
 
-static void EnumerateOneInstance(
-    Context& context,
-    SCX_OperatingSystem_Class& inst,
-    bool keysOnly,
-    SCXHandle<OSInstance> osinst,
-    SCXHandle<MemoryInstance> meminst)
+static void SCX_OSInfo_Thread(SCXCoreLib::SCXThreadParamHandle& param)
 {
+    SCXLogHandle& log = SCXCore::g_OSProvider.GetLogHandle();
+    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances begin");
+
+    SCXOSThreadParam* params = dynamic_cast<SCXOSThreadParam*>(param.GetData());
+
+    Context& context = params->GetContext();
+    bool keysOnly = params->isKeysOnly();
+    SCX_OperatingSystem_Class inst;
+
+    SCXHandle<OSInstance> osinst = (SCXCore::g_OSProvider.GetOS_Enumerator())->GetTotalInstance();
+    SCXHandle<MemoryInstance> meminst = (SCXCore::g_OSProvider.GetMemory_Enumerator())->GetTotalInstance();
+
     // Get some handles
     SCXHandle<SCXOSTypeInfo> osTypeInfo = SCXCore::g_OSProvider.GetOSTypeInfo();
-    SCXLogHandle& log = SCXCore::g_OSProvider.GetLogHandle();
 
     SCX_LOGTRACE(log, L"OSProvider EnumerateOneInstance()");
 
@@ -291,6 +308,9 @@ static void EnumerateOneInstance(
     }
 
     context.Post(inst);
+    context.Post(MI_RESULT_OK);
+
+    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances end");
 }
 
 SCX_OperatingSystem_Class_Provider::SCX_OperatingSystem_Class_Provider(
@@ -345,26 +365,12 @@ void SCX_OperatingSystem_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
-    SCXLogHandle& log = SCXCore::g_OSProvider.GetLogHandle();
-    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances begin");
-
     SCX_PEX_BEGIN
     {
-        SCXThreadLock lock(ThreadLockHandleGet(L"SCXCore::OSProvider::Lock"));
-
-        // Refresh the collection
-        SCXHandle<OSEnumeration> osEnum = SCXCore::g_OSProvider.GetOS_Enumerator();
-        SCXHandle<MemoryEnumeration> memEnum = SCXCore::g_OSProvider.GetMemory_Enumerator();
-        osEnum->Update();
-        memEnum->Update();
-
-        SCX_OperatingSystem_Class inst;
-        EnumerateOneInstance( context, inst, keysOnly, osEnum->GetTotalInstance(), memEnum->GetTotalInstance() );
-        context.Post(MI_RESULT_OK);
+        SCXOSThreadParam *params= new SCXOSThreadParam(context.context(), keysOnly);
+        SCXCoreLib::SCXThread(SCX_OSInfo_Thread, params);
     }
-    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::EnumerateInstances", log );
-
-    SCX_LOGTRACE(log, L"OperatingSystem EnumerateInstances end");
+    SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::EnumerateInstances", SCXCore::g_OSProvider.GetLogHandle());
 }
 
 void SCX_OperatingSystem_Class_Provider::GetInstance(
@@ -419,14 +425,9 @@ void SCX_OperatingSystem_Class_Provider::GetInstance(
         //
 
         // Refresh the collection
-        SCXHandle<OSEnumeration> osEnum = SCXCore::g_OSProvider.GetOS_Enumerator();
-        SCXHandle<MemoryEnumeration> memEnum = SCXCore::g_OSProvider.GetMemory_Enumerator();
-        osEnum->Update();
-        memEnum->Update();
 
-        SCX_OperatingSystem_Class inst;
-        EnumerateOneInstance( context, inst, false, osEnum->GetTotalInstance(), memEnum->GetTotalInstance() );
-        context.Post(MI_RESULT_OK);
+        SCXOSThreadParam *params= new SCXOSThreadParam(context.context(), false);
+        SCXCoreLib::SCXThread(SCX_OSInfo_Thread, params);
     }
     SCX_PEX_END( L"SCX_OperatingSystem_Class_Provider::GetInstance", SCXCore::g_OSProvider.GetLogHandle() );
 }

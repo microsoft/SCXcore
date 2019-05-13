@@ -2,5 +2,6 @@
 LIBRARY=SCXCoreProviderModule
 PREEXEC=/opt/microsoft/scx/bin/omi_preexec
 HOSTING=@requestor@
+CLASS=SCX_Agent:CIM_LogicalElement:CIM_ManagedSystemElement:CIM_ManagedElement
 CLASS=SCX_LogFile:CIM_LogicalFile:CIM_LogicalElement:CIM_ManagedSystemElement:CIM_ManagedElement
 CLASS=SCX_OperatingSystem:CIM_OperatingSystem:CIM_EnabledLogicalElement:CIM_LogicalElement:CIM_ManagedSystemElement:CIM_ManagedElement
