@@ -20,6 +20,8 @@ steps:
     sudo apt-get install rpm
     sudo apt-get install time
     sudo apt-get install selinux-policy-dev
+    sudo apt-get install libkrb5-dev
+    sudo apt-get install libcppunit-dev
 
 - script: |
     date
@@ -43,9 +45,10 @@ steps:
     
     # Patch in the version of SCXcore that Travis gave to us
     rm -rf opsmgr
+    mkdir opsmgr
         
-    git clone --recursive 'https://github.com/Microsoft/SCXcore.git' ../SCXcore
-    cp -R ../SCXcore opsmgr
+    cp /usr/lib/x86_64-linux-gnu/libcppunit.a pal/test/ext/lib/linux/x64/cppunit/
+    cp -R /home/vsts/work/1/s/* opsmgr/
 
     cd opsmgr/build
     ./configure
