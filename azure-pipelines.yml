@@ -49,7 +49,7 @@ steps:
         
     cp /usr/lib/x86_64-linux-gnu/libcppunit.a pal/test/ext/lib/linux/x64/cppunit/
     cp -R /home/vsts/work/1/s/* opsmgr/
-
+    
     cd opsmgr/build
     ./configure
     make all test
