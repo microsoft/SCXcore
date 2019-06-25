@@ -21,6 +21,7 @@ ${{SEPKG_DIR_SCXAGENT}}/scxagent-logrotate.el6.pp;                      intermed
 /opt/microsoft/scx/bin/tools/GetLinuxOS.sh;                             intermediate/${{BUILD_CONFIGURATION}}/GetLinuxOS.sh;                     755; root; root
 /etc/opt/microsoft/scx/conf/scx-release;                                installer/conf/scx-release;                                              644; root; ${{ROOT_GROUP_NAME}}; conffile
 /etc/opt/microsoft/scx/conf/logrotate.conf;                             installer/conf/logrotate.conf;                                           644; root; ${{ROOT_GROUP_NAME}}; conffile
+/etc/opt/microsoft/scx/conf/scxenum.conf;                               installer/conf/scxenum.conf;                                              644; root; ${{ROOT_GROUP_NAME}}; conffile
 
 %Links
 /etc/logrotate.d/scxagent;                                           /etc/opt/microsoft/scx/conf/logrotate.conf;                          644; root; ${{ROOT_GROUP_NAME}}
