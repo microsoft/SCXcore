@@ -46,9 +46,12 @@ void SCXCore::NetworkProviderDependencies::CleanUpIntf()
  * Update interfaces`
  * \param[in]   updateInstances   Update existing instances only
  */
-void SCXCore::NetworkProviderDependencies::UpdateIntf(bool updateInstances)
+void SCXCore::NetworkProviderDependencies::UpdateIntf(bool updateInstances, wstring interface)
 {
-    m_interfaces->Update(updateInstances);
+    if(interface != L"")
+	m_interfaces->UpdateSpecific(interface);
+    else
+        m_interfaces->Update(updateInstances);
 }
 
 /*----------------------------------------------------b------------------------*/
