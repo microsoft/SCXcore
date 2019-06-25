@@ -199,7 +199,6 @@ ulinux_detect_openssl_version() {
     else
        OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
     fi
-    OPENSSL_SYSTEM_VERSION_FULL=`openssl version | awk '{print $2}'`
     OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
     [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_110=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.1.'; echo $?`
     if [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
