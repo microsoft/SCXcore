@@ -64,15 +64,33 @@ fi
 
 %Preinstall_50
 # VerifySSLVersion
+is_suse11_platform_with_openssl1(){
+  if [ -e /etc/SuSE-release ];then
+     VERSION=`cat /etc/SuSE-release|grep "VERSION = 11"|awk 'FS=":"{print $3}'`
+     if [ ! -z "$VERSION" ];then
+        which openssl1>/dev/null 2>&1
+        if [ $? -eq 0 -a $VERSION -eq 11 ];then
+           return 0
+        fi
+     fi
+  fi
+  return 1
+}
+
+OPENSSL_PATH="openssl"
+is_suse11_platform_with_openssl1
+if [ $? -eq 0 ];then
+   OPENSSL_PATH="openssl1"
+fi
 if [ `uname -m` != "x86_64" ];then
-    openssl version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.'
+    $OPENSSL_PATH version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.'
     if [ $? -ne 0 ]; then
         echo 'Unsupported OpenSSL version - must be either 0.9.8* or 1.0.*.'
         echo 'Installation cannot proceed.'
         exit 1
     fi
 else
-    openssl version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.|^1.1'
+    $OPENSSL_PATH version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.|^1.1'
     if [ $? -ne 0 ]; then
         echo 'Unsupported OpenSSL version - must be either 0.9.8* or 1.0.*|^1.1.*.'
         echo 'Installation cannot proceed.'
