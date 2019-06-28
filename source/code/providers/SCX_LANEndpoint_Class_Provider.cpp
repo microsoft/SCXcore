@@ -153,14 +153,12 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
             patterenfinder.RegisterPattern(s_patternID, s_pattern);
 
             bool status=patterenfinder.Match(filterQuery, id, param);
-            if ( !status )
-		throw SCXNotSupportedException(L"LANEndPoint Provider Query not on format: " + s_pattern, SCXSRCLOCATION);
 
-            if (id != s_patternID || param.end() == param.find(L"name"))
-		throw SCXInternalErrorException(L"Wrong pattern matched!", SCXSRCLOCATION);
-
-            interfaceString=param.find(L"name")->second;
-            SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"LANEndpoint Provider Enum Requested for Interface: ",interfaceString));
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                interfaceString=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"LANEndpoint Provider Enum Requested for Interface: ",interfaceString));
+            }
         }
 
         deps->UpdateIntf(false,interfaceString);
