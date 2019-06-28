@@ -23,7 +23,10 @@
 #include "support/networkprovider.h"
 #include "support/scxcimutils.h"
 #include <sstream>
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
 
+# define QLENGTH 1000
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
 using namespace SCXCore;
@@ -122,10 +125,43 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
         // Global lock for NetworkProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::NetworkProvider::Lock"));
 
-        // Update network PAL instance. This is both update of number of interfaces and
-        // current statistics for each interfaces.
+        // Update network PAL instance. If filter parameter provided then "interfaceString" will be not blank.
+        // If "interfaceString" is blank this will update both number of interfaces and returns current statistics for
+        // each interfaces else update the instance for the interface given as parameter and return statistics of that interface.
+
         SCXHandle<SCXCore::NetworkProviderDependencies> deps = SCXCore::g_NetworkProvider.getDependencies();
-        deps->UpdateIntf(false);
+
+	wstring interfaceString=L"";
+
+        if(filter) {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"LANEndpoint Provider Filter Set with Expression: ",*expr));
+
+	    std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_LANEndpoint where Name=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                interfaceString=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"LANEndpoint Provider Enum Requested for Interface: ",interfaceString));
+            }
+        }
+
+        deps->UpdateIntf(false,interfaceString);
 
         SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
 

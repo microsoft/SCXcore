@@ -36,7 +36,7 @@ public:
     void CleanUpIntf() {
     }
 
-    void UpdateIntf(bool) {
+    void UpdateIntf(bool,wstring interface=L"") {
     }
 
     size_t IntfCount() const {
