@@ -132,6 +132,7 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
         SCXHandle<SCXCore::NetworkProviderDependencies> deps = SCXCore::g_NetworkProvider.getDependencies();
 
 	wstring interfaceString=L"";
+        size_t instancePos=(size_t)-1;
 
         if(filter) {
             char* exprStr[QLENGTH]={'\0'};
@@ -161,16 +162,23 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
             }
         }
 
-        deps->UpdateIntf(false,interfaceString);
+        deps->UpdateIntf(false, interfaceString, interfaceString==L""?NULL:&instancePos);
 
-        SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
-
-        for(size_t i = 0; i < deps->IntfCount(); i++)
-        {
-            SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(i);
+        if (interfaceString == L""){
+            SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
+            for(size_t i = 0; i < deps->IntfCount(); i++)
+            {
+                SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(i);
+                SCX_LANEndpoint_Class inst;
+                EnumerateOneInstance(context, inst, keysOnly, intf);
+            }
+        }
+        else if (instancePos != (size_t)-1){
+            SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(instancePos);
             SCX_LANEndpoint_Class inst;
             EnumerateOneInstance(context, inst, keysOnly, intf);
         }
+
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_LANEndpoint_Class_Provider::EnumerateInstances", log );

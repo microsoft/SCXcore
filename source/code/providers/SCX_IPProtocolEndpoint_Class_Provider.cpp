@@ -23,6 +23,10 @@
 #include "support/networkprovider.h"
 #include "support/scxcimutils.h"
 #include <sstream>
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
+
+# define QLENGTH 1000
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -154,16 +158,56 @@ void SCX_IPProtocolEndpoint_Class_Provider::EnumerateInstances(
         // Update network PAL instance. This is both update of number of interfaces and
         // current statistics for each interfaces.
         SCXHandle<SCXCore::NetworkProviderDependencies> deps = SCXCore::g_NetworkProvider.getDependencies();
-        deps->UpdateIntf(false);
 
-        SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
+        wstring interfaceString=L"";
+        size_t instancePos=(size_t)-1;
 
-        for(size_t i = 0; i < deps->IntfCount(); i++)
-        {
-            SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(i);
+        if(filter) {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"IPProtocolEndpoint Provider Filter Set with Expression: ",*expr));
+
+            std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_IPProtocolEndpoint where Name=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                interfaceString=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"IPProtocolEndpoint Provider Enum Requested for Interface: ",interfaceString));
+            }
+        }
+
+        deps->UpdateIntf(false, interfaceString, interfaceString==L""?NULL:&instancePos);
+
+        if (interfaceString==L""){
+            SCX_LOGTRACE(log, StrAppend(L"Number of interfaces = ", deps->IntfCount()));
+
+            for(size_t i = 0; i < deps->IntfCount(); i++)
+            {
+                SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(i);
+                SCX_IPProtocolEndpoint_Class inst;
+                EnumerateOneInstance(context, inst, keysOnly, intf);
+            }
+        }
+        else if (instancePos != (size_t)-1){
+            SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> intf = deps->GetIntf(instancePos);
             SCX_IPProtocolEndpoint_Class inst;
             EnumerateOneInstance(context, inst, keysOnly, intf);
         }
+
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_IPProtocolEndpoint_Class_Provider::EnumerateInstances", log );
