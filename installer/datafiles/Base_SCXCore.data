@@ -216,6 +216,19 @@ HandleConfigFiles() {
     rm -f /etc/scxagent-enable-port
 }
 
+is_suseppc_openssl1_1_platform(){
+  if [ `uname -m` = "ppc64le" ];then
+     suseCount=`cat /etc/os-release|grep "SUSE Linux"|wc -l`
+     if [ ! -z "$suseCount" ];then
+        openssl version | awk '{print $2}' | grep -Eq '^1.1'
+        if [ $? -eq 0 -a $suseCount -eq 1 ]; then
+            return 0
+        fi
+     fi
+  fi
+  return 1
+}
+
 GenerateCertificate() {
     if [ ! -f /etc/opt/omi/ssl/.omi_cert_marker ]; then
 	# No OMI cert marker.  This means that OM has installed certificates to this folder, or there's data corruption.
@@ -290,6 +303,12 @@ ConfigureRunAs
 
 %Postinstall_800
 HandleConfigFiles
+
+%Postinstall_900
+is_suseppc_openssl1_1_platform
+if [ $? -eq 0 ];then
+    [ ! -f /usr/lib64/librpm.so.3 ] && ln -s $(ldd `which rpm`|grep librpm.so|awk '{ print $3 }') /usr/lib64/librpm.so.3
+fi
 
 %Postinstall_1000
 GenerateCertificate

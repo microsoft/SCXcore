@@ -82,7 +82,7 @@ is_suse11_platform_with_openssl1
 if [ $? -eq 0 ];then
    OPENSSL_PATH="openssl1"
 fi
-if [ `uname -m` != "x86_64" ];then
+if [ `uname -m` != "x86_64" -a `uname -m` != "ppc64le" ];then
     $OPENSSL_PATH version | awk '{print $2}' | grep -Eq '^0.9.8|^1.0.'
     if [ $? -ne 0 ]; then
         echo 'Unsupported OpenSSL version - must be either 0.9.8* or 1.0.*.'
