@@ -52,6 +52,7 @@ MAINTAINER:              'Microsoft Corporation'
 
 /etc/opt/omi/conf/omiregister/root-scx/SCXProvider-root.reg;            installer/conf/omi/SCXProvider-root.reg;                          755; root; ${{ROOT_GROUP_NAME}} 
 /etc/opt/omi/conf/omiregister/root-scx/SCXProvider-req.reg;             installer/conf/omi/SCXProvider-req.reg;                           755; root; ${{ROOT_GROUP_NAME}} 
+/etc/opt/omi/conf/omiregister/root-scx/SCXProvider-omi.reg;             installer/conf/omi/SCXProvider-omi.reg;                           755; root; ${{ROOT_GROUP_NAME}}
 
 %Links
 /opt/omi/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; /opt/microsoft/scx/lib/libSCXCoreProviderModule.${{SHLIB_EXT}}; 644; root; ${{ROOT_GROUP_NAME}}

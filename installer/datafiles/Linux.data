@@ -128,7 +128,7 @@ fi
 
 # Set up a cron job to logrotate
 if [ ! -f /etc/cron.d/scxagent ]; then
-    echo "0 */4 * * * root /usr/sbin/logrotate /etc/logrotate.d/scxagent >/dev/null 2>&1" > /etc/cron.d/scxagent
+    echo "0 */4 * * * root /usr/sbin/logrotate /etc/logrotate.d/scxagent --state /var/opt/microsoft/scx/log/scx-logrotate.status >/dev/null 2>&1" > /etc/cron.d/scxagent
 fi
 
 
