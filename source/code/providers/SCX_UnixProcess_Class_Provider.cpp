@@ -24,6 +24,11 @@
 #include "support/scxcimutils.h"
 #include "support/processprovider.h"
 #include <sstream>
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
+#include <string>
+
+# define QLENGTH 1000
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -267,14 +272,61 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
-        processEnum->Update();
+
+	string processID="";
+
+        if(filter) {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"Unix Process Provider Filter Set with Expression: ",*expr));
+
+	    std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_UnixProcess where Handle=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+            if (status && id == s_patternID && param.end() != param.find(L"name"))
+            {
+                processID=StrToUTF8(param.find(L"name")->second);
+                SCX_LOGTRACE(log,  StrAppend(L"Unix Process Provider Enum Requested for Process ID: ", param.find(L"name")->second));
+            }
+        }
+
+        if ( processID != "" ) {
+            stringstream ss(processID);
+            int pid;
+            ss >> pid;
+            processEnum->UpdateSpecific(pid);
+        }
+        else
+            processEnum->Update();
 
         SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
 
         for(size_t i = 0; i < processEnum->Size(); i++)
         {
+            if ( processID != ""){
+                scxulong pid = 0;
+                processEnum->GetInstance(i)->GetPID(pid);
+                stringstream ss; ss<<pid;
+                string spid;ss>>spid;
+                if ( spid != processID) continue;
+            }
+
             SCX_UnixProcess_Class proc;
             EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
+            if ( processID != "") break;
         }
         context.Post(MI_RESULT_OK);
     }

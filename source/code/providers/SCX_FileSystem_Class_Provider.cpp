@@ -20,6 +20,10 @@
 #include <scxcorelib/scxnameresolver.h>
 #include "support/filesystemprovider.h"
 #include "support/scxcimutils.h"
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
+
+# define QLENGTH 1000
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -202,24 +206,55 @@ void SCX_FileSystem_Class_Provider::EnumerateInstances(
         // Global lock for DiskProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::DiskProvider::Lock"));
 
-        // (Note: Only do full update if we're not enumerating keys) 
-        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
-        staticLogicalDisksEnum->Update(!keysOnly);
+        wstring mountPoint=L"";
+        size_t instancePos=(size_t)-1;
 
-        for(size_t i = 0; i < staticLogicalDisksEnum->Size(); i++) 
-        {
-            SCX_FileSystem_Class inst;
-            SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> diskinst = staticLogicalDisksEnum->GetInstance(i);
-            EnumerateOneInstance(context, inst, keysOnly, diskinst);
+        if(filter) {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"FileSystem Provider Filter Set with Expression: ",*expr));
+
+            std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_FileSystem where Name=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                mountPoint=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"FileSystem Provider Enum Requested for mount point: ",mountPoint));
+            }
         }
 
-        // Enumerate Total instance
-        SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> totalInst = staticLogicalDisksEnum->GetTotalInstance();
-        if (totalInst != NULL)
+        // (Note: Only do full update if we're not enumerating keys) 
+        SCXHandle<SCXSystemLib::StaticLogicalDiskEnumeration> staticLogicalDisksEnum = SCXCore::g_FileSystemProvider.getEnumstaticLogicalDisks();
+        mountPoint != L""?staticLogicalDisksEnum->UpdateSpecific(!keysOnly,mountPoint,&instancePos):staticLogicalDisksEnum->Update(!keysOnly);
+
+        if (instancePos != (size_t)-1)
         {
-            // There will always be one total instance
             SCX_FileSystem_Class inst;
-            EnumerateOneInstance(context, inst, keysOnly, totalInst);
+            SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> diskinst = staticLogicalDisksEnum->GetInstance(instancePos);
+            EnumerateOneInstance(context, inst, keysOnly, diskinst);
+        }
+        else {
+            for(size_t i = 0; i < staticLogicalDisksEnum->Size(); i++) 
+            {
+                SCX_FileSystem_Class inst;
+                SCXHandle<SCXSystemLib::StaticLogicalDiskInstance> diskinst = staticLogicalDisksEnum->GetInstance(i);
+                EnumerateOneInstance(context, inst, keysOnly, diskinst);
+            }
         }
 
         context.Post(MI_RESULT_OK);

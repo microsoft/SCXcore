@@ -33,7 +33,7 @@ namespace SCXCore
         NetworkProviderDependencies() : m_interfaces(0) {}
         virtual void InitIntf();
         virtual void CleanUpIntf();
-        virtual void UpdateIntf(bool updateInstances=true,wstring interface=L"");
+        virtual void UpdateIntf(bool updateInstances=true,wstring interface=L"", size_t *pos=NULL);
         virtual size_t IntfCount() const;
         virtual SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> GetIntf(size_t pos) const;
         virtual SCXCoreLib::SCXHandle<SCXSystemLib::NetworkInterfaceInstance> GetIntf(const std::wstring& intfId) const;

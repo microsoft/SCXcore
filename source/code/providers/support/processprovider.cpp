@@ -165,7 +165,7 @@ namespace SCXCore
 
         SCXCoreLib::SCXThreadLock lock(m_processes->GetLockHandle());
 
-        m_processes->UpdateNoLock(lock);
+        m_processes->UpdateNoLock();
 
         // Build separate vector for sorting
         for(size_t i=0; i<m_processes->Size(); i++)

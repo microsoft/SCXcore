@@ -18,6 +18,10 @@
 #include <scxcorelib/scxnameresolver.h>
 #include "support/diskprovider.h"
 #include "support/scxcimutils.h"
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
+
+# define QLENGTH 1000
 
 using namespace SCXCoreLib;
 using namespace SCXSystemLib;
@@ -169,23 +173,63 @@ void SCX_DiskDriveStatisticalInformation_Class_Provider::EnumerateInstances(
 
         //  Prepare Disk Drive Enumeration
         // (Note: Only do full update if we're not enumerating keys)
-        SCXCoreLib::SCXHandle<SCXSystemLib::StatisticalPhysicalDiskEnumeration> diskEnum = SCXCore::g_DiskProvider.getEnumstatisticalPhysicalDisks();
-        diskEnum->Update(!keysOnly);
 
-        for(size_t i = 0; i < diskEnum->Size(); i++)
-        {
-            SCX_DiskDriveStatisticalInformation_Class inst;
-            SCXHandle<SCXSystemLib::StatisticalPhysicalDiskInstance> diskInst = diskEnum->GetInstance(i);
-            EnumerateOneInstance(context, inst, keysOnly, diskInst);
+        wstring diskName=L"";
+        size_t instancePos=(size_t)-1;
+
+        if(filter) {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"DiskDriveStatisticalInformation Provider Filter Set with Expression: ",*expr));
+
+            std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_DiskDriveStatisticalInformation where Name=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                diskName=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"DiskDriveStatisticalInformation Provider Enum Requested for mount point: ",diskName));
+            }
         }
 
-        // Enumerate Total instance
-        SCXHandle<SCXSystemLib::StatisticalPhysicalDiskInstance> totalInst= diskEnum->GetTotalInstance();
-        if (totalInst != NULL)
-        {
-            // There will always be one total instance
+        SCXCoreLib::SCXHandle<SCXSystemLib::StatisticalPhysicalDiskEnumeration> diskEnum = SCXCore::g_DiskProvider.getEnumstatisticalPhysicalDisks();
+        diskName != L"" && diskName != L"_Total"?diskEnum->UpdateSpecific(!keysOnly, diskName, &instancePos):diskEnum->Update(!keysOnly);
+
+        if (instancePos != (size_t)-1) {
+            SCXHandle<SCXSystemLib::StatisticalPhysicalDiskInstance> diskInst = diskEnum->GetInstance(instancePos);
             SCX_DiskDriveStatisticalInformation_Class inst;
-            EnumerateOneInstance(context, inst, keysOnly, totalInst);
+            EnumerateOneInstance(context, inst, keysOnly, diskInst);
+        }
+        else {
+            for(size_t i = 0; i < diskEnum->Size(); i++)
+            {
+                SCX_DiskDriveStatisticalInformation_Class inst;
+                SCXHandle<SCXSystemLib::StatisticalPhysicalDiskInstance> diskInst = diskEnum->GetInstance(i);
+                EnumerateOneInstance(context, inst, keysOnly, diskInst);
+            }
+
+            // Enumerate Total instance
+            SCXHandle<SCXSystemLib::StatisticalPhysicalDiskInstance> totalInst= diskEnum->GetTotalInstance();
+            if (totalInst != NULL)
+            {
+                // There will always be one total instance
+                SCX_DiskDriveStatisticalInformation_Class inst;
+                EnumerateOneInstance(context, inst, keysOnly, totalInst);
+            }
         }
 
         context.Post(MI_RESULT_OK);
