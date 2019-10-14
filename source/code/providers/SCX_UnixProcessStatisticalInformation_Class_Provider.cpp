@@ -278,7 +278,14 @@ void SCX_UnixProcessStatisticalInformation_Class_Provider::EnumerateInstances(
             }
         }
 
-        processID != ""?processEnum->UpdateSpecific(std::atoi(processID.c_str())):processEnum->Update();
+        if ( processID != "" ) {
+            stringstream ss(processID);
+            int pid;
+            ss >> pid;
+            processEnum->UpdateSpecific(pid);
+        }
+        else
+            processEnum->Update();
 
         SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
 
