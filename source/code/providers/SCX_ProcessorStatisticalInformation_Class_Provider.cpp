@@ -17,10 +17,14 @@
 #include <scxcorelib/scxcmn.h>
 #include <scxcorelib/scxlog.h>
 #include <scxcorelib/stringaid.h>
+#include <scxcorelib/scxregex.h>
+#include <scxcorelib/scxpatternfinder.h>
 #include <scxsystemlib/cpuenumeration.h>
 
 #include "support/startuplog.h"
 #include "support/scxcimutils.h"
+
+# define QLENGTH 1000
 
 using namespace SCXSystemLib;
 using namespace SCXCoreLib;
@@ -198,26 +202,66 @@ void SCX_ProcessorStatisticalInformation_Class_Provider::EnumerateInstances(
     {
         // Global lock for CPUProvider class
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"CPUProvider::Lock"));
+        wstring procName=L"";
+        size_t instancePos=(size_t)-1;
+
+        if(filter)
+        {
+            char* exprStr[QLENGTH]={'\0'};
+            char* qtypeStr[QLENGTH]={'\0'};
+            const MI_Char** expr=(const MI_Char**)&exprStr;
+            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+
+            MI_Filter_GetExpression(filter, qtype, expr);
+            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"ProcessorStat Provider Filter Set with Expression: ",*expr));
+
+            std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+
+            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+            std::wstring s_pattern(L"select * from SCX_ProcessorStatisticalInformation where Name=%name");
+
+            SCXCoreLib::SCXPatternFinder patterenfinder;
+            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+
+            bool status=patterenfinder.Match(filterQuery, id, param);
+
+            if ( status && param.end() != param.find(L"name") && id == s_patternID )
+            {
+                procName=param.find(L"name")->second;
+                SCX_LOGTRACE(log,  SCXCoreLib::StrAppend(L"ProcessorStat Provider Enum Requested for processor: ",procName));
+            }
+        }
 
         // Prepare ProcessorStatisticalInformation Enumeration
         // (Note: Only do full update if we're not enumerating keys)
         SCXHandle<SCXSystemLib::CPUEnumeration> cpuEnum = g_CPUProvider.GetEnumCPUs();
-        cpuEnum->Update(!keysOnly);
 
-        for(size_t i = 0; i < cpuEnum->Size(); i++)
+        procName!= L"" && procName!= L"_Total"?cpuEnum->UpdateSpecific(procName, &instancePos):cpuEnum->Update(!keysOnly);
+
+        if (instancePos != (size_t)-1)
         {
             SCX_ProcessorStatisticalInformation_Class inst;
-            SCXHandle<SCXSystemLib::CPUInstance> cpuInst = cpuEnum->GetInstance(i);
+            SCXHandle<SCXSystemLib::CPUInstance> cpuInst = cpuEnum->GetInstance(instancePos);
             EnumerateOneInstance(context, inst, keysOnly, cpuInst);
         }
-
-        // Enumerate Total instance
-        SCXHandle<SCXSystemLib::CPUInstance> totalInst = cpuEnum->GetTotalInstance();
-        if (totalInst != NULL)
+        else
         {
-            // There will always be one total instance
-            SCX_ProcessorStatisticalInformation_Class inst;
-            EnumerateOneInstance(context, inst, keysOnly, totalInst);
+            for(size_t i = 0; i < cpuEnum->Size(); i++)
+            {
+                SCX_ProcessorStatisticalInformation_Class inst;
+                SCXHandle<SCXSystemLib::CPUInstance> cpuInst = cpuEnum->GetInstance(i);
+                EnumerateOneInstance(context, inst, keysOnly, cpuInst);
+            }
+
+            // Enumerate Total instance
+            SCXHandle<SCXSystemLib::CPUInstance> totalInst = cpuEnum->GetTotalInstance();
+            if (totalInst != NULL)
+            {
+                // There will always be one total instance
+                SCX_ProcessorStatisticalInformation_Class inst;
+                EnumerateOneInstance(context, inst, keysOnly, totalInst);
+            }
         }
 
         context.Post(MI_RESULT_OK);
