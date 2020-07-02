@@ -124,7 +124,14 @@ if ! egrep -q '^ORIGINAL_KIT_TYPE=' /etc/opt/microsoft/scx/conf/scxconfig.conf; 
 fi
 
 # Generate the conf/scx-release file
+RELEASEFILE=`echo $PLATFORM_RELEASE_FILE_SCX_INSTALLER_INPUT`
+
+if [ -z $RELEASEFILE ]; then
 /opt/microsoft/scx/bin/tools/GetLinuxOS.sh
+else
+/opt/microsoft/scx/bin/tools/GetLinuxOS.sh $RELEASEFILE
+fi
+
 
 # Set up a cron job to logrotate
 if [ ! -f /etc/cron.d/scxagent ]; then
