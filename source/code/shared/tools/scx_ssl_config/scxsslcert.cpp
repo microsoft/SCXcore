@@ -546,7 +546,7 @@ void SCXSSLCertificate::DoGenerate()
         }
 
         // Sign the certificate
-        const EVP_MD * digest = EVP_sha1();
+        const EVP_MD * digest = EVP_sha256();
         int i = X509_sign(x509ss.Get(),pkey.Get(),digest);
         if (! i)
         {
