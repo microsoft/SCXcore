@@ -78,9 +78,11 @@ ifeq ($(PF_DISTRO),REDHAT)
 	endif
 endif
 
+# Use -ggdb for release and debug build,and strip release binaries from debug binaries.
+CXXFLAGS += -ggdb
+
 # CXX Debug flags for debug builds
 ifeq ($(BUILD_TYPE),Debug)
-	CXXFLAGS += -ggdb 
 	DEFINES += -D_DEBUG
 else
 	DEFINES += -DNDEBUG
