@@ -11,6 +11,8 @@ SEPOLICY_DIR_EL6=$(INTERMEDIATE_DIR)/selinux.el6
 
 OUTPUT_PACKAGE_PREFIX=
 OUTPUT_PACKAGE_SPECIFICATION=
+WITH_SYMBOLS=withsymbols
+PACKAGE_FILENAME=package_filename
 IS_OPENSSL_100=$(shell openssl version | grep 1.0 | wc -l)
 
 ifeq ($(PF_ARCH),x64)
@@ -24,13 +26,27 @@ ifneq ($(COMBINED_PACKAGES),1)
       SCX_PREFIX=scx
       OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).rhel.$(PF_MAJOR).$(PF_ARCH)
       OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+      OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
     else
       ifeq ($(PF_DISTRO),SUSE)
         SCX_PREFIX=scx
         OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).sles.$(PF_MAJOR).$(PF_ARCH)
         OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+        OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
       endif
     endif
+  endif
+  ifeq ($(PF),SunOS)
+    SCX_PREFIX=scx
+    OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).solaris.$(PF_MINOR).$(PF_ARCH)
+    OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+    OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
+  endif
+  ifeq ($(PF),AIX)
+    SCX_PREFIX=scx
+    OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).aix.$(PF_MAJOR).$(PF_ARCH)
+    OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+    OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
   endif
 else
   DATAFILES = Base_SCXCore.data Linux.data
@@ -59,6 +75,7 @@ else
 
   OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal.$(PF_ARCH)
   OUTPUT_PACKAGE_SPECIFICATION=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
+  OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
 endif
 
 DISTRO_TYPE = $(PF)
@@ -66,6 +83,16 @@ ifeq ("$(wildcard /usr/bin/dpkg-deb)","")
 DPKG_LOCATION="--DPKG_LOCATION=$(SCXPAL_DIR)/installer/InstallBuilder/tools/bin/dpkg-deb-$(PF_ARCH)"
 else
 DPKG_LOCATION=
+endif
+
+ifeq ($(PF),Linux)
+  STRIP_PATH=strip
+else
+  ifeq ($(PF),AIX)
+    STRIP_PATH=/usr/ccs/bin/strip -X64
+  else
+    STRIP_PATH=/usr/ccs/bin/strip
+  endif
 endif
 
 installerOnly: bundle
@@ -84,6 +111,32 @@ kit : GetLinuxOS scx_scripts sepolicy
 
 ifneq ($(COMBINED_PACKAGES),1)
 	sudo rm -rf $(STAGING_DIR)
+	mkdir -p $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS) \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX= \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES)
+
+	sudo rm -rf $(STAGING_DIR)
+	# Backup BUILD_CONFIGURATION folder before strip that is only for testrunner to test pass in jenkins
+	# and it doesn't affect generating packages and .sh bundles since we do testrunner after generating packages.
+	mkdir -p $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
+	cp -R $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
+	# strip binaries
+	$(STRIP_PATH) $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* > /dev/null 2>&1|true
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR) \
@@ -105,11 +158,138 @@ ifneq ($(COMBINED_PACKAGES),1)
 else
 
 	# Build for COMBINED_PACKAGES (.rpm and .deb living together, mass hysteria)
-	# First comes RPM packages
+	# First comes RPM symbol packages
 	sudo rm -rf $(STAGING_DIR)
+	rm -rf $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/{098,100}
+	mkdir -p $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/{098,100}
+
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/098 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_R)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/100 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_R)
+	sudo rm -rf $(STAGING_DIR)
+ifeq ($(PF_ARCH),x64)
+	rm -rf $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/110
+	mkdir -p $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/110
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/110 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.1.0 $(DISABLE_PORT) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_R)
+endif
+
+	# Next comes DEB symbol packages
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/098 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_0.9.8 $(DISABLE_PORT) \
+		$(DPKG_LOCATION) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/100 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.0.0 $(DISABLE_PORT) \
+		$(DPKG_LOCATION) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+ifeq ($(PF_ARCH),x64)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/110 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_1.1.0 $(DISABLE_PORT) \
+		$(DPKG_LOCATION) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_WITHSYMBOLS) \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+endif
+
+	# Backup BUILD_CONFIGURATION folder before strip
+	mkdir -p $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
+	cp -R $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
+	# Next comes RPM release packages
 	rm -rf $(INTERMEDIATE_DIR)/{098,100}
 	mkdir -p $(INTERMEDIATE_DIR)/{098,100}
-
+	$(STRIP_PATH) $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* > /dev/null 2>&1|true
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR)/098 \
@@ -168,8 +348,7 @@ ifeq ($(PF_ARCH),x64)
 		$(DATAFILES) $(DATAFILES_R)
 endif
 
-
-	# Next comes DEB packages
+	# Next comes DEB release packages
 	sudo rm -rf $(STAGING_DIR)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
@@ -230,10 +409,21 @@ ifeq ($(PF_ARCH),x64)
 		$(DATAFILES) $(DATAFILES_D)
 endif
 
-
 endif
 
-bundle: kit
+callgenbundle2: INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+callgenbundle2: OUTPUT_PACKAGE_PREFIX:=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
+callgenbundle2: PACKAGE_FILENAME:=symbol_package_filename
+callgenbundle2: genbundle2
+	# Done generate the second bundle
+
+bundle: kit genbundle1 callgenbundle2
+	# Restore folder
+	rm -rf $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)
+	mv $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)
+	# Done bundle
+
+genbundle1 genbundle2:
 	mkdir -p $(TARGET_DIR)
 
 ifneq ($(OSS_KITS),)
@@ -272,7 +462,7 @@ ifneq ($(COMBINED_PACKAGES),1)
     ifneq ($(PF_ARCH),ppc)
 	# Copy omi kit depending on openssl version
       ifeq ($(IS_OPENSSL_110),1)
- 	cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+	cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
       else
         ifeq ($(IS_OPENSSL_100),1)
 	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
@@ -302,8 +492,14 @@ ifneq ($(COMBINED_PACKAGES),1)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
 	# Remove package extension from `package_filename` file (AIX: .lpp, HP: .depot, Sun: .pkg)
 	cd $(INTERMEDIATE_DIR); sed -e 's/.lpp$$//' -e 's/.depot$$//' -e 's/.pkg$$//' package_filename > package_filename.tmp; mv package_filename.tmp package_filename
+	# Generate the symbol shell bundle
+	test "${PACKAGE_FILENAME}" = "symbol_package_filename" && echo -n `cat $(INTERMEDIATE_DIR)/package_filename` > $(INTERMEDIATE_DIR)/symbol_package_filename || true
+        ifeq ($(PF),AIX)
+	   test "${PACKAGE_FILENAME}" = "symbol_package_filename" && echo .$(WITH_SYMBOLS) >> $(INTERMEDIATE_DIR)/symbol_package_filename || true
+        endif
+	test "${PACKAGE_FILENAME}" = "symbol_package_filename" && cd $(INTERMEDIATE_DIR); mv `cat $(INTERMEDIATE_DIR)/package_filename`.sh `cat $(INTERMEDIATE_DIR)/symbol_package_filename`.sh || true
 	# Copy the shell bundle to the target directory
-	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/package_filename`.sh $(TARGET_DIR)
+	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/$(PACKAGE_FILENAME)`.sh $(TARGET_DIR)
   endif # ifneq ($(DISTRO_TYPE),Linux)
 
 else # ifneq ($(COMBINED_PACKAGES),1)
