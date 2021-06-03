@@ -111,6 +111,7 @@ kit : GetLinuxOS scx_scripts sepolicy
 
 ifneq ($(COMBINED_PACKAGES),1)
 	sudo rm -rf $(STAGING_DIR)
+ifeq ($(BUILD_TYPE),Release)
 	mkdir -p $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
@@ -137,6 +138,7 @@ ifneq ($(COMBINED_PACKAGES),1)
 	cp -R $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
 	# strip binaries
 	$(STRIP_PATH) $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* > /dev/null 2>&1|true
+endif
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR) \
@@ -160,6 +162,7 @@ else
 	# Build for COMBINED_PACKAGES (.rpm and .deb living together, mass hysteria)
 	# First comes RPM symbol packages
 	sudo rm -rf $(STAGING_DIR)
+ifeq ($(BUILD_TYPE),Release)
 	rm -rf $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/{098,100}
 	mkdir -p $(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)/{098,100}
 
@@ -286,10 +289,11 @@ endif
 	# Backup BUILD_CONFIGURATION folder before strip
 	mkdir -p $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
 	cp -R $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_nonstripped
+	$(STRIP_PATH) $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* > /dev/null 2>&1|true
+endif
 	# Next comes RPM release packages
 	rm -rf $(INTERMEDIATE_DIR)/{098,100}
 	mkdir -p $(INTERMEDIATE_DIR)/{098,100}
-	$(STRIP_PATH) $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/* > /dev/null 2>&1|true
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR)/098 \
@@ -411,6 +415,7 @@ endif
 
 endif
 
+ifeq ($(BUILD_TYPE),Release)
 callgenbundle2: INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
 callgenbundle2: OUTPUT_PACKAGE_PREFIX:=$(OUTPUT_PACKAGE_PREFIX).$(WITH_SYMBOLS)
 callgenbundle2: PACKAGE_FILENAME:=symbol_package_filename
@@ -424,6 +429,10 @@ bundle: kit genbundle1 callgenbundle2
 	# Done bundle
 
 genbundle1 genbundle2:
+else
+bundle: kit
+        # Done bundle
+endif
 	mkdir -p $(TARGET_DIR)
 
 ifneq ($(OSS_KITS),)
@@ -492,12 +501,11 @@ ifneq ($(COMBINED_PACKAGES),1)
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) `cat $(INTERMEDIATE_DIR)/package_filename`.tar `cat $(INTERMEDIATE_DIR)/package_filename` `cat $(INTERMEDIATE_DIR)/omi_package_filename` $(DISABLE_LISTENER)
 	# Remove package extension from `package_filename` file (AIX: .lpp, HP: .depot, Sun: .pkg)
 	cd $(INTERMEDIATE_DIR); sed -e 's/.lpp$$//' -e 's/.depot$$//' -e 's/.pkg$$//' package_filename > package_filename.tmp; mv package_filename.tmp package_filename
-	# Generate the symbol shell bundle
-	test "${PACKAGE_FILENAME}" = "symbol_package_filename" && echo -n `cat $(INTERMEDIATE_DIR)/package_filename` > $(INTERMEDIATE_DIR)/symbol_package_filename || true
-        ifeq ($(PF),AIX)
-	   test "${PACKAGE_FILENAME}" = "symbol_package_filename" && echo .$(WITH_SYMBOLS) >> $(INTERMEDIATE_DIR)/symbol_package_filename || true
+        ifeq ($(BUILD_TYPE),Release)
+	  # Generate the symbol shell bundle
+	  test "${PACKAGE_FILENAME}" = "symbol_package_filename" && echo -n `cat $(INTERMEDIATE_DIR)/package_filename` > $(INTERMEDIATE_DIR)/symbol_package_filename || true
+	  test "${PACKAGE_FILENAME}" = "symbol_package_filename" && mv $(INTERMEDIATE_DIR)/`cat $(INTERMEDIATE_DIR)/package_filename`.sh $(INTERMEDIATE_DIR)/`cat $(INTERMEDIATE_DIR)/symbol_package_filename`.sh || true
         endif
-	test "${PACKAGE_FILENAME}" = "symbol_package_filename" && cd $(INTERMEDIATE_DIR); mv `cat $(INTERMEDIATE_DIR)/package_filename`.sh `cat $(INTERMEDIATE_DIR)/symbol_package_filename`.sh || true
 	# Copy the shell bundle to the target directory
 	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/$(PACKAGE_FILENAME)`.sh $(TARGET_DIR)
   endif # ifneq ($(DISTRO_TYPE),Linux)
