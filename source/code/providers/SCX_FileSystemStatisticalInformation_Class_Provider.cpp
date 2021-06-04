@@ -51,6 +51,7 @@ static void EnumerateOneInstance(
 
         scxulong data1;
         scxulong data2;
+        scxulong data3;
         double ddata1;
         bool healthy;
 
@@ -98,7 +99,7 @@ static void EnumerateOneInstance(
             inst.AverageTransferTime_value(ddata1);
         }
 
-        if (diskinst->GetDiskSize(data1, data2))
+        if (diskinst->GetDiskSize(data1, data2, data3))
         {
             inst.FreeMegabytes_value(data2);
             inst.UsedMegabytes_value(data1);
@@ -106,8 +107,8 @@ static void EnumerateOneInstance(
             unsigned char usedSpace = 0;
             if (0 < data1+data2)
             {
-                freeSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data2, 0, data1+data2);
-                usedSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data2, 0, data1+data2, true);
+                freeSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data2, 0, data3);
+                usedSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data1, 0, data3);
             }
             inst.PercentFreeSpace_value(freeSpace);
             inst.PercentUsedSpace_value(usedSpace);
