@@ -153,10 +153,18 @@ testrunner-status:
 
 $(INTERMEDIATE_DIR)/testrunner : testrunner-status $(UNITTESTS_OBJFILES) $(POSIX_UNITTESTS_STATICLIB_DEPFILES) $(POSIX_UNITTESTS_CORE_STATICLIB_DEPFILES)
 	$(MAKE) -s ccenable
+ifeq ($(BUILD_TYPE),Release)
+	$(ECHO) "copy test runner to symbol folder"
+	cp -R $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/test/* $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_$(WITH_SYMBOLS)/test
+	cp $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)/libscxsslconfig.a $(SCX_BRD)/intermediate/$(BUILD_CONFIGURATION)_$(WITH_SYMBOLS)/libscxsslconfig.a
+endif
 	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(LINK) $(LINK_OUTFLAG) $(UNITTESTS_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_LINK_STATICLIBS) $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(BULLSEYE_LINK) $(LDFLAGS_TESTRUNNER) $(SSL_LIBS)
 	$(MAKE) -s ccdisable
 
+ifeq ($(BUILD_TYPE),Release)
+testbuild:INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+endif
 testbuild :  $(INTERMEDIATE_DIR)/testrunner
 
 
@@ -165,8 +173,14 @@ $(INTERMEDIATE_DIR)/testrunner_core : testrunner-status $(UNITTESTS_CORE_OBJFILE
 	-$(MKPATH) $(INTERMEDIATE_DIR)
 	$(PROFILING) $(LINK) $(LINK_OUTFLAG) $(UNITTESTS_CORE_OBJFILES) $(CPPUNIT_LIB_PATH)/libcppunit.a $(POSIX_UNITTESTS_CORE_LINK_STATICLIBS) $(LDFLAGS_TESTRUNNER)
 
+ifeq ($(BUILD_TYPE),Release)
+testbuild_core:INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+endif
 testbuild_core :  $(INTERMEDIATE_DIR)/testrunner_core
 
+ifeq ($(BUILD_TYPE),Release)
+testrun_copy:INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+endif
 testrun_copy : $(INTERMEDIATE_DIR)/closefiledescriptors
 	$(ECHO) "========================= Performing make testrun_copy OM"
 	-$(MKPATH) $(INTERMEDIATE_DIR)/testfiles
@@ -197,6 +211,9 @@ create_environment_sh :
 
 testrun_setup : $(INTERMEDIATE_DIR)/testrunner testrun_copy create_environment_sh $(LOGFILEREADER_TOOL)
 
+ifeq ($(BUILD_TYPE),Release)
+testrun_pkg:INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+endif
 testrun_pkg : testrun_setup
 	cd $(INTERMEDIATE_DIR);rm -f testrun.tar;tar cvf testrun.tar testrunner $(LOGFILEREADER_EXE) testfiles
 
@@ -212,6 +229,9 @@ endif
 testrun_copycovfile :
 	if [ $(BUILD_TYPE) = Bullseye ]; then $(COPY) $(COVFILE) $(INTERMEDIATE_DIR)/UnitTest.cov; fi
 
+ifeq ($(BUILD_TYPE),Release)
+testrun:INTERMEDIATE_DIR:=$(INTERMEDIATE_DIR)_$(WITH_SYMBOLS)
+endif
 testrun : pal_test testrun_setup $(BUILD_TESTRUN_PACKAGE)
 	$(ECHO) "========================= Performing OM testrun execution"
 	cd $(INTERMEDIATE_DIR);testfiles/testrun_wrapper .
@@ -225,17 +245,17 @@ endif
 test : testrun
 
 testrun_noslow : testrun_setup
-	$(ECHO) "========================= Performing OM testrun execution"
+	$(ECHO) "========================= Performing OM testrun execution with no slow"
 	cd $(INTERMEDIATE_DIR); testfiles/testrun_wrapper . -attr=-SLOW -slow=25
 	$(MAKE) testrun_copycovfile
 
 testrun_nosudo : testrun_setup
-	$(ECHO) "========================= Performing OM testrun execution"
+	$(ECHO) "========================= Performing OM testrun execution with no sudo"
 	cd $(INTERMEDIATE_DIR);./testrunner
 	$(MAKE) testrun_copycovfile
 
 testrun_core : $(INTERMEDIATE_DIR)/testrunner_core testrun_copy
-	$(ECHO) "========================= Performing OM testrun execution"
+	$(ECHO) "========================= Performing OM testrun execution with core"
 	cd $(INTERMEDIATE_DIR);./testrunner_core
 
 
