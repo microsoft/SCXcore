@@ -25,8 +25,8 @@ endif
 CXX_WARN_STRICT_FLAGS=-pedantic
 C_WARN_STRICT_FLAGS=-pedantic
 
-CXX_WARN_FLAGS=-Wall  -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wconversion  -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls -Werror $(CXX_WARN_STRICT_FLAGS)
-C_WARN_FLAGS=-Wall -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls -Werror $(C_WARN_STRICT_FLAGS)
+CXX_WARN_FLAGS=-Wall  -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wconversion  -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls $(CXX_WARN_STRICT_FLAGS)
+C_WARN_FLAGS=-Wall -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls $(C_WARN_STRICT_FLAGS)
 
 NEED_MINUS_CAST_QUAL=0
 NEED_MINUS_ERROR_CAST_QUAL=0
