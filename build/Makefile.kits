@@ -18,6 +18,12 @@ PACKAGE_FILENAME=package_filename
 STRIPPED=stripped
 IS_OPENSSL_100=$(shell openssl version | grep 1.0 | wc -l)
 
+ifeq ($(ENABLE_SCX_SECURITY_HARDENING),1)
+     SECURITY_FLAG=.s
+else
+     SECURITY_FLAG=
+endif
+
 ifeq ($(PF_ARCH),x64)
     IS_OPENSSL_110=$(shell openssl version | grep 1.1 | wc -l)
 endif
@@ -76,7 +82,7 @@ else
     endif
   endif
 
-  OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal.$(PF_ARCH)
+  OUTPUT_PACKAGE_PREFIX=$(SCX_PREFIX)-$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH)-$(SCX_BUILDVERSION_BUILDNR).universal$(SECURITY_FLAG).$(PF_ARCH)
   OUTPUT_PACKAGE_SPECIFICATION_FIRST=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
   OUTPUT_PACKAGE_SPECIFICATION_SECOND=--OUTPUTFILE=$(OUTPUT_PACKAGE_PREFIX)
 endif
@@ -486,15 +492,15 @@ ifneq ($(COMBINED_PACKAGES),1)
     ifneq ($(PF_ARCH),ppc)
 	# Copy omi kit depending on openssl version
       ifeq ($(IS_OPENSSL_110),1)
-	cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+	cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
       else
         ifeq ($(IS_OPENSSL_100),1)
-	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux.$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
         endif
       endif
     endif
   endif
-	cd $(INTERMEDIATE_DIR); echo `ls omi-*.$(PACKAGE_SUFFIX)` > omi_package_filename
+	cd $(INTERMEDIATE_DIR); echo `ls omi-*.ulinux$(SECURITY_FLAG)*.$(PACKAGE_SUFFIX)` > omi_package_filename
 
   # Handle Redhat on PPC
   ifeq ($(PF_ARCH),ppc)
@@ -530,9 +536,9 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	# (Copying for combined packages)
         ifeq ($(DISABLE_LISTENER),0)
 	  # Grab the OMI bits
-	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(PF_ARCH).{rpm,deb} 100
+	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 100
           ifeq ($(PF_ARCH),x64)
-	     cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(PF_ARCH).{rpm,deb} 110
+	     cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 110
           endif
 
           # Remove ssl_098, ssl_100 and ssl_110 from omi filename
