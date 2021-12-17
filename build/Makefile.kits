@@ -24,6 +24,8 @@ else
      SECURITY_FLAG=
 endif
 
+EXCLUDE_SECURITY_FLAG=.s
+
 ifeq ($(PF_ARCH),x64)
     IS_OPENSSL_110=$(shell openssl version | grep 1.1 | wc -l)
 endif
@@ -500,8 +502,15 @@ ifneq ($(COMBINED_PACKAGES),1)
       endif
     endif
   endif
-	cd $(INTERMEDIATE_DIR); echo `ls omi-*.ulinux$(SECURITY_FLAG)*.$(PACKAGE_SUFFIX)` > omi_package_filename
-
+  ifeq ($(PF),Linux)
+    ifeq ($(ENABLE_SCX_SECURITY_HARDENING),1)
+	cd $(INTERMEDIATE_DIR); echo `ls omi-*$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` > omi_package_filename
+    else
+	cd $(INTERMEDIATE_DIR); echo `ls omi-*.$(PF_ARCH).$(PACKAGE_SUFFIX)|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` > omi_package_filename
+    endif
+  else
+	cd $(INTERMEDIATE_DIR); echo `ls omi-*.$(PACKAGE_SUFFIX)` > omi_package_filename
+  endif
   # Handle Redhat on PPC
   ifeq ($(PF_ARCH),ppc)
     ifeq ($(DISTRO_TYPE),Linux)
@@ -536,9 +545,16 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	# (Copying for combined packages)
         ifeq ($(DISABLE_LISTENER),0)
 	  # Grab the OMI bits
-	  cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 100
-          ifeq ($(PF_ARCH),x64)
-	     cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 110
+          ifeq ($(ENABLE_SCX_SECURITY_HARDENING),1)
+	    cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 100
+            ifeq ($(PF_ARCH),x64)
+	       cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 110
+            endif
+          else
+	    cd $(INTERMEDIATE_DIR); cp `ls $(OMIKITS_DIR)/omi-*ssl_100*.$(PF_ARCH).{rpm,deb}|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` 100
+            ifeq ($(PF_ARCH),x64)
+	        cd $(INTERMEDIATE_DIR); cp `ls $(OMIKITS_DIR)/omi-*ssl_110*.$(PF_ARCH).{rpm,deb}|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` 110
+            endif
           endif
 
           # Remove ssl_098, ssl_100 and ssl_110 from omi filename
