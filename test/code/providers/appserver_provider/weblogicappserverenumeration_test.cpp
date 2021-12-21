@@ -299,9 +299,9 @@ protected:
         *xmlcontent << "      </sec:password-validator>" << endl;
         *xmlcontent << "    </realm>" << endl;
         *xmlcontent << "    <default-realm>myrealm</default-realm>" << endl;
-        *xmlcontent << "    <credential-encrypted>{AES}ukCl5R/HDunoQwvIelAh5RX2I3zdmYFyrOGhXXa58ViNkM7JwYElmg8PzGwsiPPpVzMIpA95L0EL+sEGOkr3GEjAixsVy4XbRZD09wH+jxkH/6JeOoRIgIfYy364gHHC</credential-encrypted>" << endl;
+        *xmlcontent << "    <credential-encrypted></credential-encrypted>" << endl;
         *xmlcontent << "    <node-manager-username>weblogic</node-manager-username>" << endl;
-        *xmlcontent << "    <node-manager-password-encrypted>{AES}PnV58TDPVejTkKti4bUbES0JCzwOfBDnEcdnwsM9Z48=</node-manager-password-encrypted>" << endl;
+        *xmlcontent << "    <node-manager-password-encrypted></node-manager-password-encrypted>" << endl;
         *xmlcontent << "  </security-configuration>" << endl;
         *xmlcontent << "  <server>" << endl;
         *xmlcontent << "    <name>AdminServer</name>" << endl;
@@ -320,7 +320,7 @@ protected:
         *xmlcontent << "  </server>" << endl;
         *xmlcontent << "  <embedded-ldap>" << endl;
         *xmlcontent << "    <name>base_domain</name>" << endl;
-        *xmlcontent << "    <credential-encrypted>{AES}RVX+Cadq8XJ5EvV7/1Ta2qGZrJlxve6t5CEa2A9euGUkYOMDTAwAqytymqDBS00Q</credential-encrypted>" << endl;
+        *xmlcontent << "    <credential-encrypted></credential-encrypted>" << endl;
         *xmlcontent << "  </embedded-ldap>" << endl;
         *xmlcontent << "  <configuration-version>10.3.0.0</configuration-version>" << endl;
         *xmlcontent << "  <machine xsi:type=\"unix-machineType\">" << endl;
@@ -454,9 +454,9 @@ protected:
         *xmlcontent << "      </sec:password-validator>" << endl;
         *xmlcontent << "    </realm>" << endl;
         *xmlcontent << "    <default-realm>myrealm</default-realm>" << endl;
-        *xmlcontent << "    <credential-encrypted>{AES}ukCl5R/HDunoQwvIelAh5RX2I3zdmYFyrOGhXXa58ViNkM7JwYElmg8PzGwsiPPpVzMIpA95L0EL+sEGOkr3GEjAixsVy4XbRZD09wH+jxkH/6JeOoRIgIfYy364gHHC</credential-encrypted>" << endl;
+        *xmlcontent << "    <credential-encrypted></credential-encrypted>" << endl;
         *xmlcontent << "    <node-manager-username>weblogic</node-manager-username>" << endl;
-        *xmlcontent << "    <node-manager-password-encrypted>{AES}PnV58TDPVejTkKti4bUbES0JCzwOfBDnEcdnwsM9Z48=</node-manager-password-encrypted>" << endl;
+        *xmlcontent << "    <node-manager-password-encrypted></node-manager-password-encrypted>" << endl;
         *xmlcontent << "  </security-configuration>" << endl;
         *xmlcontent << "  <server>" << endl;
         *xmlcontent << "    <name>AdminServer</name>" << endl;
@@ -482,7 +482,7 @@ protected:
         *xmlcontent << "  </server>" << endl;
         *xmlcontent << "  <embedded-ldap>" << endl;
         *xmlcontent << "    <name>base_domain</name>" << endl;
-        *xmlcontent << "    <credential-encrypted>{AES}RVX+Cadq8XJ5EvV7/1Ta2qGZrJlxve6t5CEa2A9euGUkYOMDTAwAqytymqDBS00Q</credential-encrypted>" << endl;
+        *xmlcontent << "    <credential-encrypted></credential-encrypted>" << endl;
         *xmlcontent << "  </embedded-ldap>" << endl;
         *xmlcontent << "  <configuration-version>10.3.2.0</configuration-version>" << endl;
         *xmlcontent << "  <machine xsi:type=\"unix-machineType\">" << endl;
