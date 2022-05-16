@@ -135,10 +135,8 @@ void SCX_LANEndpoint_Class_Provider::EnumerateInstances(
         size_t instancePos=(size_t)-1;
 
         if(filter) {
-            //char* exprStr[QLENGTH]={'\0'};
-	    char ** exprStr = new char *[QLENGTH]();
-            //char* qtypeStr[QLENGTH]={'\0'};
-	    char ** qtypeStr = new char *[QLENGTH]();
+            char* exprStr[QLENGTH]={NULL};
+            char* qtypeStr[QLENGTH]={NULL};
 
             const MI_Char** expr=(const MI_Char**)&exprStr;
             const MI_Char** qtype=(const MI_Char**)&qtypeStr;
