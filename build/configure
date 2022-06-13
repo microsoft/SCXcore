@@ -9,7 +9,7 @@ enable_purify_agent=""
 enable_purify_server=""
 enable_bullseye=""
 combined_packages=0
-
+enable_scx_security_hardening=0
 enable_ulinux_qual=""
 omi_configure_quals="--enable-microsoft"
 
@@ -31,7 +31,7 @@ perform_ulinux_build()
     fi
 
     enable_ulinux_qual="--enable-ulinux"
-    omi_configure_quals="$omi_configure_quals $enable_ulinux_qual"
+    omi_configure_quals="$omi_configure_quals $enable_ulinux_qual $enable_security_hardening"
     combined_packages=1
 }
 
@@ -81,6 +81,11 @@ do
       enable_purify_server="--enable-purify-server"
       ;;
 
+    --enable-security-hardening)
+      enable_security_hardening="--enable-security-hardening"
+      enable_scx_security_hardening=1
+      ;;
+
     --enable-system-build)
       if [ `uname -s` = "Linux" -a `uname -m` != "ppc64le" ]; then
           perform_ulinux_build
@@ -122,6 +127,7 @@ OPTIONS:
     --enable-local-omi          Allow local OMI commands to be issued (not for use when building a kit)
     --enable-purify-agent       Allow agent to be run with purify (memory leak detection)
     --enable-purify-server      Allow server to be run with purify (memory leak detection)
+    --enable-security-hardening Enable security flags for compiling.
     --enable-system-build       Enable qualifiers necessary for a system build
     --enable-ulinux             Build universal RPM/DEB kits
 
@@ -129,9 +135,9 @@ EOF
     exit 0
 fi
 
-(cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye $enable_ulinux_qual)
+(cd $scxpal_dir/build/ && chmod ug+x ./configure; ./configure $enable_debug $enable_bullseye $enable_ulinux_qual $enable_security_hardening)
 
-omi_configure_quals="${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals}"
+omi_configure_quals="${enable_debug} ${enable_purify_agent} ${enable_purify_server} ${omi_configure_quals} ${enable_security_hardening}"
 
 ##==============================================================================
 ##
@@ -220,7 +226,7 @@ OPENSSL100_LIBDIR=$openssl100_libdir
 OPENSSL110_CFLAGS=$openssl110_cflags
 OPENSSL110_LIBS=$openssl110_libs
 OPENSSL110_LIBDIR=$openssl110_libdir
-
+ENABLE_SCX_SECURITY_HARDENING=$enable_scx_security_hardening
 TRAVIS_CI=$travis_ci
 EOF
 

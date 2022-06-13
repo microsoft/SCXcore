@@ -105,10 +105,11 @@ static void EnumerateOneInstance(
             inst.UsedMegabytes_value(data1);
             unsigned char freeSpace = 100;
             unsigned char usedSpace = 0;
-            if (0 < data1+data2)
+            scxulong totalData = data1 + data2;
+            if (0 < totalData)
             {
-                freeSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data2, 0, data3);
-                usedSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data1, 0, data3);
+                freeSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data2, 0, totalData);
+                usedSpace = (unsigned char) SCXCoreLib::GetPercentage(0, data1, 0, totalData);
             }
             inst.PercentFreeSpace_value(freeSpace);
             inst.PercentUsedSpace_value(usedSpace);
@@ -208,8 +209,8 @@ void SCX_FileSystemStatisticalInformation_Class_Provider::EnumerateInstances(
         size_t instancePos=(size_t)-1;
 
         if(filter) {
-            char* exprStr[QLENGTH]={'\0'};
-            char* qtypeStr[QLENGTH]={'\0'};
+            char* exprStr[QLENGTH]={NULL};
+            char* qtypeStr[QLENGTH]={NULL};
 
             const MI_Char** expr=(const MI_Char**)&exprStr;
             const MI_Char** qtype=(const MI_Char**)&qtypeStr;

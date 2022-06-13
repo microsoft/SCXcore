@@ -12,6 +12,10 @@
 # Define flags. (These will be submitted to all commands that use the preprocesor)
 DEFINES=-DPF_DISTRO_$(PF_DISTRO) -DPF_MAJOR=$(PF_MAJOR) -DOS_MINOR=$(PF_MINOR) -D$(ARCH) -DPF_WIDTH=$(PF_WIDTH)
 
+ifeq ($(ENABLE_SCX_SECURITY_HARDENING), 1)
+	DEFINES +=  -z noexecstack -Wl,-z,relro -Wl,-z,now -Wformat -Wformat-security -Werror=format-security -pie -D_FORTIFY_SOURCE=2
+endif
+
 ifeq ($(TRAVIS_CI), 1)
 	DEFINES += -DTRAVIS
 endif
@@ -25,8 +29,8 @@ endif
 CXX_WARN_STRICT_FLAGS=-pedantic
 C_WARN_STRICT_FLAGS=-pedantic
 
-CXX_WARN_FLAGS=-Wall  -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wconversion  -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls -Werror $(CXX_WARN_STRICT_FLAGS)
-C_WARN_FLAGS=-Wall -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls -Werror $(C_WARN_STRICT_FLAGS)
+CXX_WARN_FLAGS=-Wall  -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wconversion  -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls $(CXX_WARN_STRICT_FLAGS)
+C_WARN_FLAGS=-Wall -fno-nonansi-builtins  -Woverloaded-virtual -Wformat -Wformat-security   -Wfloat-equal -Wcast-align -Wswitch-enum -Wundef -Wshadow -Wwrite-strings -Wredundant-decls $(C_WARN_STRICT_FLAGS)
 
 NEED_MINUS_CAST_QUAL=0
 NEED_MINUS_ERROR_CAST_QUAL=0
@@ -88,8 +92,9 @@ else
 	DEFINES += -DNDEBUG
 endif 
 
-# CXX Debug flags for release builds
+#  C and CXX Debug flags for release builds
 ifeq ($(BUILD_TYPE),Release)
+	CFLAGS += -Os
 	CXXFLAGS += -Os -fno-enforce-eh-specs
 endif 
 
