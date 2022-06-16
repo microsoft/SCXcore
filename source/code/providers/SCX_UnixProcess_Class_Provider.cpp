@@ -210,6 +210,182 @@ static void EnumerateOneInstance(Context& context,
     SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
 }
 
+static void EnumerateAllInstance(Context& context,
+        bool keysOnly,
+        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum)
+{
+    std:vector<SCX_UnixProcess_Class> instList;
+    for(typename EntityEnumeration<SCX_UnixProcess_Class>::EntityIterator iter=processEnum.begin();iter!=processEnum.end();iter++){
+	    SCX_UnixProcess_Class inst;
+	    SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processinst=*iter;
+	    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
+
+	    // Add the key properties first.
+	    scxulong pid = 0;
+	    if (processinst->GetPID(pid))
+	    {
+		inst.Handle_value(StrToUTF8(StrFrom(pid)).c_str());
+	    }
+
+	    SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sending instance for handle: ", StrFrom(pid)));
+
+	    // Add keys of scoping operating system
+	    try {
+		SCXCoreLib::NameResolver mi;
+		inst.CSName_value(StrToMultibyte(mi.GetHostDomainname()).c_str());
+	    } catch (SCXException& e){
+		SCX_LOGWARNING(log, StrAppend(
+			    StrAppend(L"Can't read host/domainname because ", e.What()),
+			    e.Where()));
+	    }
+
+	    try {
+		SCXSystemLib::SCXOSTypeInfo osinfo;
+		inst.OSName_value(StrToMultibyte(osinfo.GetOSName(true)).c_str());
+	    } catch (SCXException& e){
+		SCX_LOGWARNING(log, StrAppend(
+			    StrAppend(L"Can't read OS name because ", e.What()),
+			    e.Where()));
+	    }
+
+	    inst.CSCreationClassName_value("SCX_ComputerSystem");
+	    inst.OSCreationClassName_value("SCX_OperatingSystem");
+	    inst.CreationClassName_value("SCX_UnixProcess");
+
+
+	    if (!keysOnly)
+	    {
+		std::string name("");
+		std::vector<std::string> params;
+		std::wstring str(L"");
+		unsigned int uint = 0;
+		unsigned short ushort = 0;
+		scxulong ulong = 0, ulong1 = 0;
+		SCXCoreLib::SCXCalendarTime ctime;
+		int ppid = 0;
+
+		inst.Description_value("A snapshot of a current process");
+		inst.Caption_value("Unix process information");
+
+		if (processinst->GetOtherExecutionDescription(str))
+		{
+		    inst.OtherExecutionDescription_value(StrToUTF8(str).c_str());
+		}
+
+		if (processinst->GetKernelModeTime(ulong))
+		{
+		    inst.KernelModeTime_value(ulong);
+		}
+
+		if (processinst->GetUserModeTime(ulong))
+		{
+		    inst.UserModeTime_value(ulong);
+		}
+
+		if (processinst->GetWorkingSetSize(ulong))
+		{
+		    inst.WorkingSetSize_value(ulong);
+		}
+
+		if (processinst->GetProcessSessionID(ulong))
+		{
+		    inst.ProcessSessionID_value(ulong);
+		}
+
+		if (processinst->GetProcessTTY(name))
+		{
+		    inst.ProcessTTY_value(name.c_str());
+		}
+
+		if (processinst->GetModulePath(name))
+		{
+		    inst.ModulePath_value(name.c_str());
+		}
+
+		if (processinst->GetParameters(params))
+		{
+		    std::vector<mi::String> strArrary;
+		    for (std::vector<std::string>::const_iterator iter = params.begin();
+			    iter != params.end(); ++iter)
+		    {
+		       strArrary.push_back((*iter).c_str());
+		    }
+		    mi::StringA props(&strArrary[0], static_cast<MI_Uint32>(params.size()));
+		    inst.Parameters_value(props);
+		} 
+
+		if (processinst->GetProcessWaitingForEvent(name))
+		{
+		    inst.ProcessWaitingForEvent_value(name.c_str());
+		}
+
+		if (processinst->GetName(name))
+		{
+		    inst.Name_value(name.c_str());
+		}
+
+		if (processinst->GetNormalizedWin32Priority(uint))
+		{
+		    inst.Priority_value(uint);
+		}
+
+		if (processinst->GetExecutionState(ushort))
+		{
+		    inst.ExecutionState_value(ushort);
+		}
+
+		if (processinst->GetCreationDate(ctime))
+		{
+		    MI_Datetime creationDate; 
+		    CIMUtils::ConvertToCIMDatetime(creationDate, ctime);
+		    inst.CreationDate_value(creationDate);
+		}
+
+		if (processinst->GetTerminationDate(ctime))
+		{
+		    MI_Datetime terminationDate; 
+		    CIMUtils::ConvertToCIMDatetime(terminationDate, ctime);
+		    inst.TerminationDate_value(terminationDate);
+		}
+
+		if (processinst->GetParentProcessID(ppid))
+		{
+		    inst.ParentProcessID_value(StrToUTF8(StrFrom(ppid)).c_str());
+		}
+
+		if (processinst->GetRealUserID(ulong))
+		{
+		    inst.RealUserID_value(ulong);
+		}
+
+		if (processinst->GetProcessGroupID(ulong))
+		{
+		    inst.ProcessGroupID_value( ulong);
+		}
+
+		if (processinst->GetProcessNiceValue(uint))
+		{
+		    inst.ProcessNiceValue_value(uint);
+		}
+
+		if (processinst->GetPercentUserTime(ulong) && processinst->GetPercentPrivilegedTime(ulong1))
+		{
+		    inst.PercentBusyTime_value((unsigned char) (ulong + ulong1));
+		}
+
+		if (processinst->GetUsedMemory(ulong))
+		{
+		    inst.UsedMemory_value(ulong);
+		}
+	    }
+	    instList.push_back(inst);
+	    SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
+    }
+    for(std::vector<SCX_UnixProcess_Class>::iterator it=instList.begin();it!=instList.end();it++){
+	    context.Post(*it);
+    }
+}
+
 SCX_UnixProcess_Class_Provider::SCX_UnixProcess_Class_Provider(
     Module* module) :
     m_Module(module)
@@ -322,12 +498,14 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
                 stringstream ss; ss<<pid;
                 string spid;ss>>spid;
                 if ( spid != processID) continue;
+                SCX_UnixProcess_Class proc;
+                EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
+                break;   
             }
-
-            SCX_UnixProcess_Class proc;
-            EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
-            if ( processID != "") break;
         }
+	if ( processID == ""){
+	    EnumerateAlleInstance(context, keysOnly, processEnum);
+	}
         context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", log );
