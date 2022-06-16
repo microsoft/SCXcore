@@ -215,7 +215,7 @@ static void EnumerateAllInstance(Context& context,
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum)
 {
     std:vector<SCX_UnixProcess_Class> instList;
-    for(typename EntityEnumeration<SCX_UnixProcess_Class>::EntityIterator iter=processEnum.begin();iter!=processEnum.end();iter++){
+    for(typename EntityEnumeration<SCXSystemLib::ProcessInstance>::EntityIterator iter=processEnum.begin();iter!=processEnum.end();iter++){
 	    SCX_UnixProcess_Class inst;
 	    SCXCoreLib::SCXHandle<SCXSystemLib::ProcessInstance> processinst=*iter;
 	    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
@@ -504,7 +504,7 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
             }
         }
 	if ( processID == ""){
-	    EnumerateAlleInstance(context, keysOnly, processEnum);
+	    EnumerateAllInstance(context, keysOnly, processEnum);
 	}
         context.Post(MI_RESULT_OK);
     }
