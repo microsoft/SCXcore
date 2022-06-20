@@ -210,7 +210,7 @@ static void EnumerateOneInstance(Context& context,
     SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
 }
 
-static void EnumerateAllInstance(Context& context,
+static std:vector<SCX_UnixProcess_Class> EnumerateAllInstance(Context& context,
         bool keysOnly,
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum)
 {
@@ -382,9 +382,7 @@ static void EnumerateAllInstance(Context& context,
 	    instList.push_back(inst);
 	    SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
     }
-    for(std::vector<SCX_UnixProcess_Class>::iterator it=instList.begin();it!=instList.end();it++){
-	    context.Post(*it);
-    }
+    return instList;
 }
 
 SCX_UnixProcess_Class_Provider::SCX_UnixProcess_Class_Provider(
@@ -440,6 +438,8 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
     bool keysOnly,
     const MI_Filter* filter)
 {
+    std:vector<SCX_UnixProcess_Class> instList;
+    string processID="";
     SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
     SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances begin");
 
@@ -449,8 +449,6 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
         SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
-
-	string processID="";
 
         if(filter) {
             char* exprStr[QLENGTH]={NULL};
@@ -505,13 +503,18 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
             }
         }
 	if ( processID == ""){
-	    EnumerateAllInstance(context, keysOnly, processEnum);
+	    instList = EnumerateAllInstance(context, keysOnly, processEnum);
 	}
-        context.Post(MI_RESULT_OK);
     }
     SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", log );
 
     SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances end");
+    if ( processID == ""){
+	 for(std::vector<SCX_UnixProcess_Class>::iterator it=instList.begin();it!=instList.end();it++){
+	     context.Post(*it);
+         } 
+    }
+    context.Post(MI_RESULT_OK);
 }
 
 void SCX_UnixProcess_Class_Provider::GetInstance(
