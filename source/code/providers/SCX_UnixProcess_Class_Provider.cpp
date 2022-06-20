@@ -212,11 +212,11 @@ static void EnumerateOneInstance(Context& context,
 
 static std::vector<SCX_UnixProcess_Class> EnumerateAllInstance(Context& context,
         bool keysOnly,
-        std::vector<SCXHandle<SCXSystemLib::ProcessInstance>> processInstances)
+        std::vector<SCXHandle<SCXSystemLib::ProcessInstance> > processInstances)
 {
     std:vector<SCX_UnixProcess_Class> instList;
     //for(size_t i = 0; i < processEnum->Size(); i++){
-    for(std::vector<SCXHandle<SCXSystemLib::ProcessInstance>>::EntityIterator iter=processInstances.begin();iter!=processInstances.end();iter++){
+    for(std::vector<SCXHandle<SCXSystemLib::ProcessInstance> >::iterator iter=processInstances.begin();iter!=processInstances.end();iter++){
 	    SCX_UnixProcess_Class inst;
 	    SCXHandle<SCXSystemLib::ProcessInstance> processinst=*iter;
 	    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
@@ -474,7 +474,7 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
 		    }
 		}
 
-                std::vector<SCXHandle<SCXSystemLib::ProcessInstance>> processInstances;
+                std::vector<SCXHandle<SCXSystemLib::ProcessInstance> > processInstances;
                 {
 			// Global lock for ProcessProvider class
 			SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
@@ -489,14 +489,15 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
 			    processEnum->Update();
 
 			SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
-			for(size_t i = 0; i < processEnum->Size(); i++)
-			{
-			    processInstances.push_back(processEnum->GetInstance(i));
-			}
-		}
-		if ( processID != ""){
-			for(size_t i = 0; i < processEnum->Size(); i++)
-			{
+                        if ( processID == ""){
+			    for(size_t i = 0; i < processEnum->Size(); i++)
+			    {
+			        processInstances.push_back(processEnum->GetInstance(i));
+			    }
+                        }
+		        if ( processID != ""){
+			    for(size_t i = 0; i < processEnum->Size(); i++)
+			    {
 				scxulong pid = 0;
 				processEnum->GetInstance(i)->GetPID(pid);
 				stringstream ss; ss<<pid;
@@ -505,8 +506,9 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
 				SCX_UnixProcess_Class proc;
 				EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
 				break;   
-			}
-	        }
+			    }
+	                }
+                }
 		if ( processID == ""){
 		    instList = EnumerateAllInstance(context, keysOnly, processInstances);
 		}
