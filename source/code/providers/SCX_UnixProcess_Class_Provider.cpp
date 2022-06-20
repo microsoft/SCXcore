@@ -210,7 +210,7 @@ static void EnumerateOneInstance(Context& context,
     SCX_LOGHYSTERICAL(log, StrAppend(L"UnixProcess Provider sent instance for handle: ", StrFrom(pid)));
 }
 
-static std:vector<SCX_UnixProcess_Class> EnumerateAllInstance(Context& context,
+static std::vector<SCX_UnixProcess_Class> EnumerateAllInstance(Context& context,
         bool keysOnly,
         SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum)
 {
