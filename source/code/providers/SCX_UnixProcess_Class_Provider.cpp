@@ -440,75 +440,77 @@ void SCX_UnixProcess_Class_Provider::EnumerateInstances(
 {
     std:vector<SCX_UnixProcess_Class> instList;
     string processID="";
-    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
-    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances begin");
-
-    SCX_PEX_BEGIN
     {
-        // Global lock for ProcessProvider class
-        SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
+	    SCXLogHandle& log = SCXCore::g_ProcessProvider.GetLogHandle();
+	    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances begin");
 
-        SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
+	    SCX_PEX_BEGIN
+	    {
+		// Global lock for ProcessProvider class
+		SCXCoreLib::SCXThreadLock lock(SCXCoreLib::ThreadLockHandleGet(L"SCXCore::ProcessProvider::Lock"));
 
-        if(filter) {
-            char* exprStr[QLENGTH]={NULL};
-            char* qtypeStr[QLENGTH]={NULL};
+		SCXHandle<SCXSystemLib::ProcessEnumeration> processEnum = SCXCore::g_ProcessProvider.GetProcessEnumerator();
 
-            const MI_Char** expr=(const MI_Char**)&exprStr;
-            const MI_Char** qtype=(const MI_Char**)&qtypeStr;
+		if(filter) {
+		    char* exprStr[QLENGTH]={NULL};
+		    char* qtypeStr[QLENGTH]={NULL};
 
-            MI_Filter_GetExpression(filter, qtype, expr);
-            SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"Unix Process Provider Filter Set with Expression: ",*expr));
+		    const MI_Char** expr=(const MI_Char**)&exprStr;
+		    const MI_Char** qtype=(const MI_Char**)&qtypeStr;
 
-	    std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
+		    MI_Filter_GetExpression(filter, qtype, expr);
+		    SCX_LOGTRACE(log, SCXCoreLib::StrAppend(L"Unix Process Provider Filter Set with Expression: ",*expr));
 
-            SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
-            SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
-            std::wstring s_pattern(L"select * from SCX_UnixProcess where Handle=%name");
+		    std::wstring filterQuery(SCXCoreLib::StrFromUTF8(*expr));
 
-            SCXCoreLib::SCXPatternFinder patterenfinder;
-            patterenfinder.RegisterPattern(s_patternID, s_pattern);
+		    SCXCoreLib::SCXPatternFinder::SCXPatternCookie s_patternID = 0, id=0;
+		    SCXCoreLib::SCXPatternFinder::SCXPatternMatch param;
+		    std::wstring s_pattern(L"select * from SCX_UnixProcess where Handle=%name");
 
-            bool status=patterenfinder.Match(filterQuery, id, param);
+		    SCXCoreLib::SCXPatternFinder patterenfinder;
+		    patterenfinder.RegisterPattern(s_patternID, s_pattern);
 
-            if (status && id == s_patternID && param.end() != param.find(L"name"))
-            {
-                processID=StrToUTF8(param.find(L"name")->second);
-                SCX_LOGTRACE(log,  StrAppend(L"Unix Process Provider Enum Requested for Process ID: ", param.find(L"name")->second));
-            }
-        }
+		    bool status=patterenfinder.Match(filterQuery, id, param);
 
-        if ( processID != "" ) {
-            stringstream ss(processID);
-            int pid;
-            ss >> pid;
-            processEnum->UpdateSpecific(pid);
-        }
-        else
-            processEnum->Update();
+		    if (status && id == s_patternID && param.end() != param.find(L"name"))
+		    {
+			processID=StrToUTF8(param.find(L"name")->second);
+			SCX_LOGTRACE(log,  StrAppend(L"Unix Process Provider Enum Requested for Process ID: ", param.find(L"name")->second));
+		    }
+		}
 
-        SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
+		if ( processID != "" ) {
+		    stringstream ss(processID);
+		    int pid;
+		    ss >> pid;
+		    processEnum->UpdateSpecific(pid);
+		}
+		else
+		    processEnum->Update();
 
-        for(size_t i = 0; i < processEnum->Size(); i++)
-        {
-            if ( processID != ""){
-                scxulong pid = 0;
-                processEnum->GetInstance(i)->GetPID(pid);
-                stringstream ss; ss<<pid;
-                string spid;ss>>spid;
-                if ( spid != processID) continue;
-                SCX_UnixProcess_Class proc;
-                EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
-                break;   
-            }
-        }
-	if ( processID == ""){
-	    instList = EnumerateAllInstance(context, keysOnly, processEnum);
-	}
+		SCX_LOGTRACE(log, StrAppend(L"Number of Processes = ", processEnum->Size()));
+
+		for(size_t i = 0; i < processEnum->Size(); i++)
+		{
+		    if ( processID != ""){
+			scxulong pid = 0;
+			processEnum->GetInstance(i)->GetPID(pid);
+			stringstream ss; ss<<pid;
+			string spid;ss>>spid;
+			if ( spid != processID) continue;
+			SCX_UnixProcess_Class proc;
+			EnumerateOneInstance(context, proc, keysOnly, processEnum->GetInstance(i));
+			break;   
+		    }
+		}
+		if ( processID == ""){
+		    instList = EnumerateAllInstance(context, keysOnly, processEnum);
+		}
+	    }
+	    SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", log );
+
+	    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances end");
     }
-    SCX_PEX_END( L"SCX_UnixProcess_Class_Provider::EnumerateInstances", log );
-
-    SCX_LOGTRACE(log, L"UnixProcess Provider EnumerateInstances end");
     if ( processID == ""){
 	 for(std::vector<SCX_UnixProcess_Class>::iterator it=instList.begin();it!=instList.end();it++){
 	     context.Post(*it);
