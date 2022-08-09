@@ -22,12 +22,12 @@ DISABLE_PORT:		 'false'
 
 SHORT_NAME:              'scx'
 SHORT_NAME_PREFIX:       'MSFT'
-LONG_NAME:               'Microsoft System Center 2012 Operations Manager for UNIX/Linux agent'
+LONG_NAME:               'Microsoft System Center Operations Manager for UNIX/Linux agent'
 GROUP:                   'Applications/System'
 LICENSE:                 'none'
 VENDOR:                  'http://www.microsoft.com'
 PROVIDES:                'omproviders'
-DESCRIPTION:             'Provides server for Microsoft System Center 2012 Operations Manager.'
+DESCRIPTION:             'Provides server for Microsoft System Center Operations Manager.'
 MAINTAINER:              'Microsoft Corporation'
 
 %Defines
