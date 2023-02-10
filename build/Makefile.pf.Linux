@@ -28,7 +28,7 @@ include Makefile.gcc4
 
 #================================================================================
 # OpenSSL
-# For ULINUX, on x64 platfomrs we need to build against three versions of OpenSSL: 0.9.8, 1.0.0 and 1.1.0.
+# For ULINUX, on x64 platfomrs we need to build against three versions of OpenSSL: 0.9.8, 1.0.0，1.1.0 and 3.0.0.
 #             on x86 platforms we need to build against two versions of OpenSSL: 0.9.8, 1.0.0.
 #================================================================================
 ifeq ($(COMBINED_PACKAGES),1)
@@ -39,6 +39,7 @@ OPENSSL_SYSTEM_VERSION_FULL=$(shell openssl version | awk '{print $$2}')
 OPENSSL_SYSTEM_VERSION_098=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^0.9.8'; echo $$?)
 OPENSSL_SYSTEM_VERSION_100=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^1.0.'; echo $$?)
 OPENSSL_SYSTEM_VERSION_110=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^1.1.'; echo $$?)
+OPENSSL_SYSTEM_VERSION_300=$(shell echo $(OPENSSL_SYSTEM_VERSION_FULL) | grep -Eq '^3.0.'; echo $$?)
 
 ifeq ($(OPENSSL_SYSTEM_VERSION_098), 0)
 export OPENSSL_SYSTEM_VERSION="0.9.8"
@@ -49,7 +50,11 @@ else
 ifeq ($(OPENSSL_SYSTEM_VERSION_110), 0)
 export OPENSSL_SYSTEM_VERSION="1.1.0"
 else
+ifeq ($(OPENSSL_SYSTEM_VERSION_300), 0)
+export OPENSSL_SYSTEM_VERSION="3.0.0"
+else
 $(error Unable to determine SSL system version installed!)
+endif
 endif
 endif
 endif
@@ -59,6 +64,7 @@ displaySSLversion:
 	@echo "OpenSSL system full version 098: $(OPENSSL_SYSTEM_VERSION_098)"
 	@echo "OpenSSL system full version 100: $(OPENSSL_SYSTEM_VERSION_100)"
 	@echo "OpenSSL system full version 110: $(OPENSSL_SYSTEM_VERSION_110)"
+	@echo "OpenSSL system full version 300: $(OPENSSL_SYSTEM_VERSION_300)"
 	@echo "OpenSSL system version: $(OPENSSL_SYSTEM_VERSION)"
 
 # Now define other SSL variables for expansion/directory purposes
@@ -66,10 +72,12 @@ displaySSLversion:
 export OPENSSL098DIR=openssl_0.9.8
 export OPENSSL100DIR=openssl_1.0.0
 export OPENSSL110DIR=openssl_1.1.0
+export OPENSSL300DIR=openssl_3.0.0
 
 LINK_OPENSSL098=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL098DIR) -L$(SCXPAL_TARGET_DIR)
 LINK_OPENSSL100=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL100DIR) -L$(SCXPAL_TARGET_DIR)
 LINK_OPENSSL110=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL110DIR) -L$(SCXPAL_TARGET_DIR)
+LINK_OPENSSL300=$(LINK) -L$(INTERMEDIATE_DIR)/$(OPENSSL300DIR) -L$(SCXPAL_TARGET_DIR)
 
 LD_LIBRARY_PATH_OPENSSL098=$(OPENSSL098_LIBDIR)
 PKG_CONFIG_PATH_OPENSSL098=$(OPENSSL098_LIBDIR)/pkgconfig
@@ -77,6 +85,8 @@ LD_LIBRARY_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)
 PKG_CONFIG_PATH_OPENSSL100=$(OPENSSL100_LIBDIR)/pkgconfig
 LD_LIBRARY_PATH_OPENSSL110=$(OPENSSL110_LIBDIR)
 PKG_CONFIG_PATH_OPENSSL110=$(OPENSSL110_LIBDIR)/pkgconfig
+LD_LIBRARY_PATH_OPENSSL300=$(OPENSSL300_LIBDIR)
+PKG_CONFIG_PATH_OPENSSL300=$(OPENSSL300_LIBDIR)/pkgconfig
 
 endif
 
