@@ -28,6 +28,7 @@ EXCLUDE_SECURITY_FLAG=.s
 
 ifeq ($(PF_ARCH),x64)
     IS_OPENSSL_110=$(shell openssl version | grep 1.1 | wc -l)
+    IS_OPENSSL_300=$(shell openssl version | grep 3.0 | wc -l)
 endif
 
 ifneq ($(COMBINED_PACKAGES),1)
@@ -244,6 +245,26 @@ ifeq ($(PF_ARCH),x64)
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(OUTPUT_PACKAGE_SPECIFICATION_FIRST) \
 		$(DATAFILES) $(DATAFILES_R)
+	sudo rm -rf $(STAGING_DIR)
+	rm -rf $(INTERMEDIATE_DIR)/300
+	mkdir -p $(INTERMEDIATE_DIR)/300
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)/300 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_3.0.0 $(DISABLE_PORT) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_FIRST) \
+		$(DATAFILES) $(DATAFILES_R)
 endif
 
 	# Next comes DEB symbol packages
@@ -301,6 +322,25 @@ ifeq ($(PF_ARCH),x64)
 		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_1.1.0 $(DISABLE_PORT) \
+		$(DPKG_LOCATION) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_FIRST) \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)/300 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_3.0.0 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(OUTPUT_PACKAGE_SPECIFICATION_FIRST) \
@@ -374,6 +414,26 @@ ifeq ($(PF_ARCH),x64)
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(OUTPUT_PACKAGE_SPECIFICATION_SECOND) \
 		$(DATAFILES) $(DATAFILES_R)
+	sudo rm -rf $(STAGING_DIR)
+	rm -rf $(INTERMEDIATE_DIR)_$(STRIPPED)/300
+	mkdir -p $(INTERMEDIATE_DIR)_$(STRIPPED)/300
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(STRIPPED)/300 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)_$(STRIPPED) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_3.0.0 $(DISABLE_PORT) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_SECOND) \
+		$(DATAFILES) $(DATAFILES_R)
 endif
 
 	# Next comes DEB release packages
@@ -431,6 +491,25 @@ ifeq ($(PF_ARCH),x64)
 		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
 		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
 		--ULINUX_POSTFIX=/openssl_1.1.0 $(DISABLE_PORT) \
+		$(DPKG_LOCATION) \
+		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
+		$(OUTPUT_PACKAGE_SPECIFICATION_SECOND) \
+		$(DATAFILES) $(DATAFILES_D)
+	sudo rm -rf $(STAGING_DIR)
+	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
+		--BASE_DIR=$(SCX_BRD) \
+		--TARGET_DIR=$(INTERMEDIATE_DIR)_$(STRIPPED)/300 \
+		--INTERMEDIATE_DIR=$(SCX_BRD)/installer/intermediate \
+		--STAGING_DIR=$(STAGING_DIR) \
+		--OMI_DIR=$(SCXOMI_DIR) \
+		--BUILD_TYPE=$(BUILD_TYPE) \
+		--BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)_$(STRIPPED) \
+		--PFARCH=$(PF_ARCH) \
+		--PFMAJOR=$(PF_MAJOR) \
+		--PFMINOR=$(PF_MINOR) \
+		--VERSION=$(SCX_BUILDVERSION_MAJOR).$(SCX_BUILDVERSION_MINOR).$(SCX_BUILDVERSION_PATCH) \
+		--RELEASE=$(SCX_BUILDVERSION_BUILDNR) \
+		--ULINUX_POSTFIX=/openssl_3.0.0 $(DISABLE_PORT) \
 		$(DPKG_LOCATION) \
 		--DATAFILE_PATH=$(SCX_BRD)/installer/datafiles \
 		$(OUTPUT_PACKAGE_SPECIFICATION_SECOND) \
@@ -496,8 +575,12 @@ ifneq ($(COMBINED_PACKAGES),1)
       ifeq ($(IS_OPENSSL_110),1)
 	cp `find $(OMIKITS_DIR) -name omi-*ssl_110.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
       else
-        ifeq ($(IS_OPENSSL_100),1)
-	  cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+        ifeq ($(IS_OPENSSL_300),1)
+	  cp `find $(OMIKITS_DIR) -name omi-*ssl_300.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+        else
+          ifeq ($(IS_OPENSSL_100),1)
+	    cp `find $(OMIKITS_DIR) -name omi-*ssl_100.ulinux$(SECURITY_FLAG).$(PF_ARCH).$(PACKAGE_SUFFIX)` $(INTERMEDIATE_DIR)/
+          endif
         endif
       endif
     endif
@@ -549,11 +632,13 @@ else # ifneq ($(COMBINED_PACKAGES),1)
 	    cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_100*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 100
             ifeq ($(PF_ARCH),x64)
 	       cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_110*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 110
+	       cd $(INTERMEDIATE_DIR); cp $(OMIKITS_DIR)/omi-*ssl_300*$(SECURITY_FLAG).$(PF_ARCH).{rpm,deb} 300
             endif
           else
 	    cd $(INTERMEDIATE_DIR); cp `ls $(OMIKITS_DIR)/omi-*ssl_100*.$(PF_ARCH).{rpm,deb}|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` 100
             ifeq ($(PF_ARCH),x64)
 	        cd $(INTERMEDIATE_DIR); cp `ls $(OMIKITS_DIR)/omi-*ssl_110*.$(PF_ARCH).{rpm,deb}|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` 110
+		cd $(INTERMEDIATE_DIR); cp `ls $(OMIKITS_DIR)/omi-*ssl_300*.$(PF_ARCH).{rpm,deb}|grep -v "$(EXCLUDE_SECURITY_FLAG).$(PF_ARCH)"` 300
             endif
           endif
 
@@ -563,11 +648,13 @@ else # ifneq ($(COMBINED_PACKAGES),1)
           ifeq ($(PF_ARCH),x64)
 	     cd $(INTERMEDIATE_DIR)/110; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_110\./\./g"`
 	     cd $(INTERMEDIATE_DIR)/110; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_110\./\./g"`
+	     cd $(INTERMEDIATE_DIR)/300; mv omi-*.deb `ls omi-*.deb | sed "s/\.ssl_300\./\./g"`
+	     cd $(INTERMEDIATE_DIR)/300; mv omi-*.rpm `ls omi-*.rpm | sed "s/\.ssl_300\./\./g"`
           endif
 	  cd $(INTERMEDIATE_DIR)/100; echo `ls omi-*.deb` > omi_package_filename
         endif
         ifeq ($(PF_ARCH),x64)
-	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_BUNDLE_PREFIX).tar 100/*.{rpm,deb} 110/*.{rpm,deb} $(OSS_KITS)
+	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_BUNDLE_PREFIX).tar 100/*.{rpm,deb} 110/*.{rpm,deb} 300/*.{rpm,deb} $(OSS_KITS)
         else
 	   cd $(INTERMEDIATE_DIR); tar cvf $(OUTPUT_BUNDLE_PREFIX).tar 100/*.{rpm,deb} $(OSS_KITS)
         endif

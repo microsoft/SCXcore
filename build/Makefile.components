@@ -271,7 +271,7 @@ omi-preexec: $(INTERMEDIATE_DIR)/omi_preexec$(PF_EXE_FILE_SUFFIX)
 
 ifeq ($(COMBINED_PACKAGES),1)
    ifeq ($(PF_ARCH),x64)
-      ssl-tool: $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL110DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
+      ssl-tool: $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL110DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL300DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
    else
       ssl-tool: $(INTERMEDIATE_DIR)/$(OPENSSL098DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX) $(INTERMEDIATE_DIR)/$(OPENSSL100DIR)/scxsslconfig$(PF_EXE_FILE_SUFFIX)
    endif
@@ -311,6 +311,7 @@ ifeq ($(COMBINED_PACKAGES),1)
 	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL100DIR)
         ifeq ($(PF_ARCH),x64)
 	        $(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL110DIR)
+	        $(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib/$(OPENSSL300DIR)
         endif
 else
 	$(MKPATH) $(INTERMEDIATE_DIR)/scxcore-devel/lib

@@ -25,7 +25,7 @@ fi
 
 perform_ulinux_build()
 {
-    if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" -o \( `uname -m` = "x86_64" -a ! -d "/usr/local_ssl_1.1.0" \) ]; then
+    if [ ! -d "/usr/local_ssl_0.9.8" -o ! -d "/usr/local_ssl_1.0.0" -o \( `uname -m` = "x86_64" -a ! -d "/usr/local_ssl_1.1.0" \) -o \( `uname -m` = "x86_64" -a ! -d "/usr/local_ssl_3.0.0" \) ]; then
         echo "Cannot build ULINUX without Universal SSL libraries"
         exit 1
     fi
@@ -157,6 +157,7 @@ if [ $combined_packages -ne 0 ]; then
             openssl098_libdir=/usr/local_ssl_0.9.8/lib
             openssl100_libdir=/usr/local_ssl_1.0.0/lib64
             openssl110_libdir=/usr/local_ssl_1.1.0/lib
+            openssl300_libdir=/usr/local_ssl_3.0.0/lib64
             ;;
 	
 	* )
@@ -171,6 +172,8 @@ if [ $combined_packages -ne 0 ]; then
     if [ `uname -m` = "x86_64" ]; then
        openssl110_cflags=`PKG_CONFIG_PATH=$openssl110_libdir/pkgconfig $pkgconfig --cflags openssl`
        openssl110_libs=`PKG_CONFIG_PATH=$openssl110_libdir/pkgconfig $pkgconfig --libs openssl`
+       openssl300_cflags=`PKG_CONFIG_PATH=$openssl300_libdir/pkgconfig $pkgconfig --cflags openssl`
+       openssl300_libs=`PKG_CONFIG_PATH=$openssl300_libdir/pkgconfig $pkgconfig --libs openssl`
     fi
 fi
 
@@ -226,6 +229,9 @@ OPENSSL100_LIBDIR=$openssl100_libdir
 OPENSSL110_CFLAGS=$openssl110_cflags
 OPENSSL110_LIBS=$openssl110_libs
 OPENSSL110_LIBDIR=$openssl110_libdir
+OPENSSL300_CFLAGS=$openssl300_cflags
+OPENSSL300_LIBS=$openssl300_libs
+OPENSSL300_LIBDIR=$openssl300_libdir
 ENABLE_SCX_SECURITY_HARDENING=$enable_scx_security_hardening
 TRAVIS_CI=$travis_ci
 EOF
