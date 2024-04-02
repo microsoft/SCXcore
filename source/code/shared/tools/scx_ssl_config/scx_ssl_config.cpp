@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 #if defined(hpux) && defined(hppa)
     int bits = 1024;
 #else
-    int bits = 2048;
+    int bits = 3072;
 #endif
 
     SCXCoreLib::NameResolver mi;
