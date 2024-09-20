@@ -136,6 +136,8 @@ kit : GetLinuxOS scx_scripts sepolicy
 
 ifneq ($(COMBINED_PACKAGES),1)
 	sudo rm -rf $(STAGING_DIR)
+	mkdir -p $(INTERMEDIATE_DIR)/windbg
+	cp $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR) \
@@ -187,7 +189,14 @@ else
 	# First comes RPM symbol packages
 	sudo rm -rf $(STAGING_DIR)
 	rm -rf $(INTERMEDIATE_DIR)/{098,100}
-	mkdir -p $(INTERMEDIATE_DIR)/{098,100}
+	mkdir -p $(INTERMEDIATE_DIR)/{098,100} $(INTERMEDIATE_DIR)/windbg
+        ifeq ($(ENABLE_SECURITY_HARDENING),1)
+	cp $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so
+        else
+          ifneq ($(PF_ARCH),x64)
+	cp $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so
+          endif
+        endif
 
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
@@ -227,7 +236,14 @@ else
 	sudo rm -rf $(STAGING_DIR)
 ifeq ($(PF_ARCH),x64)
 	rm -rf $(INTERMEDIATE_DIR)/110
-	mkdir -p $(INTERMEDIATE_DIR)/110
+	mkdir -p $(INTERMEDIATE_DIR)/110 $(INTERMEDIATE_DIR)/windbg
+        ifeq ($(ENABLE_SECURITY_HARDENING),1)
+	cp $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so
+        else
+          ifneq ($(PF_ARCH),x64)
+	cp $(INTERMEDIATE_DIR)/libSCXCoreProviderModule.so $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so
+          endif
+        endif
 	python $(SCXPAL_DIR)/installer/InstallBuilder/installbuilder.py \
 		--BASE_DIR=$(SCX_BRD) \
 		--TARGET_DIR=$(INTERMEDIATE_DIR)/110 \
@@ -623,6 +639,10 @@ ifneq ($(COMBINED_PACKAGES),1)
 	cd $(INTERMEDIATE_DIR); cp `cat $(INTERMEDIATE_DIR)/$(PACKAGE_FILENAME)`.sh $(TARGET_DIR)
   endif # ifneq ($(DISTRO_TYPE),Linux)
 
+	# copy the symbol binaries to PACKAGE_DIR/windbg for native building
+	mkdir -p $(TARGET_DIR)/windbg
+	cp $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so $(TARGET_DIR)/windbg/libSCXCoreProviderModule.so
+
 else # ifneq ($(COMBINED_PACKAGES),1)
 
 	# (Copying for combined packages)
@@ -660,6 +680,15 @@ else # ifneq ($(COMBINED_PACKAGES),1)
         endif
 	../installer/bundle/create_bundle.sh $(DISTRO_TYPE) $(INTERMEDIATE_DIR) $(OUTPUT_BUNDLE_PREFIX).tar $(OUTPUT_BUNDLE_PREFIX) `cat $(INTERMEDIATE_DIR)/100/omi_package_filename` $(DISABLE_LISTENER)
 	cp $(INTERMEDIATE_DIR)/$(OUTPUT_BUNDLE_PREFIX).sh $(TARGET_DIR)
+	mkdir -p $(TARGET_DIR)/windbg;
+	# copy the symbol binaries to PACKAGE_DIR/windbg for Linux building
+        ifeq ($(ENABLE_SECURITY_HARDENING),1)
+	cp $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so $(TARGET_DIR)/windbg/libSCXCoreProviderModule.so
+        else
+          ifneq ($(PF_ARCH),x64)
+	cp $(INTERMEDIATE_DIR)/windbg/libSCXCoreProviderModule.so $(TARGET_DIR)/windbg/libSCXCoreProviderModule.so
+          endif
+        endif
 
 endif # ifneq ($(COMBINED_PACKAGES),1)
 

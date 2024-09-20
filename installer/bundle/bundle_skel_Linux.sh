@@ -201,7 +201,7 @@ ulinux_detect_openssl_version() {
     fi
     OPENSSL_SYSTEM_VERSION_100=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.0.'; echo $?`
     [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_110=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^1.1.'; echo $?`
-    [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_300=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^3.0.'; echo $?`
+    [ `uname -m` = "x86_64" ] && OPENSSL_SYSTEM_VERSION_300=`echo $OPENSSL_SYSTEM_VERSION_FULL | grep -Eq '^3.'; echo $?`
     if [ $OPENSSL_SYSTEM_VERSION_100 = 0 ]; then
         TMPBINDIR=100
     elif [ $OPENSSL_SYSTEM_VERSION_110 = 0 ]; then
@@ -212,7 +212,7 @@ ulinux_detect_openssl_version() {
         echo "Error: This system does not have a supported version of OpenSSL installed."
         echo "This system's OpenSSL version: $OPENSSL_SYSTEM_VERSION_FULL"
         if [ `uname -m` = "x86_64" ];then
-           echo "Supported versions: 1.0.*, 1.1.*, 3.0.*"
+           echo "Supported versions: 1.0.*, 1.1.*, 3.*"
         else
            echo "Supported versions: 1.0.*"
         fi
