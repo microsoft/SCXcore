@@ -27,7 +27,8 @@ The SCXcore provides a CIMOM provider, based on [OMI][], to return
 logging and statistical information for a UNIX or Linux system. The
 SCXcore provider runs on AIX 6.1 and later, HP/UX 11.31 and later,
 Solaris 5.10 and later, and most versions of Linux as far back as
-RedHat 5.0, SuSE 10.1, and Debian 5.0.
+Red Hat Enterprise Linux (RHEL) 5, OpenSUSE 10.1, SUSE Linux Enterprise Server 10,
+and Debian GNU/Linux 5.0.
 
 [OMI]: https://github.com/Microsoft/omi
 
